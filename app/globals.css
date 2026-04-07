@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-light: var(--secondary-light);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+
+  --shadow-glow-orange: 0 0 20px rgba(234, 88, 12, 0.4);
+  --shadow-glow-blue: 0 0 20px rgba(37, 99, 235, 0.4);
+  --shadow-header: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-navbar-orange: var(--navbar-shadow-orange);
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Orange - Primary */
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --primary-light: #f97316;
+  --primary-dark: #c2410c;
+  
+  /* Black - Secondary */
+  --secondary: #000000;
+  --secondary-foreground: #ffffff;
+  --secondary-light: #262626;
+
+  /* Blue - Accent */
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --accent-light: #3b82f6;
+  --accent-dark: #1d4ed8;
+
+  --navbar-shadow-orange: 0 10px 28px -14px rgba(234, 88, 12, 0.85);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 18px 38px -18px rgba(234, 88, 12, 0.55), 0 10px 22px -14px rgba(0, 0, 0, 0.18);
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  
+  /* Orange - Primary */
+  --primary: #f97316;
+  --primary-foreground: #000000;
+  --primary-light: #fb923c;
+  --primary-dark: #ea580c;
+  
+  /* Black/Dark Gray - Secondary */
+  --secondary: #171717;
+  --secondary-foreground: #ffffff;
+  --secondary-light: #404040;
+
+  /* Blue - Accent */
+  --accent: #3b82f6;
+  --accent-foreground: #ffffff;
+  --accent-light: #60a5fa;
+  --accent-dark: #2563eb;
+
+  --navbar-shadow-orange: 0 10px 28px -14px rgba(249, 115, 22, 0.9);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 1px 1px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 20px 42px -18px rgba(249, 115, 22, 0.6), 0 12px 26px -14px rgba(0, 0, 0, 0.55);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes cnc-breath-card {
+  0% {
+    transform: translateZ(0) scale(1);
+    box-shadow: var(--card-shadow);
+  }
+  60% {
+    transform: translateZ(0) scale(1.03);
+    box-shadow: var(--card-shadow-hover);
+  }
+  100% {
+    transform: translateZ(0) scale(1.02);
+    box-shadow: var(--card-shadow-hover);
+  }
+}
+
+@keyframes cnc-breath-btn {
+  0% {
+    transform: translateZ(0) scale(1);
+    box-shadow: none;
+  }
+  55% {
+    transform: translateZ(0) scale(1.03);
+    box-shadow: var(--shadow-glow-orange);
+  }
+  100% {
+    transform: translateZ(0) scale(1);
+    box-shadow: none;
+  }
+}
+
+@layer utilities {
+  .cnc-navbar-shadow {
+    box-shadow: var(--navbar-shadow-orange);
+  }
+  .cnc-card-shadow {
+    box-shadow: var(--card-shadow);
+  }
+  .cnc-breath-card {
+    will-change: transform, box-shadow;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  .cnc-breath-card:hover {
+    animation: cnc-breath-card 720ms ease-in-out 1 forwards;
+  }
+  .cnc-breath-btn {
+    will-change: transform, box-shadow;
+  }
+  .cnc-breath-btn:hover {
+    animation: cnc-breath-btn 650ms ease-in-out 1;
+  }
+}
