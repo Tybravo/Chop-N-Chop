@@ -71,7 +71,7 @@ export function CartSidebar() {
             <ul className="space-y-4">
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 border-b border-secondary-light/10 pb-4">
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-secondary-light/10">
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-secondary-light/10">
                     {/* Placeholder image */}
                     <div className="w-full h-full bg-secondary-light/20" />
                   </div>
@@ -95,7 +95,7 @@ export function CartSidebar() {
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="px-3 py-1 text-sm font-medium text-foreground border-x border-secondary-light/25 min-w-[2.5rem] text-center">
+                        <span className="px-3 py-1 text-sm font-medium text-foreground border-x border-secondary-light/25 min-w-10 text-center">
                           {item.quantity}
                         </span>
                         <button 

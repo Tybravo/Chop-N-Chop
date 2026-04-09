@@ -170,14 +170,14 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="w-full lg:w-[400px]">
+          <div className="w-full lg:w-100">
             <div className="bg-background p-6 rounded-2xl shadow-sm border border-secondary-light/20 sticky top-24">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <ShoppingBag size={20} className="text-primary" />
                 Order Summary
               </h2>
               
-              <ul className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2">
+              <ul className="space-y-4 mb-6 max-h-75 overflow-y-auto pr-2">
                 {items.map((item) => (
                   <li key={item.id} className="flex justify-between text-sm">
                     <div className="flex gap-2">
