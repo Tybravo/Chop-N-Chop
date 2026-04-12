@@ -84,7 +84,7 @@ export default function CheckoutPage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Checkout Form */}
-          <div className="flex-1 bg-background p-6 md:p-8 rounded-2xl shadow-sm border border-secondary-light/20">
+          <div className="flex-1 bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 `hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
             <h1 className="text-2xl font-black text-foreground mb-8">Checkout</h1>
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -171,7 +171,7 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="w-full lg:w-100">
-            <div className="bg-background p-6 rounded-2xl shadow-sm border border-secondary-light/20 sticky top-24">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)] sticky top-24">
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <ShoppingBag size={20} className="text-primary" />
                 Order Summary
