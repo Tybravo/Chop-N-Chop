@@ -8,7 +8,7 @@ import { CheckCircle2, Clock, MapPin, ChefHat } from 'lucide-react';
 export default function OrderSuccessPage() {
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center bg-secondary-light/5 py-12 px-4">
-      <div className="max-w-md w-full bg-background rounded-3xl shadow-lg p-8 text-center border border-secondary-light/20">
+      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(252,107,49,0.4)] dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)] p-8 text-center">
         <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 size={48} />
         </div>

@@ -50,7 +50,7 @@ export default function OrdersPage() {
         </h1>
 
         {MOCK_ORDERS.length === 0 ? (
-          <div className="bg-background p-12 rounded-3xl shadow-sm text-center border border-secondary-light/20">
+          <div className="bg-white dark:bg-gray-900 p-12 rounded-3xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(252,107,49,0.4)] dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)] text-center">
             <ShoppingBag size={48} className="mx-auto text-foreground/30 mb-4" />
             <h2 className="text-xl font-bold text-foreground mb-2">No orders yet</h2>
             <p className="text-foreground/60 mb-6">You haven&apos;t placed any orders with us yet.</p>
@@ -65,7 +65,7 @@ export default function OrdersPage() {
             {MOCK_ORDERS.map((order) => (
               <div 
                 key={order.id} 
-                className="bg-background rounded-2xl shadow-sm border border-secondary-light/20 overflow-hidden transition-shadow hover:shadow-md"
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(252,107,49,0.4)] dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]"
               >
                 <div className="p-6 border-b border-secondary-light/10">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
