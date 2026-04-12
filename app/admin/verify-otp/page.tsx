@@ -9,7 +9,6 @@ function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
-  const role = searchParams.get("role");
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,8 +37,12 @@ function VerifyOtpForm() {
         // For this task, we redirect to the dashboard
         router.push("/admin/dashboard");
       }
-    } catch (err: any) {
-      setError(err.message || "Invalid OTP code.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Invalid OTP code.");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,7 +51,7 @@ function VerifyOtpForm() {
   if (!email) return null;
 
   return (
-    <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(252,107,49,0.4)] dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
+    <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
       <div className="p-8">
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
@@ -86,7 +89,7 @@ function VerifyOtpForm() {
               required
             />
             <p className="text-xs text-gray-400 mt-2 text-center">
-              Hint: Use "123456" for mock login
+              Hint: Use &quot;123456&quot; for mock login
             </p>
           </div>
 

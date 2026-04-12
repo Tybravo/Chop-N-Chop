@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { adminService } from "@/lib/api/admin.service";
 import { DashboardData } from "@/types/admin";
 import { Loader2, ArrowRight, CheckCircle2, User, WalletCards, XCircle, Truck } from "lucide-react";
+import Image from "next/image";
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -41,7 +42,7 @@ export default function AdminDashboardPage() {
       {/* Title & Badge */}
       <div className="flex items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-          Today's Drop Operations
+          Today&apos;s Drop Operations
         </h1>
         <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 text-[#FC6B31] rounded-full text-sm font-medium border border-orange-100">
           <span className="w-2 h-2 rounded-full bg-[#FC6B31]"></span>
@@ -99,7 +100,7 @@ export default function AdminDashboardPage() {
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-700">
                 <Truck className="w-5 h-5 text-gray-500" />
-                <h2 className="text-lg font-bold">Today's Orders</h2>
+                <h2 className="text-lg font-bold">Today&apos;s Orders</h2>
               </div>
               <button className="text-[#FC6B31] text-sm font-medium flex items-center gap-1 hover:underline">
                 All orders <ArrowRight className="w-4 h-4" />
@@ -217,8 +218,14 @@ export default function AdminDashboardPage() {
             <div className="space-y-6">
               {dispatchStatus.map((rider) => (
                 <div key={rider.id} className="flex items-start gap-4">
-                  <div className="relative">
-                    <img src={rider.avatarUrl} alt={rider.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                  <div className="relative w-10 h-10">
+                    <Image 
+                      src={rider.avatarUrl} 
+                      alt={rider.name} 
+                      fill
+                      sizes="40px"
+                      className="rounded-full object-cover border border-gray-200" 
+                    />
                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   </div>
                   <div className="flex-1">
@@ -261,7 +268,7 @@ export default function AdminDashboardPage() {
             <div className="space-y-6">
               {issues.map((issue) => (
                 <div key={issue.id} className="flex gap-4">
-                  <div className="mt-0.5 flex-shrink-0">
+                  <div className="mt-0.5 shrink-0">
                     {issue.type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
                     {issue.type === 'warning' && (issue.title.includes("Unassigned") ? <User className="w-5 h-5 text-yellow-500" /> : <WalletCards className="w-5 h-5 text-yellow-500" />)}
                     {issue.type === 'error' && <XCircle className="w-5 h-5 text-red-500" />}

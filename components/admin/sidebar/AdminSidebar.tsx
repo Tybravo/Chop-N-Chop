@@ -61,13 +61,13 @@ export function AdminSidebar() {
     <aside
       className={`bg-[#26292C] text-white transition-all duration-300 flex flex-col relative z-30 ${
         collapsed ? "w-20" : "w-64"
-      } h-screen flex-shrink-0 font-sans`}
+      } h-screen shrink-0 font-sans`}
     >
       {/* Header */}
       <div className={`flex items-center h-16 px-4 bg-white ${collapsed ? 'justify-center' : 'justify-between'}`}>
         {!collapsed && (
           <span className="text-xl font-extrabold text-[#FC6B31] tracking-tight">
-            Chop n' Chop
+            Chop n&apos; Chop
           </span>
         )}
         <button
@@ -101,7 +101,7 @@ export function AdminSidebar() {
                   title={collapsed ? item.name : undefined}
                 >
                   <Icon
-                    className={`w-5 h-5 flex-shrink-0 ${
+                    className={`w-5 h-5 shrink-0 ${
                       collapsed ? "" : "mr-4"
                     }`}
                   />
@@ -128,7 +128,7 @@ export function AdminSidebar() {
                   title={collapsed ? item.name : undefined}
                 >
                   <Icon
-                    className={`w-5 h-5 flex-shrink-0 ${
+                    className={`w-5 h-5 shrink-0 ${
                       collapsed ? "" : "mr-4"
                     }`}
                   />
@@ -146,7 +146,7 @@ export function AdminSidebar() {
               title={collapsed ? "Logout" : undefined}
             >
               <LogOut
-                className={`w-5 h-5 flex-shrink-0 ${
+                className={`w-5 h-5 shrink-0 ${
                   collapsed ? "" : "mr-4"
                 }`}
               />

@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutGrid, Search } from "lucide-react";
+import Image from "next/image";
 
 export function AdminHeader() {
   return (
@@ -22,11 +23,13 @@ export function AdminHeader() {
           />
         </div>
 
-        <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
-          <img
+        <div className="relative h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+          <Image
             src="https://i.pravatar.cc/150?img=47"
             alt="Admin Profile"
-            className="h-full w-full object-cover"
+            fill
+            sizes="32px"
+            className="object-cover"
           />
         </div>
       </div>
