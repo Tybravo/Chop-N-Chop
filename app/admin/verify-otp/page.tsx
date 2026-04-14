@@ -14,11 +14,11 @@ function VerifyOtpForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!email) {
-      router.push("/admin/login");
-    }
-  }, [email, router]);
+  // useEffect(() => {
+  //   if (!email) {
+  //     router.push("/admin/login");
+  //   }
+  // }, [email, router]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ function VerifyOtpForm() {
     }
   };
 
-  if (!email) return null;
+  // if (!email) return null;
 
   return (
     <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
