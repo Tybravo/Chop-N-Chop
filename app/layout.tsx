@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { CartSidebar } from "@/components/CartSidebar";
@@ -8,6 +7,9 @@ import { ThemeProvider } from "@/app/context/ThemeContext";
 export const metadata: Metadata = {
   title: "Chopnchop - Scheduled Food Delivery",
   description: "Order your daily meals with guaranteed delivery slots. Zero waste, zero wait.",
+  icons: {
+    icon: "/Chopnchop-logo01.png",
+  },
 };
 
 // Inline script to prevent FOUC (Flash of Unstyled Content) on initial load
@@ -35,9 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
-        </Script>
+        <script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body suppressHydrationWarning className="antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground">
         <ThemeProvider>
