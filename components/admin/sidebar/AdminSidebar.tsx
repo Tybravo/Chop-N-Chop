@@ -13,29 +13,45 @@ import {
   SquareDashedBottom,
   Crosshair,
   ArrowRightToLine,
-  ArrowLeftToLine
+  ArrowLeftToLine,
+  Users,
+  Store,
+  CreditCard,
+  BarChart3,
+  Bell,
+  Shield,
+  Activity
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 
-const MENU_ITEMS = [
+type MenuItem = { name: string; href: string; icon: React.ElementType; role?: "SUPER_ADMIN" };
+
+const MENU_ITEMS: MenuItem[] = [
   { name: "Overview", href: "/admin/dashboard", icon: LayoutGrid },
-  { name: "Order", href: "/admin/orders", icon: ShoppingCart },
+  { name: "View Summary", href: "/admin/dashboard/summary", icon: Activity },
+  { name: "Admins", href: "/admin/dashboard/admins", icon: Shield, role: "SUPER_ADMIN" },
+  { name: "Orders", href: "/admin/dashboard/orders", icon: ShoppingCart },
   { name: "Batches", href: "/admin/batches", icon: SquareDashedBottom },
   { name: "Kitchen", href: "/admin/kitchen", icon: ChefHat },
-  { name: "Riders", href: "/admin/riders", icon: Truck },
+  { name: "Customers", href: "/admin/dashboard/customers", icon: Users },
+  { name: "Vendors", href: "/admin/dashboard/vendors", icon: Store },
+  { name: "Riders", href: "/admin/dashboard/riders", icon: Truck },
+  { name: "Transactions", href: "/admin/dashboard/transactions", icon: CreditCard },
   { name: "Delivery Status", href: "/admin/delivery", icon: Crosshair },
+  { name: "Analytics", href: "/admin/dashboard/analytics", icon: BarChart3 },
 ];
 
-const BOTTOM_ITEMS = [
-  { name: "Help and Support", href: "/admin/help", icon: Headset },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+const BOTTOM_ITEMS: MenuItem[] = [
+  { name: "Notifications", href: "/admin/dashboard/notifications", icon: Bell },
+  { name: "Help and Support", href: "/admin/dashboard/support", icon: Headset },
+  { name: "Settings", href: "/admin/dashboard/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAdminAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,7 +70,7 @@ export function AdminSidebar() {
   }, []);
 
   const handleLogout = () => {
-    router.push("/admin/login");
+    logout();
   };
 
   return (
@@ -85,7 +101,7 @@ export function AdminSidebar() {
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-6">
         <ul className="space-y-1">
-          {MENU_ITEMS.map((item) => {
+          {MENU_ITEMS.filter((item) => !item.role || item.role === user?.role).map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
 

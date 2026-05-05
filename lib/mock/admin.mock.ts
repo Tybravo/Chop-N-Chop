@@ -1,4 +1,4 @@
-import { AdminUser, DashboardData, Order, DispatchRider, Issue } from "@/types/admin";
+import { AdminUser, DashboardData, Order, DispatchRider, Issue, Customer, Vendor, Transaction } from "@/types/admin";
 
 export const MOCK_ADMINS: AdminUser[] = [
   {
@@ -9,6 +9,15 @@ export const MOCK_ADMINS: AdminUser[] = [
     status: "ACTIVE",
     createdAt: "2024-01-01T00:00:00Z",
     avatarUrl: "https://i.pravatar.cc/150?u=super",
+  },
+  {
+    id: "admin_02",
+    name: "Sub Admin",
+    email: "sub@chopnchop.com",
+    role: "SUB_ADMIN",
+    status: "ACTIVE",
+    createdAt: "2024-02-01T00:00:00Z",
+    avatarUrl: "https://i.pravatar.cc/150?u=sub",
   },
 ];
 
@@ -44,6 +53,18 @@ export const MOCK_DASHBOARD_DATA: DashboardData = {
     pendingOrders: 13,
     activeBatches: 6,
     readyForPickup: 2,
+    totalRevenue: 542000,
+    revenueFromYesterday: 45000,
+    activeVendors: 24,
+    newVendors: 3,
+    activeRiders: 45,
+    newRiders: 5,
+    totalCustomers: 1250,
+    newCustomers: 28,
+    pendingDeliveries: 18,
+    delayedDeliveries: 5,
+    rejectedDeliveries: 0,
+    rejectedThisWeek: 0,
   },
   recentOrders: MOCK_RECENT_ORDERS,
   dispatchStatus: MOCK_DISPATCH_STATUS,
@@ -58,3 +79,24 @@ export const MOCK_DASHBOARD_DATA: DashboardData = {
 };
 
 export const MOCK_VALID_OTP = "123456";
+
+export const MOCK_CUSTOMERS: Customer[] = [
+  { id: "CUST-01", name: "Lisa Wong", email: "lisa.w@example.com", phone: "+2348012345678", totalOrders: 15, status: "ACTIVE", joinedAt: "2023-10-12" },
+  { id: "CUST-02", name: "Ahamed Bello", email: "ahamed.b@example.com", phone: "+2348023456789", totalOrders: 4, status: "ACTIVE", joinedAt: "2024-01-05" },
+  { id: "CUST-03", name: "Sarah Ade", email: "sarah.a@example.com", phone: "+2348034567890", totalOrders: 28, status: "ACTIVE", joinedAt: "2023-08-20" },
+  { id: "CUST-04", name: "John Smith", email: "john.s@example.com", phone: "+2348045678901", totalOrders: 2, status: "INACTIVE", joinedAt: "2024-02-15" },
+];
+
+export const MOCK_VENDORS: Vendor[] = [
+  { id: "VEND-01", businessName: "Mama Cass", ownerName: "Cassandra O.", email: "mama@cass.com", status: "APPROVED", rating: 4.8, joinedAt: "2023-05-10" },
+  { id: "VEND-02", businessName: "The Place", ownerName: "Tunde B.", email: "info@theplace.com", status: "APPROVED", rating: 4.5, joinedAt: "2023-06-22" },
+  { id: "VEND-03", businessName: "Spicy Bites", ownerName: "Chinedu E.", email: "hello@spicybites.com", status: "PENDING", rating: 0, joinedAt: "2024-03-01" },
+  { id: "VEND-04", businessName: "Sweet Sensation", ownerName: "Amaka U.", email: "contact@sweetsensation.com", status: "REJECTED", rating: 3.2, joinedAt: "2023-11-18" },
+];
+
+export const MOCK_TRANSACTIONS: Transaction[] = [
+  { id: "TXN-001", orderId: "DD-1020", customerName: "Lisa Wong", amount: 4500, status: "SUCCESS", date: "2024-03-10T10:45:00Z", paymentMethod: "Card" },
+  { id: "TXN-002", orderId: "DD-1021", customerName: "Ahamed Bello", amount: 2000, status: "PENDING", date: "2024-03-10T11:45:00Z", paymentMethod: "Bank Transfer" },
+  { id: "TXN-003", orderId: "DD-1022", customerName: "Sarah Ade", amount: 6500, status: "FAILED", date: "2024-03-10T12:15:00Z", paymentMethod: "Card" },
+  { id: "TXN-004", orderId: "DD-1023", customerName: "John Smith", amount: 3200, status: "SUCCESS", date: "2024-03-10T15:15:00Z", paymentMethod: "Wallet" },
+];

@@ -1,5 +1,5 @@
-import { LoginPayload, OTPPayload, DashboardData, AdminUser } from "@/types/admin";
-import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_VALID_OTP } from "@/lib/mock/admin.mock";
+import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider } from "@/types/admin";
+import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_VALID_OTP, MOCK_CUSTOMERS, MOCK_VENDORS, MOCK_TRANSACTIONS } from "@/lib/mock/admin.mock";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -53,4 +53,34 @@ export const adminService = {
     await delay(800);
     return MOCK_DASHBOARD_DATA;
   },
+
+  async getAdmins(): Promise<AdminUser[]> {
+    await delay(500);
+    return MOCK_ADMINS;
+  },
+
+  async getCustomers(): Promise<Customer[]> {
+    await delay(500);
+    return MOCK_CUSTOMERS;
+  },
+
+  async getVendors(): Promise<Vendor[]> {
+    await delay(500);
+    return MOCK_VENDORS;
+  },
+
+  async getOrders(): Promise<Order[]> {
+    await delay(500);
+    return MOCK_DASHBOARD_DATA.recentOrders;
+  },
+
+  async getRiders(): Promise<DispatchRider[]> {
+    await delay(500);
+    return MOCK_DASHBOARD_DATA.dispatchStatus;
+  },
+
+  async getTransactions(): Promise<Transaction[]> {
+    await delay(500);
+    return MOCK_TRANSACTIONS;
+  }
 };

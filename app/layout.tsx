@@ -53,9 +53,13 @@ export default function RootLayout({
               <p className="text-sm font-medium text-foreground/70">
                 &copy; {new Date().getFullYear()} Chop<span className="text-primary">n</span>chop. All rights reserved.
               </p>
-              <p className="text-xs text-foreground/50 mt-2">
-                Lekki • Yaba • Victoria Island
-              </p>
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-foreground/50">
+                <span>Lekki • Yaba • Victoria Island</span>
+                <span>•</span>
+                <a href="/admin/login" className="hover:text-primary transition-colors">
+                  Admin Portal
+                </a>
+              </div>
             </div>
           </footer>
         </ThemeProvider>
