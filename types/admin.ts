@@ -63,6 +63,18 @@ export interface DashboardStats {
   pendingOrders: number;
   activeBatches: number;
   readyForPickup: number;
+  totalRevenue: number;
+  revenueFromYesterday: number;
+  activeVendors: number;
+  newVendors: number;
+  activeRiders: number;
+  newRiders: number;
+  totalCustomers: number;
+  newCustomers: number;
+  pendingDeliveries: number;
+  delayedDeliveries: number;
+  rejectedDeliveries: number;
+  rejectedThisWeek: number;
 }
 
 export interface DashboardData {
@@ -73,3 +85,34 @@ export interface DashboardData {
   performance: PerformanceStats;
   recentAdmins: AdminUser[];
 }
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  totalOrders: number;
+  status: "ACTIVE" | "INACTIVE";
+  joinedAt: string;
+}
+
+export interface Vendor {
+  id: string;
+  businessName: string;
+  ownerName: string;
+  email: string;
+  status: "APPROVED" | "PENDING" | "REJECTED";
+  rating: number;
+  joinedAt: string;
+}
+
+export interface Transaction {
+  id: string;
+  orderId: string;
+  customerName: string;
+  amount: number;
+  status: "SUCCESS" | "PENDING" | "FAILED";
+  date: string;
+  paymentMethod: string;
+}
+
