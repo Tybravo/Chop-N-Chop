@@ -53,7 +53,7 @@ export default function AdminsPage() {
       setInviteLoading(true);
       const res = await adminService.inviteAdmin(inviteForm);
       if (res.success || res) {
-        setInviteSuccess((res as any).message || "Staff invited successfully. Invitation email is being sent.");
+        setInviteSuccess(res.message || "Staff invited successfully. Invitation email is being sent.");
         setInviteForm({ email: "", phone: "", assignedBrand: "", role: "" });
         // Refresh the admins list after a successful invite
         fetchAdmins();
@@ -78,8 +78,12 @@ export default function AdminsPage() {
       await adminService.removeAdmin(id);
       // Optimistically update the list by removing the deleted admin
       setAdmins((prev) => prev.filter((admin) => admin.id !== id));
-    } catch (error: any) {
-      alert(error.message || "Failed to remove admin.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message || "Failed to remove admin.");
+      } else {
+        alert("Failed to remove admin.");
+      }
     } finally {
       setIsDeleting(null);
     }
@@ -93,10 +97,14 @@ export default function AdminsPage() {
       await adminService.changeAdminStatus(id, newStatus);
       // Optimistically update the admin's status in the table
       setAdmins((prev) =>
-        prev.map((admin) => (admin.id === id ? { ...admin, status: newStatus as any } : admin))
+        prev.map((admin) => (admin.id === id ? { ...admin, status: newStatus as AdminUser["status"] } : admin))
       );
-    } catch (error: any) {
-      alert(error.message || "Failed to update admin status.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message || "Failed to update admin status.");
+      } else {
+        alert("Failed to update admin status.");
+      }
     } finally {
       setIsUpdatingStatus(null);
     }
@@ -296,7 +304,7 @@ export default function AdminsPage() {
                     </div>
                     <select
                       value={inviteForm.assignedBrand}
-                      onChange={(e) => setInviteForm({ ...inviteForm, assignedBrand: e.target.value as any })}
+                      onChange={(e) => setInviteForm({ ...inviteForm, assignedBrand: e.target.value as InviteAdminPayload["assignedBrand"] })}
                       className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm appearance-none"
                       required
                     >
@@ -315,7 +323,7 @@ export default function AdminsPage() {
                     </div>
                     <select
                       value={inviteForm.role}
-                      onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as any })}
+                      onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as InviteAdminPayload["role"] })}
                       className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm appearance-none"
                       required
                     >

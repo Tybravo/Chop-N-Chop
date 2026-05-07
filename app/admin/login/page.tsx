@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminService } from "@/lib/api/admin.service";
-import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Mail, Lock, Loader2 } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -12,7 +11,6 @@ export default function AdminLoginPage() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAdminAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

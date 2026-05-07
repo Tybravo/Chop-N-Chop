@@ -1,6 +1,6 @@
 import axios from "axios";
 import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider, InviteAdminPayload, InviteAdminResponse } from "@/types/admin";
-import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_VALID_OTP, MOCK_CUSTOMERS, MOCK_VENDORS, MOCK_TRANSACTIONS } from "@/lib/mock/admin.mock";
+import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_CUSTOMERS, MOCK_VENDORS, MOCK_TRANSACTIONS } from "@/lib/mock/admin.mock";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

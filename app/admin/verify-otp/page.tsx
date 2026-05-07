@@ -44,8 +44,8 @@ function VerifyOtpForm() {
           id: res.user_id,
           name: "Admin User", 
           email: email!,
-          role: (res.role as any) || "SUPER_ADMIN",
-          status: (res.status as any) || "ACTIVE",
+          role: (res.role as "SUPER_ADMIN" | "SUB_ADMIN") || "SUPER_ADMIN",
+          status: (res.status as "ACTIVE" | "INACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED") || "ACTIVE",
           createdAt: new Date().toISOString(),
         });
       }
