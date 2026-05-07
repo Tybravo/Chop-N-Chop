@@ -8,7 +8,7 @@ import { Mail, Lock, Loader2 } from "lucide-react";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -16,19 +16,18 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
-      setError("Please enter both email and password.");
+    if (!email || !pin) {
+      setError("Please enter both email and PIN.");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await adminService.login({ email, password });
-      if (res.success) {
-        router.push(
-          `/admin/verify-otp?email=${encodeURIComponent(email)}&role=${res.role}`
-        );
-      }
+      // Wait for login endpoint to validate email and PIN.
+      // If it passes, it'll send the OTP and we just navigate to OTP screen.
+      await adminService.login({ emailOrUsername: email, password: pin });
+      
+      router.push(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -81,7 +80,7 @@ export default function AdminLoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Password
+                4-Digit PIN
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -89,10 +88,11 @@ export default function AdminLoginPage() {
                 </div>
                 <input
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
-                  placeholder="••••••••"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors tracking-widest"
+                  placeholder="••••"
+                  maxLength={4}
                   required
                 />
               </div>

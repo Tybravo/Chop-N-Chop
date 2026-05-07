@@ -7,17 +7,30 @@ export interface AdminUser {
   role: AdminRole;
   avatarUrl?: string;
   createdAt: string;
-  status: "ACTIVE" | "INACTIVE";
+  status: "ACTIVE" | "INACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED";
 }
 
 export interface LoginPayload {
-  email: string;
-  password?: string;
+  emailOrUsername: string;
+  password: string;
 }
 
 export interface OTPPayload {
   email: string;
   otp: string;
+}
+
+export interface InviteAdminPayload {
+  email: string;
+  phone: string;
+  assignedBrand: "CHOP_N_CHOP" | "DRIVE_THRU_AFIA" | "";
+  role: "ADMIN" | "STAFF" | "VENDOR" | "RIDER" | "";
+}
+
+export interface InviteAdminResponse {
+  success: boolean;
+  message: string;
+  data: string;
 }
 
 export interface Order {
