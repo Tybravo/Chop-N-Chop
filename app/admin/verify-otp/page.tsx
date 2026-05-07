@@ -34,8 +34,20 @@ function VerifyOtpForm() {
     try {
       setLoading(true);
       const res = await adminService.verifyOtp({ email: email!, otp });
-      if (res.success) {
-        login(res.user);
+      
+      // OTP is successful, tokens received.
+      if (res.access_token) {
+        localStorage.setItem("admin_access_token", res.access_token);
+        localStorage.setItem("admin_refresh_token", res.refresh_token);
+        
+        login({
+          id: res.user_id,
+          name: "Admin User", 
+          email: email!,
+          role: (res.role as any) || "SUPER_ADMIN",
+          status: (res.status as any) || "ACTIVE",
+          createdAt: new Date().toISOString(),
+        });
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
