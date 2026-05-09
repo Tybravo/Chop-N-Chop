@@ -15,18 +15,21 @@ const apiClient = axios.create({
 
 // Automatically inject Authorization header if token exists
 apiClient.interceptors.request.use((config) => {
+  // Only attempt to read localStorage if we are in the browser
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("admin_access_token");
-    if (token) {
-      // Safely handle both AxiosHeaders object and plain objects
-      if (config.headers && typeof config.headers.set === 'function') {
-        config.headers.set("Authorization", `Bearer ${token}`);
-      } else {
-        config.headers = config.headers || {};
-        config.headers["Authorization"] = `Bearer ${token}`;
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      if (token) {
+        // Safely handle both AxiosHeaders object and plain objects
+        if (config.headers && typeof config.headers.set === 'function') {
+          config.headers.set("Authorization", `Bearer ${token}`);
+        } else {
+          config.headers = config.headers || {};
+          config.headers["Authorization"] = `Bearer ${token}`;
+        }
       }
-    } else {
-      console.warn("No admin_access_token found in localStorage!");
+    } catch (error) {
+      console.warn("Failed to read token from localStorage:", error);
     }
   }
   return config;
@@ -94,13 +97,11 @@ export const adminService = {
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
-        console.error("Invite Admin 403/Error Response:", error.response.data);
         const errorData = error.response.data;
         // Check for specific backend messages, fallback to standard Spring Boot 'error' field, then status code
         const errorMsg = errorData?.message || errorData?.error || `Server responded with ${error.response.status} ${error.response.statusText}. Please check backend logs or CORS/CSRF.`;
         throw new Error(errorMsg);
       }
-      console.error("Invite Admin Unexpected Error:", error);
       throw new Error("An unexpected error occurred during invitation.");
     }
   },
@@ -113,14 +114,20 @@ export const adminService = {
     return MOCK_DASHBOARD_DATA;
   },
 
-  async getAdmins(): Promise<AdminUser[]> {
+  async getAdmins(role?: string): Promise<AdminUser[]> {
     try {
       // Attempt to fetch from live backend. Adjust endpoint if different.
-      const response = await apiClient.get("/api/v1/admin/staff");
-      // Depending on your backend structure, it might be response.data or response.data.data
-      return response.data.data || response.data;
+      const url = role ? `/api/v1/admin/staff?role=${encodeURIComponent(role)}` : "/api/v1/admin/staff";
+      const response = await apiClient.get(url);
+      
+      // The Swagger says it returns an array directly: [ { id, email, role... } ]
+      return response.data;
     } catch (error) {
-      console.warn("Failed to fetch live admins (endpoint might not exist yet). Falling back to mock data.", error);
+      if (axios.isAxiosError(error) && error.response) {
+        console.error(`Failed to fetch live admins. Status: ${error.response.status}`, error.response.data);
+      } else {
+        console.error("Failed to fetch live admins. Network error or CORS.", error);
+      }
       return MOCK_ADMINS;
     }
   },
@@ -157,6 +164,20 @@ export const adminService = {
         throw new Error(errorMsg);
       }
       throw new Error("An unexpected error occurred while changing status.");
+    }
+  },
+
+  /**
+   * Live API call to logout the admin, invalidating the JWT token on the backend.
+   */
+  async logout(): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await apiClient.post("/api/v1/auth/logout");
+      return response.data;
+    } catch (error: unknown) {
+      // Even if the backend fails, we usually want to clear local storage anyway.
+      console.error("Backend logout failed:", error);
+      return { success: false, message: "Backend logout failed" };
     }
   },
 

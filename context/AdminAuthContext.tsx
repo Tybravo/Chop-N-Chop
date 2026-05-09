@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AdminUser } from "@/types/admin";
+import { adminService } from "@/lib/api/admin.service";
 
 interface AdminAuthContextType {
   user: AdminUser | null;
@@ -54,10 +55,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/admin/dashboard");
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("adminUser");
-    router.push("/admin/login");
+  const logout = async () => {
+    try {
+      // Call backend to invalidate JWT
+      await adminService.logout();
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
+      // Always clear local state even if backend request fails
+      setUser(null);
+      localStorage.removeItem("adminUser");
+      localStorage.removeItem("admin_access_token");
+      localStorage.removeItem("admin_refresh_token");
+      router.push("/admin/login");
+    }
   };
 
   return (
