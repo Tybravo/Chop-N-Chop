@@ -1,11 +1,91 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { adminService } from "@/lib/api/admin.service";
 import { AdminUser, InviteAdminPayload } from "@/types/admin";
-import { Loader2, Plus, Shield, X, Mail, Phone, Building2, UserCog, Trash2, Users } from "lucide-react";
+import { Loader2, Plus, X, Mail, Phone, Building2, UserCog, Trash2, Users, ChevronDown } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useRouter } from "next/navigation";
+
+function CustomStatusDropdown({
+  status,
+  onStatusChange,
+  disabled,
+  isUpdating
+}: {
+  status: string;
+  onStatusChange: (newStatus: string) => void;
+  disabled: boolean;
+  isUpdating: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const getStatusStyles = (s: string) => {
+    switch (s) {
+      case 'ACTIVE': return 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+      case 'INACTIVE': return 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+      case 'PENDING_VERIFICATION': return 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+      case 'SUSPENDED': return 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+    }
+  };
+
+  const getStatusLabel = (s: string) => s.replace("_", " ");
+
+  const options = ['ACTIVE', 'INACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED'];
+
+  return (
+    <div className="relative inline-flex" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border focus:outline-none focus:ring-2 focus:ring-[#FC6B31]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap min-w-[160px] ${getStatusStyles(status)}`}
+      >
+        <span>{getStatusLabel(status)}</span>
+        {isUpdating ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 ml-auto" />
+        ) : (
+          <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ml-auto ${isOpen ? 'rotate-180' : ''}`} />
+        )}
+      </button>
+
+      {isOpen && !disabled && (
+        <div className="absolute left-0 top-full z-50 mt-1 min-w-full w-max bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-[0_4px_20px_-4px_rgba(252,107,49,0.15)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <ul className="py-1">
+            {options.map((opt) => (
+              <li key={opt}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onStatusChange(opt);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-orange-50 dark:hover:bg-gray-800 ${status === opt ? 'bg-orange-50/50 dark:bg-gray-800 text-[#FC6B31]' : 'text-gray-700 dark:text-gray-300'}`}
+                >
+                  {getStatusLabel(opt)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminsPage() {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
@@ -25,13 +105,20 @@ export default function AdminsPage() {
   const [inviteError, setInviteError] = useState("");
   const [inviteSuccess, setInviteSuccess] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null);
 
   const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
       const data = await adminService.getAdmins();
-      setAdmins(data);
+      
+      // Filter the live data so this specific page ONLY shows internal administrative staff.
+      // Excludes VENDOR, RIDER, and CUSTOMER which belong on their own dedicated pages.
+      const internalStaffRoles = ["SUPER_ADMIN", "ORG_ADMIN", "ADMIN", "SUB_ADMIN", "OFFICE_STAFF"];
+      const filteredAdmins = data.filter(user => internalStaffRoles.includes(user.role));
+      
+      setAdmins(filteredAdmins);
     } catch (error) {
       console.error("Failed to load admins", error);
     } finally {
@@ -70,14 +157,18 @@ export default function AdminsPage() {
     }
   };
 
-  const handleRemoveAdmin = async (id: string) => {
-    if (!confirm("Are you sure you want to remove this admin?")) return;
+  const handleRemoveAdmin = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const executeRemoveAdmin = async () => {
+    if (!deleteConfirmId) return;
     
     try {
-      setIsDeleting(id);
-      await adminService.removeAdmin(id);
+      setIsDeleting(deleteConfirmId);
+      await adminService.removeAdmin(deleteConfirmId);
       // Optimistically update the list by removing the deleted admin
-      setAdmins((prev) => prev.filter((admin) => admin.id !== id));
+      setAdmins((prev) => prev.filter((admin) => admin.id !== deleteConfirmId));
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(error.message || "Failed to remove admin.");
@@ -86,6 +177,7 @@ export default function AdminsPage() {
       }
     } finally {
       setIsDeleting(null);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -175,33 +267,16 @@ export default function AdminsPage() {
                   </td>
                   <td className="px-6 py-4">
                     {admin.role === 'SUPER_ADMIN' ? (
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${admin.status === 'ACTIVE' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
-                        {admin.status || "PENDING"}
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${admin.status === 'ACTIVE' ? 'bg-green-50 text-green-600 border border-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-gray-50 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'}`}>
+                        {admin.status?.replace("_", " ") || "PENDING"}
                       </span>
                     ) : (
-                      <div className="relative inline-block w-full min-w-[140px]">
-                        <select
-                          value={admin.status || "PENDING_VERIFICATION"}
-                          onChange={(e) => handleStatusChange(admin.id, admin.status, e.target.value)}
-                          disabled={isUpdatingStatus === admin.id}
-                          className={`block w-full pl-3 pr-8 py-1.5 text-xs font-semibold rounded-full border appearance-none focus:outline-none focus:ring-2 focus:ring-[#FC6B31] disabled:opacity-50 transition-colors
-                            ${admin.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : ''}
-                            ${admin.status === 'INACTIVE' ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200' : ''}
-                            ${admin.status === 'PENDING_VERIFICATION' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : ''}
-                            ${admin.status === 'SUSPENDED' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' : ''}
-                          `}
-                        >
-                          <option value="ACTIVE" className="bg-white text-gray-900">ACTIVE</option>
-                          <option value="INACTIVE" className="bg-white text-gray-900">INACTIVE</option>
-                          <option value="PENDING_VERIFICATION" className="bg-white text-gray-900">PENDING_VERIFICATION</option>
-                          <option value="SUSPENDED" className="bg-white text-gray-900">SUSPENDED</option>
-                        </select>
-                        {isUpdatingStatus === admin.id && (
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <Loader2 className="w-3 h-3 animate-spin text-gray-500" />
-                          </div>
-                        )}
-                      </div>
+                      <CustomStatusDropdown 
+                        status={admin.status || "PENDING_VERIFICATION"}
+                        onStatusChange={(newStatus) => handleStatusChange(admin.id, admin.status, newStatus)}
+                        disabled={isUpdatingStatus === admin.id}
+                        isUpdating={isUpdatingStatus === admin.id}
+                      />
                     )}
                   </td>
                   <td className="px-6 py-4 text-gray-500">
@@ -353,6 +428,34 @@ export default function AdminsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all border border-gray-100 dark:border-gray-800 zoom-in-95">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Remove Admin</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Are you sure you want to remove this admin? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={isDeleting !== null}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeRemoveAdmin}
+                disabled={isDeleting !== null}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors flex items-center gap-2"
+              >
+                {isDeleting !== null ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Ok
+              </button>
             </div>
           </div>
         </div>

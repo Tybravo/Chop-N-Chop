@@ -35,6 +35,97 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// "Silent Refresh" Interceptor
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (error: unknown) => void }> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+apiClient.interceptors.response.use(
+  (response) => response, // If request succeeds, just return it
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If error is 401 (Expired Token) and we haven't already retried...
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // If token is explicitly revoked, force logout immediately
+      if (error.response.data?.message?.includes("revoked")) {
+        localStorage.clear();
+        window.location.href = "/admin/login";
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        // If already refreshing, put this request in a queue to wait
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers && typeof originalRequest.headers.set === 'function') {
+              originalRequest.headers.set("Authorization", `Bearer ${token}`);
+            } else {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+      const refreshToken = localStorage.getItem("admin_refresh_token");
+
+      try {
+        // Call unified refresh endpoint
+        const { data } = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/v1/auth/refresh`,
+          { token: refreshToken },
+          { headers: { "X-App-Brand": "CHOP_N_CHOP", "Content-Type": "application/json" } }
+        );
+
+        // Save the brand new tokens
+        localStorage.setItem("admin_access_token", data.access_token || data.accessToken);
+        if (data.refresh_token || data.refreshToken) {
+          localStorage.setItem("admin_refresh_token", data.refresh_token || data.refreshToken);
+        }
+
+        // Process any requests that were waiting
+        processQueue(null, data.access_token || data.accessToken);
+
+        // Retry the original request that failed
+        if (originalRequest.headers && typeof originalRequest.headers.set === 'function') {
+          originalRequest.headers.set("Authorization", `Bearer ${data.access_token || data.accessToken}`);
+        } else {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers["Authorization"] = `Bearer ${data.access_token || data.accessToken}`;
+        }
+        
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // The refresh token is dead (90 days passed, or blacklisted)
+        processQueue(refreshError, null);
+        localStorage.clear();
+        window.location.href = "/admin/login"; // Kick them out to login screen
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;
