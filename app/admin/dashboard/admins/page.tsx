@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { adminService } from "@/lib/api/admin.service";
 import { AdminUser, InviteAdminPayload } from "@/types/admin";
-import { Loader2, Plus, Shield, X, Mail, Phone, Building2, UserCog, Trash2 } from "lucide-react";
+import { Loader2, Plus, Shield, X, Mail, Phone, Building2, UserCog, Trash2, Users } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useRouter } from "next/navigation";
 
@@ -136,9 +136,9 @@ export default function AdminsPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             Admin Management
           </h1>
-          <span className="flex items-center gap-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full text-sm font-medium border border-green-200 dark:border-green-800 shadow-[0_0_15px_rgba(34,197,94,0.3)] dark:shadow-[0_0_15px_rgba(34,197,94,0.2)] transition-shadow">
-            <Shield className="w-4 h-4" />
-            Super Admin Only
+          <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 dark:bg-orange-900/20 text-[#FC6B31] dark:text-[#fd8b5d] rounded-full text-sm font-medium border border-orange-200 dark:border-orange-800 shadow-[0_0_15px_rgba(252,107,49,0.3)] dark:shadow-[0_0_15px_rgba(252,107,49,0.2)] transition-shadow">
+            <Users className="w-4 h-4" />
+            All Roles and Actors
           </span>
         </div>
         <button 

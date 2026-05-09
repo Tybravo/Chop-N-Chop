@@ -1,14 +1,26 @@
 "use client";
 
-import { LayoutGrid, Search } from "lucide-react";
+import { LayoutGrid, Search, Shield } from "lucide-react";
 import Image from "next/image";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 
 export function AdminHeader() {
+  const { user } = useAdminAuth();
+
   return (
     <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-50 flex items-center justify-between px-6">
-      <div className="flex items-center space-x-2 text-gray-500">
-        <LayoutGrid className="w-5 h-5" />
-        <span className="font-semibold text-gray-600 tracking-wide">OVERVIEW</span>
+      <div className="flex items-center space-x-4 text-gray-500">
+        <div className="flex items-center space-x-2">
+          <LayoutGrid className="w-5 h-5" />
+          <span className="font-semibold text-gray-600 tracking-wide">OVERVIEW</span>
+        </div>
+        
+        {user && (
+          <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
+            <Shield className="w-4 h-4" />
+            {user.role === "SUPER_ADMIN" ? "Super Admin Only" : "Admin Only"}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center space-x-6">

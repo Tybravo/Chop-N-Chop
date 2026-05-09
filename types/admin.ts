@@ -1,13 +1,14 @@
-export type AdminRole = "SUPER_ADMIN" | "SUB_ADMIN";
+export type AdminRole = "SUPER_ADMIN" | "ORG_ADMIN" | "ADMIN" | "SUB_ADMIN" | "OFFICE_STAFF" | "RIDER" | "CUSTOMER" | "VENDOR";
 
 export interface AdminUser {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   role: AdminRole;
   avatarUrl?: string;
   createdAt: string;
   status: "ACTIVE" | "INACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED";
+  brand?: string;
 }
 
 export interface LoginPayload {
