@@ -8,7 +8,7 @@
     }
   },
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://api.chopnchop.com/v1"
+    "NEXT_PUBLIC_API_URL": "https://drive-thru-afia.onrender.com"
   },
   "headers": [
     {
