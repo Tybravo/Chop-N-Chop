@@ -64,6 +64,18 @@ export default function Home() {
   const [targetDate, setTargetDate] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
+    // Ping the backend to wake up the Render server and ensure Vercel preview renders correctly.
+    // Using 'no-cors' so it doesn't throw console errors even if the root endpoint lacks CORS headers.
+    const wakeUpBackend = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com";
+        await fetch(apiUrl, { mode: 'no-cors' });
+      } catch {
+        // Silently ignore, this is just a wake-up call
+      }
+    };
+    wakeUpBackend();
+
     const nextWindow = new Date();
     nextWindow.setHours(nextWindow.getHours() + 2);
     setTargetDate(nextWindow);
