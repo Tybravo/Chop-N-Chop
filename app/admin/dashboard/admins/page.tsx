@@ -230,7 +230,7 @@ export default function AdminsPage() {
           </h1>
           <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 dark:bg-orange-900/20 text-[#FC6B31] dark:text-[#fd8b5d] rounded-full text-sm font-medium border border-orange-200 dark:border-orange-800 shadow-[0_0_15px_rgba(252,107,49,0.3)] dark:shadow-[0_0_15px_rgba(252,107,49,0.2)] transition-shadow">
             <Users className="w-4 h-4" />
-            All Roles and Actors
+            All Admins
           </span>
         </div>
         <button 
