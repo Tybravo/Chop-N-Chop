@@ -1,11 +1,27 @@
 "use client";
 
-import { LayoutGrid, Search, Shield } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { LayoutGrid, Search, Shield, Smile, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 
 export function AdminHeader() {
-  const { user } = useAdminAuth();
+  const { user, logout } = useAdminAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDropdownOpen]);
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-50 flex items-center justify-between px-6">
@@ -35,14 +51,56 @@ export function AdminHeader() {
           />
         </div>
 
-        <div className="relative h-8 w-8 rounded-full overflow-hidden border border-gray-200">
-          <Image
-            src="https://i.pravatar.cc/150?img=47"
-            alt="Admin Profile"
-            fill
-            sizes="32px"
-            className="object-cover"
-          />
+        <div className="relative" ref={dropdownRef}>
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="relative h-9 w-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-[#FC6B31] focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:ring-offset-2 transition-all block"
+          >
+            <Image
+              src={user?.avatarUrl || "https://i.pravatar.cc/150?img=47"}
+              alt="Admin Profile"
+              fill
+              sizes="36px"
+              className="object-cover"
+            />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-[#111827] border border-gray-100 dark:border-gray-800 rounded-[2rem] shadow-2xl py-8 px-6 z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-center">
+              <h3 className="text-gray-900 dark:text-white text-xl font-bold mb-1">{user?.name || "Admin User"}</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{user?.email || "admin@chopnchop.com"}</p>
+              
+              <div className="flex flex-col gap-3">
+                <Link 
+                  href="/admin/dashboard/profile" 
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#FC6B31] dark:bg-transparent dark:hover:bg-[#FC6B31] text-gray-700 hover:text-white dark:text-white border border-gray-200 dark:border-gray-700 hover:border-[#FC6B31] dark:hover:border-[#FC6B31] py-3 rounded-full font-medium transition-colors"
+                >
+                  <Smile className="w-5 h-5 stroke-[1.5]" />
+                  Profile
+                </Link>
+                
+                <Link 
+                  href="/admin/dashboard/settings"
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#FC6B31] dark:bg-transparent dark:hover:bg-[#FC6B31] text-gray-700 hover:text-white dark:text-white border border-gray-200 dark:border-gray-700 hover:border-[#FC6B31] dark:hover:border-[#FC6B31] py-3 rounded-full font-medium transition-colors"
+                >
+                  <SlidersHorizontal className="w-5 h-5 stroke-[1.5]" />
+                  Settings
+                </Link>
+
+                <button 
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#FC6B31] dark:bg-transparent dark:hover:bg-[#FC6B31] text-gray-700 hover:text-white dark:text-white border border-gray-200 dark:border-gray-700 hover:border-[#FC6B31] dark:hover:border-[#FC6B31] py-3 rounded-full font-medium transition-colors"
+                >
+                  Log out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

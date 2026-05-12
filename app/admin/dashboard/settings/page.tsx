@@ -18,7 +18,7 @@ export default function SettingsPage() {
         </span>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm max-w-2xl">
+      <div className="admin-card p-8 shadow-sm max-w-2xl">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Settings</h2>
         
         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>

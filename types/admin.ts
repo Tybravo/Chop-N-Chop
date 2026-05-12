@@ -1,5 +1,25 @@
 export type AdminRole = "SUPER_ADMIN" | "ORG_ADMIN" | "ADMIN" | "SUB_ADMIN" | "OFFICE_STAFF" | "RIDER" | "CUSTOMER" | "VENDOR";
 
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  preferredHubId: string;
+  marketingOptIn: boolean;
+  profilePictureUrl?: string;
+}
+
+export interface UpdateProfilePayload {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  preferredHubId?: string;
+  marketingOptIn?: boolean;
+}
+
 export interface AdminUser {
   id: string;
   name?: string;
