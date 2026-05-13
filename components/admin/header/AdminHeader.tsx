@@ -57,7 +57,7 @@ export function AdminHeader() {
             className="relative h-9 w-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-[#FC6B31] focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:ring-offset-2 transition-all block"
           >
             <Image
-              src={user?.avatarUrl || "https://i.pravatar.cc/150?img=47"}
+              src={user?.avatarUrl && user.avatarUrl.trim() !== "" ? user.avatarUrl : "https://i.pravatar.cc/150?img=47"}
               alt="Admin Profile"
               fill
               sizes="36px"
@@ -94,7 +94,7 @@ export function AdminHeader() {
                     setIsDropdownOpen(false);
                     logout();
                   }}
-                  className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#FC6B31] dark:bg-transparent dark:hover:bg-[#FC6B31] text-gray-700 hover:text-white dark:text-white border border-gray-200 dark:border-gray-700 hover:border-[#FC6B31] dark:hover:border-[#FC6B31] py-3 rounded-full font-medium transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#FC6B31] dark:bg-transparent dark:hover:bg-[#FC6B31] text-gray-700 hover:text-white dark:text-white border border-gray-200 dark:border-gray-700 hover:border-[#FC6B31] dark:hover:border-[#FC6B31] py-3 rounded-full font-medium transition-colors cursor-pointer"
                 >
                   Log out
                 </button>

@@ -156,7 +156,7 @@ export function AdminSidebar() {
           <li>
             <button
               onClick={handleLogout}
-              className={`flex w-full items-center px-6 py-3 text-gray-300 hover:bg-[#34393d] transition-colors ${
+              className={`flex w-full items-center px-6 py-3 text-gray-300 hover:bg-[#34393d] transition-colors cursor-pointer ${
                 collapsed ? "justify-center" : ""
               }`}
               title={collapsed ? "Logout" : undefined}

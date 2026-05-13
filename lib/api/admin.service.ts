@@ -293,6 +293,30 @@ export const adminService = {
   },
 
   /**
+   * Live API call to upload a profile picture.
+   */
+  async uploadProfilePicture(file: File): Promise<{ url: string; message: string }> {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await apiClient.post("/api/v1/user/profile/picture", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMsg = errorData?.message || errorData?.error || `Failed to upload picture (${error.response.status}).`;
+        throw new Error(errorMsg);
+      }
+      throw new Error("An unexpected error occurred while uploading the picture.");
+    }
+  },
+
+  /**
    * Live API call to logout the admin, invalidating the JWT token on the backend.
    */
   async logout(): Promise<{ success: boolean; message?: string }> {

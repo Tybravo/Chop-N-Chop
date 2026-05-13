@@ -41,6 +41,15 @@ export interface OTPPayload {
   otp: string;
 }
 
+export interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+  user_id: string;
+  role: string;
+  status: string;
+  profilePictureUrl?: string;
+}
+
 export interface InviteAdminPayload {
   email: string;
   phone: string;
