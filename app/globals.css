@@ -119,24 +119,34 @@ body {
   }
 }
 
-@layer utilities {
-  .cnc-navbar-shadow {
-    box-shadow: var(--navbar-shadow-orange);
-  }
-  .cnc-card-shadow {
-    box-shadow: var(--card-shadow);
-  }
-  .cnc-breath-card {
+@layer components {
+  .admin-card {
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-[#FC6B31]/30 dark:border-[#FC6B31]/30;
     will-change: transform, box-shadow;
     transition: transform 180ms ease, box-shadow 180ms ease;
   }
-  .cnc-breath-card:hover {
+  .admin-card:hover {
+    @apply border-[#FC6B31];
     animation: cnc-breath-card 720ms ease-in-out 1 forwards;
   }
-  .cnc-breath-btn {
-    will-change: transform, box-shadow;
+}
+
+@utility cnc-navbar-shadow {
+  box-shadow: var(--navbar-shadow-orange);
+}
+@utility cnc-card-shadow {
+  box-shadow: var(--card-shadow);
+}
+@utility cnc-breath-card {
+  will-change: transform, box-shadow;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  &:hover {
+    animation: cnc-breath-card 720ms ease-in-out 1 forwards;
   }
-  .cnc-breath-btn:hover {
+}
+@utility cnc-breath-btn {
+  will-change: transform, box-shadow;
+  &:hover {
     animation: cnc-breath-btn 650ms ease-in-out 1;
   }
 }

@@ -48,7 +48,7 @@ export default function ViewSummaryPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Total Orders Card */}
-        <div className="bg-gradient-to-br from-blue-100 to-[#FC6B31]/30 dark:from-blue-900/60 dark:to-[#FC6B31]/40 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-700/50 shadow-md relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-md relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-2">Total Orders</h3>
           <p className="text-5xl font-bold text-gray-900 dark:text-white mb-2">{stats.totalOrders}</p>
           <p className="text-sm">
@@ -61,7 +61,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Paid Orders Card */}
-        <div className="bg-gradient-to-br from-green-100 to-[#FC6B31]/30 dark:from-green-900/60 dark:to-[#FC6B31]/40 rounded-2xl p-6 border-2 border-green-200 dark:border-green-700/50 shadow-md relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-md relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-2">Paid Orders</h3>
           <p className="text-5xl font-bold text-gray-900 dark:text-white mb-2">{stats.paidOrders}</p>
           <p className="text-sm">
@@ -87,7 +87,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Total Revenue Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-sm relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-500 dark:text-gray-400 font-medium mb-2">Total Revenue</h3>
           <p className="text-4xl font-semibold text-gray-900 dark:text-white mb-2">₦{stats.totalRevenue.toLocaleString()}</p>
           <p className="text-sm">
@@ -100,7 +100,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Total Customers Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-sm relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-500 dark:text-gray-400 font-medium mb-2">Total Customers</h3>
           <p className="text-5xl font-semibold text-gray-900 dark:text-white mb-2">{stats.totalCustomers.toLocaleString()}</p>
           <p className="text-sm">
@@ -113,7 +113,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Active Vendors Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-sm relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-500 dark:text-gray-400 font-medium mb-2">Active Vendors</h3>
           <p className="text-5xl font-semibold text-gray-900 dark:text-white mb-2">{stats.activeVendors}</p>
           <p className="text-sm">
@@ -139,7 +139,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Pending Deliveries Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-sm relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-500 dark:text-gray-400 font-medium mb-2">Pending Deliveries</h3>
           <p className="text-5xl font-semibold text-gray-900 dark:text-white mb-2">{stats.pendingDeliveries}</p>
           <p className="text-sm">
@@ -152,7 +152,7 @@ export default function ViewSummaryPage() {
         </div>
 
         {/* Rejected Deliveries Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="admin-card p-6 shadow-sm relative overflow-hidden transition-all duration-300">
           <h3 className="text-gray-500 dark:text-gray-400 font-medium mb-2">Rejected Deliveries</h3>
           <p className="text-5xl font-semibold text-gray-900 dark:text-white mb-2">{stats.rejectedDeliveries}</p>
           <p className="text-sm">

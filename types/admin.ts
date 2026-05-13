@@ -1,5 +1,25 @@
 export type AdminRole = "SUPER_ADMIN" | "ORG_ADMIN" | "ADMIN" | "SUB_ADMIN" | "OFFICE_STAFF" | "RIDER" | "CUSTOMER" | "VENDOR";
 
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  preferredHubId: string;
+  marketingOptIn: boolean;
+  profilePictureUrl?: string;
+}
+
+export interface UpdateProfilePayload {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  preferredHubId?: string;
+  marketingOptIn?: boolean;
+}
+
 export interface AdminUser {
   id: string;
   name?: string;
@@ -19,6 +39,15 @@ export interface LoginPayload {
 export interface OTPPayload {
   email: string;
   otp: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+  user_id: string;
+  role: string;
+  status: string;
+  profilePictureUrl?: string;
 }
 
 export interface InviteAdminPayload {

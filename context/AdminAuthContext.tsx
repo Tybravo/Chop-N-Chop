@@ -9,6 +9,7 @@ interface AdminAuthContextType {
   user: AdminUser | null;
   login: (user: AdminUser) => void;
   logout: () => void;
+  updateUser: (updates: Partial<AdminUser>) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -55,24 +56,32 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/admin/dashboard");
   };
 
+  const updateUser = (updates: Partial<AdminUser>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem("adminUser", JSON.stringify(updatedUser));
+    }
+  };
+
   const logout = async () => {
+    // Clear local state instantly for snappy UI response
+    setUser(null);
+    localStorage.removeItem("adminUser");
+    localStorage.removeItem("admin_access_token");
+    localStorage.removeItem("admin_refresh_token");
+    router.push("/admin/login");
+
     try {
-      // Call backend to invalidate JWT
+      // Call backend to invalidate JWT in the background
       await adminService.logout();
     } catch (error) {
       console.error("Logout API error:", error);
-    } finally {
-      // Always clear local state even if backend request fails
-      setUser(null);
-      localStorage.removeItem("adminUser");
-      localStorage.removeItem("admin_access_token");
-      localStorage.removeItem("admin_refresh_token");
-      router.push("/admin/login");
     }
   };
 
   return (
-    <AdminAuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>
+    <AdminAuthContext.Provider value={{ user, login, logout, updateUser, isAuthenticated: !!user, isLoading }}>
       {children}
     </AdminAuthContext.Provider>
   );

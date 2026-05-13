@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
       {/* Top 3 Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Total Orders Card */}
-        <div className="bg-gradient-to-br from-blue-100 to-[#FC6B31]/30 dark:from-blue-900/60 dark:to-[#FC6B31]/40 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-700/50 shadow-md relative overflow-hidden">
+        <div className="admin-card p-6 shadow-md relative overflow-hidden">
           <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-2">Total Orders</h3>
           <p className="text-5xl font-bold text-gray-900 dark:text-white mb-2">{stats.totalOrders}</p>
           <p className="text-sm">
@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Paid Orders Card */}
-        <div className="bg-gradient-to-br from-green-100 to-[#FC6B31]/30 dark:from-green-900/60 dark:to-[#FC6B31]/40 rounded-2xl p-6 border-2 border-green-200 dark:border-green-700/50 shadow-md relative overflow-hidden">
+        <div className="admin-card p-6 shadow-md relative overflow-hidden">
           <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-2">Paid Orders</h3>
           <p className="text-5xl font-bold text-gray-900 dark:text-white mb-2">{stats.paidOrders}</p>
           <p className="text-sm">
@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Active Batches Card */}
-        <div className="bg-gradient-to-br from-purple-100 to-[#FC6B31]/30 dark:from-purple-900/60 dark:to-[#FC6B31]/40 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-700/50 shadow-md relative overflow-hidden">
+        <div className="admin-card p-6 shadow-md relative overflow-hidden">
           <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-2">Active Batches</h3>
           <p className="text-5xl font-bold text-gray-900 dark:text-white mb-2">{stats.activeBatches}</p>
           <p className="text-sm">
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
         {/* Left Column (Orders & Performance) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Today's Orders Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="admin-card shadow-sm overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-700">
                 <Truck className="w-5 h-5 text-gray-500" />
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Delivery Performance */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="admin-card shadow-sm p-6">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2 text-gray-700">
                 <Truck className="w-5 h-5 text-gray-500" />
@@ -211,7 +211,7 @@ export default function AdminDashboardPage() {
         {/* Right Column (Dispatch Status & Issues) */}
         <div className="lg:col-span-1 space-y-6">
           {/* Dispatch Status */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="admin-card shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 text-gray-700">
                 <Truck className="w-5 h-5 text-gray-500" />
@@ -261,7 +261,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Issues & Updates */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="admin-card shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 text-gray-700">
                 <Truck className="w-5 h-5 text-gray-500" />

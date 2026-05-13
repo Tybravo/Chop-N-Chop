@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { adminService } from "@/lib/api/admin.service";
 import { Loader2, KeyRound } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { LoginResponse } from "@/types/admin";
 
 function VerifyOtpForm() {
   const router = useRouter();
@@ -33,7 +34,7 @@ function VerifyOtpForm() {
 
     try {
       setLoading(true);
-      const res = await adminService.verifyOtp({ email: email!, otp });
+      const res = await adminService.verifyOtp({ email: email!, otp }) as unknown as LoginResponse;
       
       // OTP is successful, tokens received.
       if (res.access_token) {
@@ -46,6 +47,7 @@ function VerifyOtpForm() {
           email: email!,
           role: (res.role as "SUPER_ADMIN" | "SUB_ADMIN") || "SUPER_ADMIN",
           status: (res.status as "ACTIVE" | "INACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED") || "ACTIVE",
+          avatarUrl: res.profilePictureUrl && res.profilePictureUrl.trim() !== "" ? res.profilePictureUrl : undefined,
           createdAt: new Date().toISOString(),
         });
       }

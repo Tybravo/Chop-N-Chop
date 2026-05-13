@@ -230,7 +230,7 @@ export default function AdminsPage() {
           </h1>
           <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 dark:bg-orange-900/20 text-[#FC6B31] dark:text-[#fd8b5d] rounded-full text-sm font-medium border border-orange-200 dark:border-orange-800 shadow-[0_0_15px_rgba(252,107,49,0.3)] dark:shadow-[0_0_15px_rgba(252,107,49,0.2)] transition-shadow">
             <Users className="w-4 h-4" />
-            All Roles and Actors
+            All Admins
           </span>
         </div>
         <button 
@@ -242,7 +242,7 @@ export default function AdminsPage() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="admin-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="text-gray-400 font-medium bg-gray-50/50 dark:bg-gray-800/50">

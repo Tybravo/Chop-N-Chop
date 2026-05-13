@@ -15,7 +15,7 @@ export default function SupportPage() {
         </span>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-12 text-center shadow-sm">
+      <div className="admin-card p-12 text-center shadow-sm">
         <div className="mx-auto w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
           <Headset className="w-10 h-10 text-gray-400" />
         </div>
