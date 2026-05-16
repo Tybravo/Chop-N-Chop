@@ -155,6 +155,23 @@ export const adminService = {
   },
 
   /**
+   * Live API call to resend OTP
+   */
+  async resendOtp(email: string): Promise<string> {
+    try {
+      const response = await apiClient.post("/api/v1/admin/auth/resend", { email });
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMsg = errorData?.message || errorData?.error || `Failed to resend OTP (${error.response.status}).`;
+        throw new Error(errorMsg);
+      }
+      throw new Error("An unexpected error occurred while resending OTP.");
+    }
+  },
+
+  /**
    * Live OTP verification API call.
    * Resolves if the OTP is correct and returns JWT tokens.
    */

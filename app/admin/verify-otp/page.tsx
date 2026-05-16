@@ -16,12 +16,58 @@ function VerifyOtpForm() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // Resend OTP State
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   useEffect(() => {
     if (!email) {
       router.push("/admin/login");
     }
   }, [email, router]);
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleResendOtp = async () => {
+    if (timeLeft > 0 || isResending) return;
+    
+    setIsResending(true);
+    setResendMessage("");
+    setError("");
+
+    try {
+      // Decode the URL-encoded email parameter to ensure it's a valid email string
+      const decodedEmail = decodeURIComponent(email!);
+      await adminService.resendOtp(decodedEmail);
+      
+      setResendMessage("A new OTP has been sent to your email.");
+      setTimeLeft(300); // Reset timer back to 5 minutes
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to resend OTP.");
+      }
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +133,12 @@ function VerifyOtpForm() {
             {error}
           </div>
         )}
+        
+        {resendMessage && (
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
+            {resendMessage}
+          </div>
+        )}
 
         <form onSubmit={handleVerify} className="space-y-6">
           <div>
@@ -118,6 +170,24 @@ function VerifyOtpForm() {
               "Verify OTP"
             )}
           </button>
+          
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+            {timeLeft > 0 ? (
+              <p>Resend OTP in <span className="font-medium text-[#FC6B31]">{formatTime(timeLeft)}</span></p>
+            ) : (
+              <p>
+                Didn&apos;t receive the code?{" "}
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isResending}
+                  className="font-semibold text-[#FC6B31] hover:text-[#e35014] transition-colors disabled:opacity-70"
+                >
+                  {isResending ? "Resending..." : "Resend OTP"}
+                </button>
+              </p>
+            )}
+          </div>
         </form>
       </div>
     </div>

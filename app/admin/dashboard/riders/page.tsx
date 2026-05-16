@@ -56,7 +56,7 @@ export default function RidersPage() {
                 <th className="px-6 py-4 font-normal">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {riders.map((rider) => (
                 <tr key={rider.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
@@ -65,7 +65,7 @@ export default function RidersPage() {
                     </div>
                     <span className="font-semibold">{rider.name}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{rider.batch}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{rider.batch}</td>
                   <td className="px-6 py-4">{rider.location}</td>
                   <td className="px-6 py-4 font-semibold">{rider.eta ? rider.eta : <span className="text-red-500">{rider.delay}</span>}</td>
                   <td className="px-6 py-4">

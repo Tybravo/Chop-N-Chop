@@ -58,10 +58,10 @@ export default function OrdersPage() {
                 <th className="px-6 py-4 font-normal">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {orders.map((order, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{order.id}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white font-mono text-xs">{order.id}</td>
                   <td className="px-6 py-4 font-semibold">{order.customer}</td>
                   <td className="px-6 py-4">{order.meal}</td>
                   <td className="px-6 py-4 text-center">{order.qty}</td>
@@ -75,8 +75,8 @@ export default function OrdersPage() {
                       {order.payment}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{order.batch}</td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{order.destination}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{order.batch}</td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-white">{order.destination}</td>
                   <td className="px-6 py-4">{order.time}</td>
                 </tr>
               ))}

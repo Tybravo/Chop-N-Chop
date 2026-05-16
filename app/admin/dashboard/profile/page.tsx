@@ -129,9 +129,12 @@ export default function ProfilePage() {
         };
       });
 
+      // Force Next.js Image component to bypass browser cache by appending a timestamp query string
+      const cacheBustedUrl = `${uploadResponse.url}?t=${new Date().getTime()}`;
+
       // Update the global auth context so the header avatar changes immediately
       // and persists across page reloads
-      updateUser({ avatarUrl: uploadResponse.url });
+      updateUser({ avatarUrl: cacheBustedUrl });
       
       // Re-fetch the profile to ensure everything is synced
       // If the backend GET /profile endpoint doesn't immediately reflect the new URL 
@@ -321,32 +324,32 @@ export default function ProfilePage() {
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                New Password
+                New PIN
               </label>
               <input
                 type="password"
                 readOnly={role === "SUPER_ADMIN"}
-                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none ${
+                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors ${
                   role === "SUPER_ADMIN" 
-                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 cursor-not-allowed" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] text-gray-900 dark:text-white"
+                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                 }`}
-                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change password here" : "Enter new password"}
+                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "Enter new PIN"}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Confirm Password
+                Confirm New PIN
               </label>
               <input
                 type="password"
                 readOnly={role === "SUPER_ADMIN"}
-                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none ${
+                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors ${
                   role === "SUPER_ADMIN" 
-                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 cursor-not-allowed" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] text-gray-900 dark:text-white"
+                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
+                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                 }`}
-                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change password here" : "Confirm new password"}
+                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "Confirm new PIN"}
               />
             </div>
             <button 
@@ -358,11 +361,11 @@ export default function ProfilePage() {
                   : "bg-[#FC6B31] hover:bg-[#e35014] text-white"
               }`}
             >
-              Update Password
+              Update PIN
             </button>
             {role === "SUPER_ADMIN" && (
               <p className="text-sm text-amber-600 dark:text-amber-500 mt-2">
-                * Password management is restricted for Super Admin accounts.
+                * PIN management is restricted for Super Admin accounts.
               </p>
             )}
           </form>
