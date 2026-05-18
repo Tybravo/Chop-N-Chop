@@ -41,6 +41,11 @@ export interface OTPPayload {
   otp: string;
 }
 
+export interface ChangePinPayload {
+  oldPin: string;
+  newPin: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;

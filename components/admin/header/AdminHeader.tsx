@@ -62,6 +62,7 @@ export function AdminHeader() {
               fill
               sizes="36px"
               className="object-cover"
+              unoptimized
             />
           </button>
 

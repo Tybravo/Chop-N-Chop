@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider, InviteAdminPayload, InviteAdminResponse, UserProfileResponse, UpdateProfilePayload } from "@/types/admin";
+import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider, InviteAdminPayload, InviteAdminResponse, UserProfileResponse, UpdateProfilePayload, ChangePinPayload } from "@/types/admin";
 import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_CUSTOMERS, MOCK_VENDORS, MOCK_TRANSACTIONS } from "@/lib/mock/admin.mock";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -330,6 +330,23 @@ export const adminService = {
         throw new Error(errorMsg);
       }
       throw new Error("An unexpected error occurred while uploading the picture.");
+    }
+  },
+
+  /**
+   * Live API call to change the admin password/PIN.
+   */
+  async changePin(payload: ChangePinPayload): Promise<{ message: string }> {
+    try {
+      const response = await apiClient.put("/api/v1/admin/profile/pin", payload);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMsg = errorData?.message || errorData?.error || `Failed to change PIN (${error.response.status}).`;
+        throw new Error(errorMsg);
+      }
+      throw new Error("An unexpected error occurred while changing PIN.");
     }
   },
 
