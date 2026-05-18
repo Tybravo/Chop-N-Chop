@@ -46,10 +46,22 @@ export interface ChangePinPayload {
   newPin: string;
 }
 
+export interface InitiateRecoveryPayload {
+  email: string;
+}
+
+export interface ResetPinPayload {
+  email: string;
+  otp: string;
+  newPin: string;
+  confirmPin: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;
   user_id: string;
+  message: string;
   role: string;
   status: string;
   profilePictureUrl?: string;

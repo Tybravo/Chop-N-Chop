@@ -3,37 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminService } from "@/lib/api/admin.service";
-import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
-export default function AdminLoginPage() {
+export default function ForgotPinPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [pin, setPin] = useState("");
-  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !pin) {
-      setError("Please enter both email and PIN.");
+    if (!email) {
+      setError("Please enter your email address.");
       return;
     }
 
     try {
       setLoading(true);
-      // Wait for login endpoint to validate email and PIN.
-      // If it passes, it'll send the OTP and we just navigate to OTP screen.
-      await adminService.login({ emailOrUsername: email, password: pin });
-      
-      router.push(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
+      await adminService.initiateRecovery({ email });
+      // Redirect to reset pin screen and pass the email via query parameters
+      router.push(`/admin/reset-pin?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("An error occurred during login.");
+        setError("An error occurred while initiating recovery.");
       }
     } finally {
       setLoading(false);
@@ -44,12 +41,19 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
         <div className="p-8">
+          <div className="mb-6">
+            <Link href="/admin/login" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-[#FC6B31] transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to Login
+            </Link>
+          </div>
+          
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Admin Portal
+              Forgot PIN?
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Sign in to manage Chopnchop
+              Enter your email address to receive a 6-digit recovery code.
             </p>
           </div>
 
@@ -59,7 +63,7 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleInitiate} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
@@ -79,38 +83,6 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  4-Digit PIN
-                </label>
-                <a href="/admin/forgot-pin" className="text-sm font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
-                  Forgot PIN?
-                </a>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type={showPin ? "text" : "password"}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors tracking-widest"
-                  placeholder="••••"
-                  maxLength={4}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none"
-                >
-                  {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -119,7 +91,7 @@ export default function AdminLoginPage() {
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                "Sign In"
+                "Send Recovery Code"
               )}
             </button>
           </form>

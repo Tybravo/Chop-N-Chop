@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider, InviteAdminPayload, InviteAdminResponse, UserProfileResponse, UpdateProfilePayload, ChangePinPayload } from "@/types/admin";
+import { LoginPayload, OTPPayload, DashboardData, AdminUser, Customer, Vendor, Transaction, Order, DispatchRider, InviteAdminPayload, InviteAdminResponse, UserProfileResponse, UpdateProfilePayload, ChangePinPayload, InitiateRecoveryPayload, ResetPinPayload, LoginResponse } from "@/types/admin";
 import { MOCK_ADMINS, MOCK_DASHBOARD_DATA, MOCK_CUSTOMERS, MOCK_VENDORS, MOCK_TRANSACTIONS } from "@/lib/mock/admin.mock";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -124,16 +124,8 @@ apiClient.interceptors.response.use(
 
     return Promise.reject(error);
   }
+  
 );
-
-export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
-  user_id: string;
-  message: string;
-  role: string;
-  status: string;
-}
 
 export const adminService = {
   /**
@@ -361,6 +353,42 @@ export const adminService = {
       // Even if the backend fails, we usually want to clear local storage anyway.
       console.error("Backend logout failed:", error);
       return { success: false, message: "Backend logout failed" };
+    }
+  },
+
+  /**
+   * Live API call to initiate PIN recovery (Step 1).
+   * Sends a 6-digit OTP to the user's email.
+   */
+  async initiateRecovery(payload: InitiateRecoveryPayload): Promise<string> {
+    try {
+      const response = await apiClient.post("/api/v1/auth/recovery/initiate", payload);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMsg = errorData?.message || errorData?.error || `Failed to initiate recovery (${error.response.status}).`;
+        throw new Error(errorMsg);
+      }
+      throw new Error("An unexpected error occurred while initiating recovery.");
+    }
+  },
+
+  /**
+   * Live API call to reset PIN and auto-login (Step 2).
+   * Validates the OTP, updates the PIN, and returns JWT tokens.
+   */
+  async resetPin(payload: ResetPinPayload): Promise<LoginResponse> {
+    try {
+      const response = await apiClient.post<LoginResponse>("/api/v1/auth/recovery/reset", payload);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMsg = errorData?.message || errorData?.error || `Failed to reset PIN (${error.response.status}).`;
+        throw new Error(errorMsg);
+      }
+      throw new Error("An unexpected error occurred while resetting PIN.");
     }
   },
 

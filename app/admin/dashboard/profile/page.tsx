@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { User, Shield, Camera, Upload, Loader2 } from "lucide-react";
+import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { adminService } from "@/lib/api/admin.service";
 import { UserProfileResponse } from "@/types/admin";
@@ -34,6 +34,11 @@ export default function ProfilePage() {
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
+
+  // PIN Visibility States
+  const [showOldPin, setShowOldPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -389,52 +394,85 @@ export default function ProfilePage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Current PIN
               </label>
-              <input
-                type="password"
-                value={oldPin}
-                onChange={(e) => setOldPin(e.target.value)}
-                readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
-                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors ${
-                  role === "SUPER_ADMIN" 
-                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
-                }`}
-                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "Enter current PIN"}
-              />
+              <div className="relative">
+                <input
+                  type={showOldPin ? "text" : "password"}
+                  value={oldPin}
+                  onChange={(e) => setOldPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
+                  className={`w-full md:w-1/2 px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors tracking-widest ${
+                    role === "SUPER_ADMIN" 
+                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
+                      : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
+                  }`}
+                  placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "••••"}
+                  maxLength={4}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPin(!showOldPin)}
+                  disabled={role === "SUPER_ADMIN"}
+                  className={`absolute inset-y-0 right-[50%] md:right-auto md:left-[calc(50%-2.5rem)] flex items-center px-3 focus:outline-none ${role === "SUPER_ADMIN" ? "text-gray-300 dark:text-gray-600 cursor-not-allowed" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                >
+                  {showOldPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 New PIN
               </label>
-              <input
-                type="password"
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-                readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
-                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors ${
-                  role === "SUPER_ADMIN" 
-                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
-                }`}
-                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "Enter new PIN"}
-              />
+              <div className="relative">
+                <input
+                  type={showNewPin ? "text" : "password"}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
+                  className={`w-full md:w-1/2 px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors tracking-widest ${
+                    role === "SUPER_ADMIN" 
+                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
+                      : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
+                  }`}
+                  placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "••••"}
+                  maxLength={4}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPin(!showNewPin)}
+                  disabled={role === "SUPER_ADMIN"}
+                  className={`absolute inset-y-0 right-[50%] md:right-auto md:left-[calc(50%-2.5rem)] flex items-center px-3 focus:outline-none ${role === "SUPER_ADMIN" ? "text-gray-300 dark:text-gray-600 cursor-not-allowed" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                >
+                  {showNewPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Confirm New PIN
               </label>
-              <input
-                type="password"
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value)}
-                readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
-                className={`w-full md:w-1/2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors ${
-                  role === "SUPER_ADMIN" 
-                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
-                }`}
-                placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "Confirm new PIN"}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPin ? "text" : "password"}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  readOnly={role === "SUPER_ADMIN" || isUpdatingPin}
+                  className={`w-full md:w-1/2 px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] transition-colors tracking-widest ${
+                    role === "SUPER_ADMIN" 
+                      ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed" 
+                      : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
+                  }`}
+                  placeholder={role === "SUPER_ADMIN" ? "Super Admins cannot change PIN here" : "••••"}
+                  maxLength={4}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPin(!showConfirmPin)}
+                  disabled={role === "SUPER_ADMIN"}
+                  className={`absolute inset-y-0 right-[50%] md:right-auto md:left-[calc(50%-2.5rem)] flex items-center px-3 focus:outline-none ${role === "SUPER_ADMIN" ? "text-gray-300 dark:text-gray-600 cursor-not-allowed" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                >
+                  {showConfirmPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
             <button 
               type="submit"
