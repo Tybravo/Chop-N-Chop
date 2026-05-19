@@ -56,7 +56,7 @@ export default function CustomersPage() {
                 <th className="px-6 py-4 font-normal">Joined</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {customers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4">{customer.name}</td>
@@ -68,7 +68,7 @@ export default function CustomersPage() {
                       {customer.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(customer.joinedAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{new Date(customer.joinedAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

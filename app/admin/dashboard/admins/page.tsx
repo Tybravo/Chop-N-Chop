@@ -255,7 +255,7 @@ export default function AdminsPage() {
                 <th className="px-6 py-4 font-normal">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {admins.map((admin) => (
                 <tr key={admin.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4">{admin.name || "N/A"}</td>
@@ -279,7 +279,7 @@ export default function AdminsPage() {
                       />
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-500">
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">
                     {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : "N/A"}
                   </td>
                   <td className="px-6 py-4">
@@ -437,7 +437,7 @@ export default function AdminsPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all border border-gray-100 dark:border-gray-800 zoom-in-95">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Remove Admin</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">
               Are you sure you want to remove this admin? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">

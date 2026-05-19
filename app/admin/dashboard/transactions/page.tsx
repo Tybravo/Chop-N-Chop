@@ -57,16 +57,16 @@ export default function TransactionsPage() {
                 <th className="px-6 py-4 font-normal">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {transactions.map((txn) => (
                 <tr key={txn.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{txn.id}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white font-mono text-xs">{txn.id}</td>
                   <td className="px-6 py-4 font-semibold text-[#FC6B31]">{txn.orderId}</td>
                   <td className="px-6 py-4">{txn.customerName}</td>
                   <td className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">
                     {txn.amount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{txn.paymentMethod}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{txn.paymentMethod}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       txn.status === 'SUCCESS' ? 'bg-green-50 text-green-600 border border-green-100' : 
@@ -76,7 +76,7 @@ export default function TransactionsPage() {
                       {txn.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(txn.date).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{new Date(txn.date).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

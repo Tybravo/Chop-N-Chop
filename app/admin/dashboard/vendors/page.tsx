@@ -56,12 +56,12 @@ export default function VendorsPage() {
                 <th className="px-6 py-4 font-normal">Joined</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-white font-medium">
               {vendors.map((vendor) => (
                 <tr key={vendor.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4 font-semibold">{vendor.businessName}</td>
                   <td className="px-6 py-4">{vendor.ownerName}</td>
-                  <td className="px-6 py-4 text-gray-500">{vendor.email}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{vendor.email}</td>
                   <td className="px-6 py-4 text-center text-yellow-500">★ {vendor.rating.toFixed(1)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -72,7 +72,7 @@ export default function VendorsPage() {
                       {vendor.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(vendor.joinedAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-gray-500 dark:text-white">{new Date(vendor.joinedAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
