@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff, X } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { adminService } from "@/lib/api/admin.service";
 import { UserProfileResponse } from "@/types/admin";
@@ -103,14 +103,16 @@ export default function ProfilePage() {
       setLiveProfile(updatedProfile);
       setUpdateSuccess("Profile updated successfully!");
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setUpdateSuccess(""), 3000);
+      // Clear success message after 20 seconds
+      setTimeout(() => setUpdateSuccess(""), 20000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setUpdateError(error.message);
       } else {
         setUpdateError("An unexpected error occurred while updating.");
       }
+      // Clear error message after 20 seconds
+      setTimeout(() => setUpdateError(""), 20000);
     } finally {
       setIsUpdating(false);
     }
@@ -166,6 +168,7 @@ export default function ProfilePage() {
       } else {
         setPictureError("An unexpected error occurred while uploading picture.");
       }
+      setTimeout(() => setPictureError(""), 20000);
     } finally {
       setIsUploadingPicture(false);
       // Reset input value so the same file can be selected again if needed
@@ -204,14 +207,15 @@ export default function ProfilePage() {
       setNewPin("");
       setConfirmPin("");
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setPinSuccess(""), 3000);
+      // Clear success message after 20 seconds
+      setTimeout(() => setPinSuccess(""), 20000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setPinError(error.message);
       } else {
         setPinError("An unexpected error occurred while updating PIN.");
       }
+      setTimeout(() => setPinError(""), 20000);
     } finally {
       setIsUpdatingPin(false);
     }
@@ -239,8 +243,11 @@ export default function ProfilePage() {
           </h2>
 
           {pictureError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {pictureError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pictureError}</span>
+              <button type="button" onClick={() => setPictureError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -287,13 +294,19 @@ export default function ProfilePage() {
           </h2>
           
           {updateError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {updateError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{updateError}</span>
+              <button type="button" onClick={() => setUpdateError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           {updateSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-              {updateSuccess}
+            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{updateSuccess}</span>
+              <button type="button" onClick={() => setUpdateSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -379,13 +392,19 @@ export default function ProfilePage() {
           </h2>
 
           {pinError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {pinError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pinError}</span>
+              <button type="button" onClick={() => setPinError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           {pinSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-              {pinSuccess}
+            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pinSuccess}</span>
+              <button type="button" onClick={() => setPinSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminService } from "@/lib/api/admin.service";
-import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -35,6 +35,7 @@ export default function AdminLoginPage() {
       } else {
         setError("An error occurred during login.");
       }
+      setTimeout(() => setError(""), 20000);
     } finally {
       setLoading(false);
     }
@@ -54,8 +55,11 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
