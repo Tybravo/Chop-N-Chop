@@ -37,7 +37,9 @@ export function AdminHeader() {
             <span className="hidden sm:inline">
               {user.role === "SUPER_ADMIN" ? "Super Admin Only" : "Admin Only"}
             </span>
-            <span className="sm:hidden">Admin Only</span>
+            <span className="sm:hidden">
+              {user.role === "SUPER_ADMIN" ? "Super Admin" : "Admin Only"}
+            </span>
           </span>
         )}
       </div>
