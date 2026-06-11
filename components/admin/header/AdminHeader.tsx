@@ -34,7 +34,10 @@ export function AdminHeader() {
         {user && (
           <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
             <Shield className="w-4 h-4" />
-            {user.role === "SUPER_ADMIN" ? "Super Admin Only" : "Admin Only"}
+            <span className="hidden sm:inline">
+              {user.role === "SUPER_ADMIN" ? "Super Admin Only" : "Admin Only"}
+            </span>
+            <span className="sm:hidden">Admin Only</span>
           </span>
         )}
       </div>
