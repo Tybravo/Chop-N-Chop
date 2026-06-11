@@ -39,13 +39,14 @@ export default function AdminDashboardPage() {
     <>
       {/* Title, Badge & View Summary Link */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             Today&apos;s Drop Operations
           </h1>
-          <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 text-[#FC6B31] rounded-full text-sm font-medium border border-orange-100">
+          <span className="self-start sm:self-auto flex items-center gap-2 px-3 py-1 bg-orange-50 text-[#FC6B31] rounded-full text-sm font-medium border border-orange-100">
             <span className="w-2 h-2 rounded-full bg-[#FC6B31]"></span>
-            Dispatch live
+            <span className="hidden sm:inline">Dispatch live</span>
+            <span className="sm:hidden">Dispatches</span>
           </span>
         </div>
         
