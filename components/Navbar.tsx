@@ -41,6 +41,9 @@ export function Navbar() {
           <Link href="/orders" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             My Orders
           </Link>
+          <Link href="/vendor/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            Vendor
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4">

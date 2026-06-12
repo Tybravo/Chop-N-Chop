@@ -129,6 +129,13 @@ body {
     @apply border-[#FC6B31];
     animation: cnc-breath-card 720ms ease-in-out 1 forwards;
   }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @utility cnc-navbar-shadow {
