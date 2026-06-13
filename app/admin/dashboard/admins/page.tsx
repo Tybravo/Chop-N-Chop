@@ -385,7 +385,6 @@ export default function AdminsPage() {
                     >
                       <option value="" disabled>Select Brand</option>
                       <option value="CHOP_N_CHOP">Chop-N-Chop</option>
-                      <option value="DRIVE_THRU_AFIA">Drive Thru Afia</option>
                     </select>
                   </div>
                 </div>

@@ -34,9 +34,10 @@ api.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       if (status === 401) {
-        // Handle unauthorized (e.g., redirect to login or clear token)
+        // Handle unauthorized (e.g., clear token and redirect to home)
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
+          window.location.href = '/';
         }
       }
     }

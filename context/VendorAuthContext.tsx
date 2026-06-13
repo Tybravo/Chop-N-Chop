@@ -47,7 +47,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
                                pathname.includes("/ready");
 
       if (!user && isDashboardRoute) {
-        router.push("/vendor/login");
+        router.push("/");
       }
 
       if (user && isAuthRoute) {
@@ -80,7 +80,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
     setUser(null);
     localStorage.removeItem("vendorUser");
     localStorage.removeItem("vendor_access_token");
-    router.push("/vendor/login");
+    router.push("/");
 
     try {
       await authService.logout();

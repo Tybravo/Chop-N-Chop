@@ -60,7 +60,7 @@ apiClient.interceptors.response.use(
       // If token is explicitly revoked, force logout immediately
       if (error.response.data?.message?.includes("revoked")) {
         localStorage.clear();
-        window.location.href = "/admin/login";
+        window.location.href = "/";
         return Promise.reject(error);
       }
 
@@ -115,7 +115,7 @@ apiClient.interceptors.response.use(
         // The refresh token is dead (90 days passed, or blacklisted)
         processQueue(refreshError, null);
         localStorage.clear();
-        window.location.href = "/admin/login"; // Kick them out to login screen
+        window.location.href = "/"; // Kick them out to home screen
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -225,6 +225,10 @@ export const adminService = {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.error(`Failed to fetch live admins. Status: ${error.response.status}`, error.response.data);
+        // Do not fall back to mock data if the session is unauthorized
+        if (error.response.status === 401 || error.response.status === 403) {
+          throw error;
+        }
       } else {
         console.error("Failed to fetch live admins. Network error or CORS.", error);
       }
