@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { DashboardData } from "@/types/admin";
 import { Loader2, ArrowRight, CheckCircle2, User, WalletCards, XCircle, Truck } from "lucide-react";
 import Image from "next/image";
@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const dashboardData = await adminService.getDashboardData();
+        const dashboardData = await dashboardService.getDashboardData();
         setData(dashboardData);
       } catch (error) {
         console.error("Failed to load dashboard data", error);

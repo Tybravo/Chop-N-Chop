@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { Vendor } from "@/types/admin";
 import { Loader2, Store } from "lucide-react";
 
@@ -12,7 +12,7 @@ export default function VendorsPage() {
   useEffect(() => {
     async function fetchVendors() {
       try {
-        const data = await adminService.getVendors();
+        const data = await dashboardService.getVendors();
         setVendors(data);
       } catch (error) {
         console.error("Failed to load vendors", error);

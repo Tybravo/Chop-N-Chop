@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 import { Mail, Loader2, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 
@@ -23,7 +23,7 @@ export default function ForgotPinPage() {
 
     try {
       setLoading(true);
-      await adminService.initiateRecovery({ email });
+      await authService.initiateRecovery({ email });
       // Redirect to reset pin screen and pass the email via query parameters
       router.push(`/admin/reset-pin?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {

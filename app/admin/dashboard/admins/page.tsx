@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { staffService } from "@/services/admin/staff.service";
 import { AdminUser, InviteAdminPayload } from "@/types/admin";
 import { Loader2, Plus, X, Mail, Phone, Building2, UserCog, Trash2, Users, ChevronDown } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
@@ -111,7 +111,7 @@ export default function AdminsPage() {
   const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAdmins();
+      const data = await staffService.getAdmins();
       
       // Filter the live data so this specific page ONLY shows internal administrative staff.
       // Excludes VENDOR, RIDER, and CUSTOMER which belong on their own dedicated pages.
@@ -138,7 +138,7 @@ export default function AdminsPage() {
 
     try {
       setInviteLoading(true);
-      const res = await adminService.inviteAdmin(inviteForm);
+      const res = await staffService.inviteAdmin(inviteForm);
       if (res.success || res) {
         setInviteSuccess(res.message || "Staff invited successfully. Invitation email is being sent.");
         setInviteForm({ email: "", phone: "", assignedBrand: "", role: "" });
@@ -166,7 +166,7 @@ export default function AdminsPage() {
     
     try {
       setIsDeleting(deleteConfirmId);
-      await adminService.removeAdmin(deleteConfirmId);
+      await staffService.removeAdmin(deleteConfirmId);
       // Optimistically update the list by removing the deleted admin
       setAdmins((prev) => prev.filter((admin) => admin.id !== deleteConfirmId));
     } catch (error: unknown) {
@@ -186,7 +186,7 @@ export default function AdminsPage() {
     
     try {
       setIsUpdatingStatus(id);
-      await adminService.changeAdminStatus(id, newStatus);
+      await staffService.changeAdminStatus(id, newStatus);
       // Optimistically update the admin's status in the table
       setAdmins((prev) =>
         prev.map((admin) => (admin.id === id ? { ...admin, status: newStatus as AdminUser["status"] } : admin))

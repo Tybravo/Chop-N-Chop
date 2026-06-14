@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AdminUser } from "@/types/admin";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 
 interface AdminAuthContextType {
   user: AdminUser | null;
@@ -74,7 +74,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Call backend to invalidate JWT in the background
-      await adminService.logout();
+      await authService.logout();
     } catch (error) {
       console.error("Logout API error:", error);
     }
