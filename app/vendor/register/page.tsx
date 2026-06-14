@@ -3,19 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
-import { Loader2, X, Store, User, Mail, Phone, Lock, MapPin, Tag, Map, FileText } from "lucide-react";
+import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default function VendorRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     businessName: "",
-    ownerName: "",
     email: "",
-    phone: "",
+    contactPhone: "",
     password: "",
     confirmPassword: "",
-    businessAddress: "",
     kitchenLocation: "",
     businessCategory: "",
     businessDescription: "",
@@ -38,8 +36,16 @@ export default function VendorRegisterPage() {
 
     try {
       setLoading(true);
-      await authService.register(formData);
-      router.push(`/vendor/login`);
+      await authService.register({
+        businessName: formData.businessName,
+        email: formData.email,
+        contactPhone: formData.contactPhone,
+        password: formData.password,
+        kitchenLocation: formData.kitchenLocation,
+        businessCategory: formData.businessCategory,
+        businessDescription: formData.businessDescription,
+      });
+      router.push(`/vendor/verify-otp?email=${encodeURIComponent(formData.email)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -93,14 +99,14 @@ export default function VendorRegisterPage() {
                 </div>
               </div>
 
-              {/* Owner Name */}
+              {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Owner Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+                    <Phone className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                 </div>
               </div>
             </div>
@@ -113,17 +119,6 @@ export default function VendorRegisterPage() {
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input type="email" name="email" value={formData.email} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                </div>
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
               </div>
             </div>
 
@@ -150,16 +145,7 @@ export default function VendorRegisterPage() {
             </div>
 
             {/* Address & Location */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input type="text" name="businessAddress" value={formData.businessAddress} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kitchen Location (LGA)</label>
                 <div className="relative">
