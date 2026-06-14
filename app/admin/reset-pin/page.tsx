@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Lock, Loader2, ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
@@ -81,7 +81,7 @@ function ResetPinContent() {
     setResending(true);
     
     try {
-      await adminService.initiateRecovery({ email });
+      await authService.initiateRecovery({ email });
       setSuccessMsg("Code resent successfully! Check your email.");
       setTimeout(() => setSuccessMsg(""), 20000);
     } catch (err: unknown) {
@@ -119,7 +119,7 @@ function ResetPinContent() {
 
     try {
       setLoading(true);
-      const res = await adminService.resetPin({
+      const res = await authService.resetPin({
         email,
         otp: fullOtp,
         newPin,

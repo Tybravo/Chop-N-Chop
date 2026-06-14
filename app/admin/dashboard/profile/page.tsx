@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff, X } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
-import { adminService } from "@/lib/api/admin.service";
+import { profileService } from "@/services/admin/profile.service";
 import { UserProfileResponse } from "@/types/admin";
 import Image from "next/image";
 
@@ -43,7 +43,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const profile = await adminService.getProfile();
+        const profile = await profileService.getProfile();
         setLiveProfile(profile);
         
         // Initialize form state
@@ -94,7 +94,7 @@ export default function ProfilePage() {
     setIsUpdating(true);
 
     try {
-      const updatedProfile = await adminService.updateProfile({
+      const updatedProfile = await profileService.updateProfile({
         firstName,
         lastName,
         phone,
@@ -132,7 +132,7 @@ export default function ProfilePage() {
     setIsUploadingPicture(true);
 
     try {
-      const uploadResponse = await adminService.uploadProfilePicture(file);
+      const uploadResponse = await profileService.uploadProfilePicture(file);
       
       // Update the local state instantly using the returned Cloudinary URL
       // This prevents a delay/flicker while waiting for the full profile re-fetch
@@ -154,7 +154,7 @@ export default function ProfilePage() {
       // Re-fetch the profile to ensure everything is synced
       // If the backend GET /profile endpoint doesn't immediately reflect the new URL 
       // due to database caching, the optimistic update above handles the UI gracefully.
-      const profile = await adminService.getProfile();
+      const profile = await profileService.getProfile();
       
       // Only override if the backend actually returned a valid URL to prevent 
       // the image from flickering back to the old one if the backend is slow.
@@ -201,7 +201,7 @@ export default function ProfilePage() {
     setIsUpdatingPin(true);
 
     try {
-      await adminService.changePin({ oldPin: oldPin, newPin: newPin });
+      await profileService.changePin({ oldPin: oldPin, newPin: newPin });
       setPinSuccess("PIN updated successfully!");
       setOldPin("");
       setNewPin("");

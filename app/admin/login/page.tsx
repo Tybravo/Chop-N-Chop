@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
       setLoading(true);
       // Wait for login endpoint to validate email and PIN.
       // If it passes, it'll send the OTP and we just navigate to OTP screen.
-      await adminService.login({ emailOrUsername: email, password: pin });
+      await authService.login({ emailOrUsername: email, password: pin });
       
       router.push(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {

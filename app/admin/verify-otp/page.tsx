@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 import { Loader2, KeyRound, X } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { LoginResponse } from "@/types/admin";
@@ -54,7 +54,7 @@ function VerifyOtpForm() {
     try {
       // Decode the URL-encoded email parameter to ensure it's a valid email string
       const decodedEmail = decodeURIComponent(email!);
-      await adminService.resendOtp(decodedEmail);
+      await authService.resendOtp(decodedEmail);
       
       setResendMessage("A new OTP has been sent to your email.");
       setTimeLeft(300); // Reset timer back to 5 minutes
@@ -82,7 +82,7 @@ function VerifyOtpForm() {
 
     try {
       setLoading(true);
-      const res = await adminService.verifyOtp({ email: email!, otp }) as unknown as LoginResponse;
+      const res = await authService.verifyOtp({ email: email!, otp }) as unknown as LoginResponse;
       
       // OTP is successful, tokens received.
       if (res.access_token) {
