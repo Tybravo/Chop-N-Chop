@@ -57,9 +57,9 @@ function CustomStatusDropdown({
       >
         <span>{getStatusLabel(status)}</span>
         {isUpdating ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 ml-auto" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 ml-auto" />
         ) : (
-          <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ml-auto ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ml-auto ${isOpen ? 'rotate-180' : ''}`} />
         )}
       </button>
 
