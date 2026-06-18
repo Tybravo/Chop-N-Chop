@@ -11,14 +11,14 @@ export default function AdminLoginPage() {
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState({ show: false, type: "error", message: "" });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setToast({ show: false, type: "error", message: "" });
 
     if (!email || !pin) {
-      setError("Please enter both email and PIN.");
+      setToast({ show: true, type: "error", message: "Please enter both email and PIN." });
       return;
     }
 
@@ -30,12 +30,12 @@ export default function AdminLoginPage() {
       
       router.push(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An error occurred during login.");
-      }
-      setTimeout(() => setError(""), 20000);
+      setToast({
+        show: true,
+        type: "error",
+        message: err instanceof Error ? err.message : "An error occurred during login.",
+      });
+      // Removed setTimeout to make error persistent until manually closed
     } finally {
       setLoading(false);
     }
@@ -54,14 +54,14 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
-              <span>{error}</span>
-              <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          {toast.show && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+            <span>{toast.message}</span>
+            <button type="button" onClick={() => setToast({ show: false, type: "error", message: "" })} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>

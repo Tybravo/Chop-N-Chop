@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/services/admin/auth.service";
 import { useAdminAuth } from "@/context/AdminAuthContext";
@@ -15,7 +15,7 @@ function ResetPinContent() {
   
   const email = searchParams.get("email") || "";
 
-  // OTP State (6 boxes)
+  // OTP State
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -26,6 +26,7 @@ function ResetPinContent() {
   // PIN Visibility States
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -83,14 +84,12 @@ function ResetPinContent() {
     try {
       await authService.initiateRecovery({ email });
       setSuccessMsg("Code resent successfully! Check your email.");
-      setTimeout(() => setSuccessMsg(""), 20000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("Failed to resend code.");
       }
-      setTimeout(() => setError(""), 20000);
     } finally {
       setResending(false);
     }
@@ -148,7 +147,6 @@ function ResetPinContent() {
       } else {
         setError("An error occurred during PIN reset.");
       }
-      setTimeout(() => setError(""), 20000);
     } finally {
       setLoading(false);
     }
@@ -201,20 +199,27 @@ function ResetPinContent() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
                 6-Digit Recovery Code
               </label>
-              <div className="flex justify-center gap-2 mb-2">
+              <div className="flex justify-center gap-2 items-center">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
                     ref={(el) => { inputRefs.current[index] = el; }}
-                    type="text"
+                    type={showOtp ? "text" : "password"}
                     inputMode="numeric"
                     maxLength={6}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                    className="w-12 h-14 text-center text-xl font-bold border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   />
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setShowOtp(!showOtp)}
+                  className="ml-2 flex items-center text-gray-400 hover:text-[#FC6B31] transition-colors focus:outline-none"
+                >
+                  {showOtp ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                </button>
               </div>
             </div>
 

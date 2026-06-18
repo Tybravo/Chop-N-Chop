@@ -12,28 +12,23 @@ export default function VendorLoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState({ show: false, type: "error", message: "" });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    if (!email || !password) {
-      setError("Please enter both email and password.");
-      return;
-    }
+    setLoading(true);
+    setToast({ show: false, type: "error", message: "" });
 
     try {
-      setLoading(true);
       await authService.login({ email, password });
+      // On success, backend should trigger OTP. Route to OTP verify page.
       router.push(`/vendor/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An error occurred during login.");
-      }
-      setTimeout(() => setError(""), 20000);
+      setToast({
+        show: true,
+        type: "error",
+        message: err instanceof Error ? err.message : "Invalid credentials",
+      });
     } finally {
       setLoading(false);
     }
@@ -41,21 +36,20 @@ export default function VendorLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="admin-card max-w-md w-full p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Login as a Vendor
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Sign in to manage your Chopnchop store
+              Sign in to manage your Chopnchop kitchen
             </p>
           </div>
-
-          {error && (
+    
+          {toast.show && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
-              <span>{error}</span>
-              <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+              <span>{toast.message}</span>
+              <button type="button" onClick={() => setToast({ show: false, type: "error", message: "" })} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -125,14 +119,13 @@ export default function VendorLoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Not a vendor yet?{" "}
-              <Link href="/vendor/register" className="font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
-                Become a Vendor
-              </Link>
-            </p>
-          </div>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Not a vendor yet?{" "}
+            <Link href="/vendor/register" className="font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
+              Become a Vendor
+            </Link>
+          </p>
         </div>
       </div>
     </div>
