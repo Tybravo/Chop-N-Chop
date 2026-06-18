@@ -1,25 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
-import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText } from "lucide-react";
+import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText, Eye, EyeOff, User } from "lucide-react";
 import Link from "next/link";
 
 export default function VendorRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    ownerName: "",
     businessName: "",
     email: "",
     contactPhone: "",
-    password: "",
-    confirmPassword: "",
+    pin: "",
+    confirmPin: "",
     kitchenLocation: "",
     businessCategory: "",
     businessDescription: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [error]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,18 +39,19 @@ export default function VendorRegisterPage() {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+    if (formData.pin !== formData.confirmPin) {
+      setError("PINs do not match.");
       return;
     }
 
     try {
       setLoading(true);
       await authService.register({
+        ownerName: formData.ownerName,
         businessName: formData.businessName,
         email: formData.email,
         contactPhone: formData.contactPhone,
-        password: formData.password,
+        pin: formData.pin,
         kitchenLocation: formData.kitchenLocation,
         businessCategory: formData.businessCategory,
         businessDescription: formData.businessDescription,
@@ -52,7 +63,6 @@ export default function VendorRegisterPage() {
       } else {
         setError("Registration failed.");
       }
-      setTimeout(() => setError(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -80,14 +90,27 @@ export default function VendorRegisterPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 rounded-lg text-sm flex justify-between">
+            <div ref={errorRef} className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 rounded-lg text-sm flex justify-between items-start">
               <span>{error}</span>
-              <button type="button" onClick={() => setError("")}><X className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setError("")} className="mt-0.5 ml-3 flex-shrink-0 text-red-500 hover:text-red-700">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
           <form onSubmit={handleRegister} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Owner Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Owner Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                </div>
+              </div>
+
               {/* Business Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Name</label>
@@ -122,24 +145,30 @@ export default function VendorRegisterPage() {
               </div>
             </div>
 
-            {/* Passwords */}
+            {/* PINs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Create PIN</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="password" name="password" value={formData.password} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type={showPassword ? "text" : "password"} name="pin" value={formData.pin} onChange={handleChange} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#FC6B31]">
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm PIN</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type={showConfirmPassword ? "text" : "password"} name="confirmPin" value={formData.confirmPin} onChange={handleChange} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#FC6B31]">
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
             </div>
@@ -152,7 +181,10 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Map className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="text" name="kitchenLocation" value={formData.kitchenLocation} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <select name="kitchenLocation" value={formData.kitchenLocation} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white appearance-none">
+                    <option value="" disabled>Select Kitchen Location...</option>
+                    <option value="Lagos Mainland">Lagos Mainland</option>
+                  </select>
                 </div>
               </div>
             </div>

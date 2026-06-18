@@ -32,7 +32,6 @@ export default function ForgotPinPage() {
       } else {
         setError("An error occurred while initiating recovery.");
       }
-      setTimeout(() => setError(""), 20000);
     } finally {
       setLoading(false);
     }
