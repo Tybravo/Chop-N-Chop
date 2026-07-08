@@ -16,10 +16,10 @@ export default function VendorLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setToast({ show: false, type: "error", message: "" });
 
     if (!email || !pin) {
-      setError("Please enter both email and PIN.");
+      setToast({ show: true, type: "error", message: "Please enter both email and PIN." });
       return;
     }
 
