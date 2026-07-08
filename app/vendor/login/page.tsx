@@ -9,8 +9,8 @@ import Link from "next/link";
 export default function VendorLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [pin, setPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,14 +18,14 @@ export default function VendorLoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
-      setError("Please enter both email and password.");
+    if (!email || !pin) {
+      setError("Please enter both email and PIN.");
       return;
     }
 
     try {
       setLoading(true);
-      await authService.login({ email, password });
+      await authService.login({ email, pin });
       router.push(`/vendor/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -84,10 +84,10 @@ export default function VendorLoginPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
+                  PIN
                 </label>
                 <a href="#" className="text-sm font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
-                  Forgot Password?
+                  Forgot PIN?
                 </a>
               </div>
               <div className="relative">
@@ -95,19 +95,19 @@ export default function VendorLoginPage() {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPin ? "text" : "password"}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
                   className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
-                  placeholder="••••••••"
+                  placeholder="••••"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPin(!showPin)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>

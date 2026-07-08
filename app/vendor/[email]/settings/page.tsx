@@ -7,7 +7,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   
-  const [passwords, setPasswords] = useState({
+  const [pins, setPins] = useState({
     current: "",
     new: "",
     confirm: ""
@@ -20,16 +20,16 @@ export default function SettingsPage() {
     pushAlerts: true
   });
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwords.new !== passwords.confirm) {
-      alert("Passwords do not match");
+    if (pins.new !== pins.confirm) {
+      alert("PINs do not match");
       return;
     }
     setLoading(true);
     setTimeout(() => {
-      setSuccess("Password updated successfully.");
-      setPasswords({ current: "", new: "", confirm: "" });
+      setSuccess("PIN updated successfully.");
+      setPins({ current: "", new: "", confirm: "" });
       setLoading(false);
       setTimeout(() => setSuccess(""), 3000);
     }, 1000);
@@ -47,27 +47,27 @@ export default function SettingsPage() {
         <div className="p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium">{success}</div>
       )}
 
-      {/* Password Settings */}
+      {/* PIN Settings */}
       <div className="admin-card p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-4 flex items-center gap-2">
-          <Lock className="w-5 h-5 text-[#FC6B31]" /> Change Password
+          <Lock className="w-5 h-5 text-[#FC6B31]" /> Change PIN
         </h3>
         
-        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
+        <form onSubmit={handlePinSubmit} className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
-            <input type="password" required value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current PIN</label>
+            <input type="password" required value={pins.current} onChange={e => setPins({...pins, current: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
-            <input type="password" required value={passwords.new} onChange={e => setPasswords({...passwords, new: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New PIN</label>
+            <input type="password" required value={pins.new} onChange={e => setPins({...pins, new: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
-            <input type="password" required value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New PIN</label>
+            <input type="password" required value={pins.confirm} onChange={e => setPins({...pins, confirm: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <button type="submit" disabled={loading} className="px-6 py-2 bg-gray-900 text-white dark:bg-white dark:text-black rounded-lg font-medium hover:bg-[#FC6B31] dark:hover:bg-[#FC6B31] transition-colors flex items-center gap-2">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update PIN"}
           </button>
         </form>
       </div>

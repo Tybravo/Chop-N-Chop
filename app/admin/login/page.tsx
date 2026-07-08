@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
       setLoading(true);
       // Wait for login endpoint to validate email and PIN.
       // If it passes, it'll send the OTP and we just navigate to OTP screen.
-      await authService.login({ emailOrUsername: email, password: pin });
+      await authService.login({ emailOrUsername: email, pin: pin });
       
       router.push(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
