@@ -326,13 +326,19 @@ export default function AdminsPage() {
             
             <div className="p-6">
               {inviteError && (
-                <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-                  {inviteError}
+                <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+                  <span>{inviteError}</span>
+                  <button type="button" onClick={() => setInviteError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
               {inviteSuccess && (
-                <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-                  {inviteSuccess}
+                <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+                  <span>{inviteSuccess}</span>
+                  <button type="button" onClick={() => setInviteSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none ml-2">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 

@@ -103,16 +103,12 @@ export default function ProfilePage() {
       setLiveProfile(updatedProfile);
       setUpdateSuccess("Profile updated successfully!");
       
-      // Clear success message after 20 seconds
-      setTimeout(() => setUpdateSuccess(""), 20000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setUpdateError(error.message);
       } else {
         setUpdateError("An unexpected error occurred while updating.");
       }
-      // Clear error message after 20 seconds
-      setTimeout(() => setUpdateError(""), 20000);
     } finally {
       setIsUpdating(false);
     }
@@ -168,7 +164,6 @@ export default function ProfilePage() {
       } else {
         setPictureError("An unexpected error occurred while uploading picture.");
       }
-      setTimeout(() => setPictureError(""), 20000);
     } finally {
       setIsUploadingPicture(false);
       // Reset input value so the same file can be selected again if needed
@@ -207,15 +202,12 @@ export default function ProfilePage() {
       setNewPin("");
       setConfirmPin("");
       
-      // Clear success message after 20 seconds
-      setTimeout(() => setPinSuccess(""), 20000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setPinError(error.message);
       } else {
         setPinError("An unexpected error occurred while updating PIN.");
       }
-      setTimeout(() => setPinError(""), 20000);
     } finally {
       setIsUpdatingPin(false);
     }

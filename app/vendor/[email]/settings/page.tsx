@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Bell, Loader2 } from "lucide-react";
+import { Lock, Bell, Loader2, X } from "lucide-react";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,6 @@ export default function SettingsPage() {
       setSuccess("PIN updated successfully.");
       setPins({ current: "", new: "", confirm: "" });
       setLoading(false);
-      setTimeout(() => setSuccess(""), 3000);
     }, 1000);
   };
 
@@ -44,7 +43,12 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
 
       {success && (
-        <div className="p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium">{success}</div>
+        <div className="p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium flex justify-between items-center">
+          <span>{success}</span>
+          <button type="button" onClick={() => setSuccess("")} className="text-green-600 hover:text-green-800 focus:outline-none">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       )}
 
       {/* PIN Settings */}

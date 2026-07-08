@@ -63,7 +63,6 @@ interface RegisterPayload {
   kitchenLocation?: string;
   businessCategory?: string;
   businessDescription?: string;
-  cacRegistrationNumber?: string;
 }
 
 export const authService = {
@@ -77,26 +76,75 @@ export const authService = {
   },
 
   verifyOtp: async (email: string, otp: string): Promise<{ success: boolean; token: string; user: VendorProfile }> => {
-    // TODO: Replace with live backend endpoint: await vendorApiClient.post("/api/v1/vendors/auth/login-verify", { email, otp })
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (otp === "123456") {
-          resolve({ success: true, token: "mock_vendor_token", user: mockVendorProfile });
-        } else {
-          reject(new Error("Invalid OTP"));
+    try {
+      const response = await vendorApiClient.post("/api/v1/vendors/verify", { email, otp });
+      
+      // Fallback to mock profile if the backend doesn't return the full user object yet
+      const userData = response.data?.user || response.data?.vendor || {
+        ...mockVendorProfile,
+        email: email,
+      };
+      
+      const token = response.data?.token || response.data?.accessToken || "mock_vendor_token";
+
+      return {
+        success: true,
+        token: token,
+        user: userData,
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        // Extract the error message
+        const backendMsg = error.response.data?.message || error.response.data?.error;
+        
+        // If it's a Spring Boot validation error array, extract it nicely
+        if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
+          const validationMsg = error.response.data.errors
+            .map((err: Record<string, string | undefined>) => `${err.field}: ${err.defaultMessage || err.message}`)
+            .join(", ");
+          throw new Error(validationMsg);
         }
-      }, 500);
-    });
+
+        throw new Error(backendMsg || "Invalid OTP or expired");
+      }
+      throw new Error("An unexpected error occurred during OTP verification.");
+    }
+  },
+
+  resendOtp: async (email: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await vendorApiClient.post("/api/v1/vendors/resend-otp", { email });
+      return {
+        success: true,
+        message: response.data?.message || "OTP resent successfully",
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data?.message || error.response.data?.error || "Failed to resend OTP");
+      }
+      throw new Error("An unexpected error occurred while resending OTP.");
+    }
   },
 
   register: async (payload: RegisterPayload): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await vendorApiClient.post("/api/v1/vendors/apply", {
-        ...payload,
+      const finalPayload = {
+        ownerName: payload.ownerName,
+        businessName: payload.businessName,
+        email: payload.email,
+        contactPhone: payload.contactPhone,
+        pin: payload.pin,
         brand: "CHOP_N_CHOP",
-        hubId: payload.hubId || "",
-        cacRegistrationNumber: payload.cacRegistrationNumber || ""
-      });
+        kitchenLocation: payload.kitchenLocation,
+        businessCategory: payload.businessCategory && payload.businessCategory.trim() !== "" 
+          ? payload.businessCategory 
+          : "Not Available",
+        businessDescription: payload.businessDescription && payload.businessDescription.trim() !== "" 
+          ? payload.businessDescription 
+          : "Not Available",
+      };
+
+      const response = await vendorApiClient.post("/api/v1/vendors/apply", finalPayload);
       return { success: true, message: response.data.message || "Registration successful" };
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -106,11 +154,13 @@ export const authService = {
     }
   },
 
-  logout: async (): Promise<void> => {
+  logout: async (): Promise<{ success: boolean; message?: string; data?: string }> => {
     try {
-      await vendorApiClient.post("/api/v1/vendors/auth/logout");
-    } catch (error) {
+      const response = await vendorApiClient.post("/api/v1/vendors/auth/logout");
+      return response.data;
+    } catch (error: unknown) {
       console.error("Backend logout failed:", error);
+      return { success: false, message: "Backend logout failed" };
     }
   }
 };

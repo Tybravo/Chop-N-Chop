@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
-import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText } from "lucide-react";
+import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText, Eye, EyeOff, User } from "lucide-react";
 import Link from "next/link";
 
 export default function VendorRegisterPage() {
@@ -21,6 +21,15 @@ export default function VendorRegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [error]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,7 +63,6 @@ export default function VendorRegisterPage() {
       } else {
         setError("Registration failed.");
       }
-      setTimeout(() => setError(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -82,9 +90,11 @@ export default function VendorRegisterPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 rounded-lg text-sm flex justify-between">
+            <div ref={errorRef} className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 rounded-lg text-sm flex justify-between items-start">
               <span>{error}</span>
-              <button type="button" onClick={() => setError("")}><X className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setError("")} className="mt-0.5 ml-3 flex-shrink-0 text-red-500 hover:text-red-700">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -165,7 +175,10 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Map className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="text" name="kitchenLocation" value={formData.kitchenLocation} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <select name="kitchenLocation" value={formData.kitchenLocation} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white appearance-none">
+                    <option value="" disabled>Select Kitchen Location...</option>
+                    <option value="Lagos Mainland">Lagos Mainland</option>
+                  </select>
                 </div>
               </div>
             </div>

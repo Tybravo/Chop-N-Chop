@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useVendorAuth } from "@/context/VendorAuthContext";
 import { vendorService } from "@/services/vendor/vendor.service";
 import { VendorProfile } from "@/types/vendor";
-import { Loader2, Upload, User, Store, Mail, Phone, MapPin } from "lucide-react";
+import { Loader2, Upload, User, Store, Mail, Phone, MapPin, X } from "lucide-react";
 import Image from "next/image";
 
 export default function UpdateProfilePage() {
@@ -43,7 +43,6 @@ export default function UpdateProfilePage() {
       const updated = await vendorService.updateProfile(profile);
       updateUser(updated);
       setSuccessMsg("Profile updated successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
     } catch (error) {
       console.error(error);
     } finally {
@@ -60,8 +59,11 @@ export default function UpdateProfilePage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Update Profile</h1>
 
       {successMsg && (
-        <div className="p-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-sm font-medium">
-          {successMsg}
+        <div className="p-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-sm font-medium flex justify-between items-center">
+          <span>{successMsg}</span>
+          <button type="button" onClick={() => setSuccessMsg("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
