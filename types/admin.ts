@@ -33,7 +33,7 @@ export interface AdminUser {
 
 export interface LoginPayload {
   emailOrUsername: string;
-  password: string;
+  pin: string;
 }
 
 export interface OTPPayload {

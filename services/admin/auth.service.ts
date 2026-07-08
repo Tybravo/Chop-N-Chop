@@ -7,7 +7,7 @@ export const authService = {
     try {
       const response = await adminApiClient.post("/api/v1/admin/auth/login-init", {
         emailOrUsername: payload.emailOrUsername,
-        password: payload.password,
+        pin: payload.pin,
       });
       return response.data;
     } catch (error: unknown) {

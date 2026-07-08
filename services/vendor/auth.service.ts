@@ -49,15 +49,17 @@ vendorApiClient.interceptors.response.use(
 
 interface LoginPayload {
   email: string;
-  password?: string;
+  pin?: string;
 }
 
 interface RegisterPayload {
-  ownerName: string;
+  ownerName?: string;
   businessName: string;
   email: string;
   contactPhone: string;
   pin?: string;
+  brand?: string;
+  hubId?: string;
   kitchenLocation?: string;
   businessCategory?: string;
   businessDescription?: string;
