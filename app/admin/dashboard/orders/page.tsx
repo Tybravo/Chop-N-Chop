@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { Order } from "@/types/admin";
 import { Loader2, PackageSearch } from "lucide-react";
 
@@ -12,7 +12,7 @@ export default function OrdersPage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const data = await adminService.getOrders();
+        const data = await dashboardService.getOrders();
         setOrders(data);
       } catch (error) {
         console.error("Failed to load orders", error);

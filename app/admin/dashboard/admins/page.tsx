@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { staffService } from "@/services/admin/staff.service";
 import { AdminUser, InviteAdminPayload } from "@/types/admin";
 import { Loader2, Plus, X, Mail, Phone, Building2, UserCog, Trash2, Users, ChevronDown } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
@@ -57,9 +57,9 @@ function CustomStatusDropdown({
       >
         <span>{getStatusLabel(status)}</span>
         {isUpdating ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 ml-auto" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 ml-auto" />
         ) : (
-          <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ml-auto ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ml-auto ${isOpen ? 'rotate-180' : ''}`} />
         )}
       </button>
 
@@ -111,7 +111,7 @@ export default function AdminsPage() {
   const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAdmins();
+      const data = await staffService.getAdmins();
       
       // Filter the live data so this specific page ONLY shows internal administrative staff.
       // Excludes VENDOR, RIDER, and CUSTOMER which belong on their own dedicated pages.
@@ -138,7 +138,7 @@ export default function AdminsPage() {
 
     try {
       setInviteLoading(true);
-      const res = await adminService.inviteAdmin(inviteForm);
+      const res = await staffService.inviteAdmin(inviteForm);
       if (res.success || res) {
         setInviteSuccess(res.message || "Staff invited successfully. Invitation email is being sent.");
         setInviteForm({ email: "", phone: "", assignedBrand: "", role: "" });
@@ -166,7 +166,7 @@ export default function AdminsPage() {
     
     try {
       setIsDeleting(deleteConfirmId);
-      await adminService.removeAdmin(deleteConfirmId);
+      await staffService.removeAdmin(deleteConfirmId);
       // Optimistically update the list by removing the deleted admin
       setAdmins((prev) => prev.filter((admin) => admin.id !== deleteConfirmId));
     } catch (error: unknown) {
@@ -186,7 +186,7 @@ export default function AdminsPage() {
     
     try {
       setIsUpdatingStatus(id);
-      await adminService.changeAdminStatus(id, newStatus);
+      await staffService.changeAdminStatus(id, newStatus);
       // Optimistically update the admin's status in the table
       setAdmins((prev) =>
         prev.map((admin) => (admin.id === id ? { ...admin, status: newStatus as AdminUser["status"] } : admin))
@@ -326,13 +326,19 @@ export default function AdminsPage() {
             
             <div className="p-6">
               {inviteError && (
-                <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-                  {inviteError}
+                <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+                  <span>{inviteError}</span>
+                  <button type="button" onClick={() => setInviteError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
               {inviteSuccess && (
-                <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-                  {inviteSuccess}
+                <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+                  <span>{inviteSuccess}</span>
+                  <button type="button" onClick={() => setInviteSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none ml-2">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 
@@ -385,7 +391,6 @@ export default function AdminsPage() {
                     >
                       <option value="" disabled>Select Brand</option>
                       <option value="CHOP_N_CHOP">Chop-N-Chop</option>
-                      <option value="DRIVE_THRU_AFIA">Drive Thru Afia</option>
                     </select>
                   </div>
                 </div>

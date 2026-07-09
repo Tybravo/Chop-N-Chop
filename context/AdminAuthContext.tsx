@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AdminUser } from "@/types/admin";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 
 interface AdminAuthContextType {
   user: AdminUser | null;
@@ -41,7 +41,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading) {
       if (!user && pathname.startsWith("/admin/dashboard")) {
-        router.push("/admin/login");
+        router.push("/");
       }
       // Optional: Redirect to dashboard if logged in and visiting login/otp
       if (user && (pathname === "/admin/login" || pathname === "/admin/verify-otp")) {
@@ -70,11 +70,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("adminUser");
     localStorage.removeItem("admin_access_token");
     localStorage.removeItem("admin_refresh_token");
-    router.push("/admin/login");
+    router.push("/");
 
     try {
       // Call backend to invalidate JWT in the background
-      await adminService.logout();
+      await authService.logout();
     } catch (error) {
       console.error("Logout API error:", error);
     }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
+import { authService } from "@/services/admin/auth.service";
 import { useAdminAuth } from "@/context/AdminAuthContext";
-import { Lock, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Lock, Loader2, ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
 import { AdminUser, AdminRole } from "@/types/admin";
 
@@ -15,7 +15,7 @@ function ResetPinContent() {
   
   const email = searchParams.get("email") || "";
 
-  // OTP State (6 boxes)
+  // OTP State
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -26,6 +26,7 @@ function ResetPinContent() {
   // PIN Visibility States
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -81,9 +82,8 @@ function ResetPinContent() {
     setResending(true);
     
     try {
-      await adminService.initiateRecovery({ email });
+      await authService.initiateRecovery({ email });
       setSuccessMsg("Code resent successfully! Check your email.");
-      setTimeout(() => setSuccessMsg(""), 5000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -118,7 +118,7 @@ function ResetPinContent() {
 
     try {
       setLoading(true);
-      const res = await adminService.resetPin({
+      const res = await authService.resetPin({
         email,
         otp: fullOtp,
         newPin,
@@ -175,14 +175,20 @@ function ResetPinContent() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
           {successMsg && (
-            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-              {successMsg}
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{successMsg}</span>
+              <button type="button" onClick={() => setSuccessMsg("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none ml-2">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -193,20 +199,27 @@ function ResetPinContent() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
                 6-Digit Recovery Code
               </label>
-              <div className="flex justify-center gap-2 mb-2">
+              <div className="flex justify-center gap-2 items-center">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
                     ref={(el) => { inputRefs.current[index] = el; }}
-                    type="text"
+                    type={showOtp ? "text" : "password"}
                     inputMode="numeric"
                     maxLength={6}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                    className="w-12 h-14 text-center text-xl font-bold border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   />
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setShowOtp(!showOtp)}
+                  className="ml-2 flex items-center text-gray-400 hover:text-[#FC6B31] transition-colors focus:outline-none"
+                >
+                  {showOtp ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                </button>
               </div>
             </div>
 

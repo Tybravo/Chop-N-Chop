@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminService } from "@/lib/api/admin.service";
-import { Mail, Loader2, ArrowLeft } from "lucide-react";
+import { authService } from "@/services/admin/auth.service";
+import { Mail, Loader2, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 
 export default function ForgotPinPage() {
@@ -23,7 +23,7 @@ export default function ForgotPinPage() {
 
     try {
       setLoading(true);
-      await adminService.initiateRecovery({ email });
+      await authService.initiateRecovery({ email });
       // Redirect to reset pin screen and pass the email via query parameters
       router.push(`/admin/reset-pin?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
@@ -58,8 +58,11 @@ export default function ForgotPinPage() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none ml-2">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 

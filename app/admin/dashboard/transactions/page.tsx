@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { Transaction } from "@/types/admin";
 import { Loader2, CreditCard } from "lucide-react";
 
@@ -12,7 +12,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        const data = await adminService.getTransactions();
+        const data = await dashboardService.getTransactions();
         setTransactions(data);
       } catch (error) {
         console.error("Failed to load transactions", error);

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff, X } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
-import { adminService } from "@/lib/api/admin.service";
+import { profileService } from "@/services/admin/profile.service";
 import { UserProfileResponse } from "@/types/admin";
 import Image from "next/image";
 
@@ -43,7 +43,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const profile = await adminService.getProfile();
+        const profile = await profileService.getProfile();
         setLiveProfile(profile);
         
         // Initialize form state
@@ -94,7 +94,7 @@ export default function ProfilePage() {
     setIsUpdating(true);
 
     try {
-      const updatedProfile = await adminService.updateProfile({
+      const updatedProfile = await profileService.updateProfile({
         firstName,
         lastName,
         phone,
@@ -103,8 +103,6 @@ export default function ProfilePage() {
       setLiveProfile(updatedProfile);
       setUpdateSuccess("Profile updated successfully!");
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setUpdateSuccess(""), 3000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setUpdateError(error.message);
@@ -130,7 +128,7 @@ export default function ProfilePage() {
     setIsUploadingPicture(true);
 
     try {
-      const uploadResponse = await adminService.uploadProfilePicture(file);
+      const uploadResponse = await profileService.uploadProfilePicture(file);
       
       // Update the local state instantly using the returned Cloudinary URL
       // This prevents a delay/flicker while waiting for the full profile re-fetch
@@ -152,7 +150,7 @@ export default function ProfilePage() {
       // Re-fetch the profile to ensure everything is synced
       // If the backend GET /profile endpoint doesn't immediately reflect the new URL 
       // due to database caching, the optimistic update above handles the UI gracefully.
-      const profile = await adminService.getProfile();
+      const profile = await profileService.getProfile();
       
       // Only override if the backend actually returned a valid URL to prevent 
       // the image from flickering back to the old one if the backend is slow.
@@ -198,14 +196,12 @@ export default function ProfilePage() {
     setIsUpdatingPin(true);
 
     try {
-      await adminService.changePin({ oldPin: oldPin, newPin: newPin });
+      await profileService.changePin({ oldPin: oldPin, newPin: newPin });
       setPinSuccess("PIN updated successfully!");
       setOldPin("");
       setNewPin("");
       setConfirmPin("");
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setPinSuccess(""), 3000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setPinError(error.message);
@@ -239,8 +235,11 @@ export default function ProfilePage() {
           </h2>
 
           {pictureError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {pictureError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pictureError}</span>
+              <button type="button" onClick={() => setPictureError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -287,13 +286,19 @@ export default function ProfilePage() {
           </h2>
           
           {updateError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {updateError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{updateError}</span>
+              <button type="button" onClick={() => setUpdateError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           {updateSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-              {updateSuccess}
+            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{updateSuccess}</span>
+              <button type="button" onClick={() => setUpdateSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -379,13 +384,19 @@ export default function ProfilePage() {
           </h2>
 
           {pinError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
-              {pinError}
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pinError}</span>
+              <button type="button" onClick={() => setPinError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           {pinSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
-              {pinSuccess}
+            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+              <span>{pinSuccess}</span>
+              <button type="button" onClick={() => setPinSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 

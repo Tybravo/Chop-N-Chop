@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { DispatchRider } from "@/types/admin";
 import { Loader2, Bike } from "lucide-react";
 import Image from "next/image";
@@ -13,7 +13,7 @@ export default function RidersPage() {
   useEffect(() => {
     async function fetchRiders() {
       try {
-        const data = await adminService.getRiders();
+        const data = await dashboardService.getRiders();
         setRiders(data);
       } catch (error) {
         console.error("Failed to load riders", error);

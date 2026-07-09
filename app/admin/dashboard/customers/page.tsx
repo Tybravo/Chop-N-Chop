@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminService } from "@/lib/api/admin.service";
+import { dashboardService } from "@/services/admin/dashboard.service";
 import { Customer } from "@/types/admin";
 import { Loader2, Users } from "lucide-react";
 
@@ -12,7 +12,7 @@ export default function CustomersPage() {
   useEffect(() => {
     async function fetchCustomers() {
       try {
-        const data = await adminService.getCustomers();
+        const data = await dashboardService.getCustomers();
         setCustomers(data);
       } catch (error) {
         console.error("Failed to load customers", error);
