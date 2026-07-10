@@ -79,9 +79,10 @@ export default function VendorDashboardPage() {
         </div>
         <button
           onClick={handleToggleStatus}
+          disabled={profile.status === "PENDING"}
           className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:ring-offset-2 ${
             profile.isOpen ? "bg-[#FC6B31]" : "bg-gray-200 dark:bg-gray-700"
-          }`}
+          } ${profile.status === "PENDING" ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <span className="sr-only">Toggle store status</span>
           <span

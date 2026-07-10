@@ -6,7 +6,10 @@ import { payoutService } from "@/services/vendor/payout.service";
 import { VendorDashboardStats, PayoutRecord } from "@/types/vendor";
 import { Wallet, History, ArrowRight, Loader2 } from "lucide-react";
 
+import { useVendorAuth } from "@/context/VendorAuthContext";
+
 export default function PayoutPage() {
+  const { user } = useVendorAuth();
   const [stats, setStats] = useState<VendorDashboardStats | null>(null);
   const [history, setHistory] = useState<PayoutRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +70,7 @@ export default function PayoutPage() {
           </div>
           <button 
             onClick={handleRequestPayout}
-            disabled={stats.availableBalance <= 0 || requesting}
+            disabled={stats.availableBalance <= 0 || requesting || user?.status === "UNVERIFIED" || user?.status === "PENDING"}
             className="w-full mt-6 py-2.5 bg-white text-[#FC6B31] rounded-lg font-bold hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {requesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Request Payout <ArrowRight className="w-4 h-4" /></>}
