@@ -7,7 +7,7 @@ export interface VendorProfile {
   businessAddress?: string;
   businessCategory?: string;
   logoUrl?: string;
-  status: "APPROVED" | "PENDING" | "REJECTED";
+  status: "APPROVED" | "PENDING" | "REJECTED" | "UNVERIFIED";
   isOpen: boolean;
   joinedAt: string;
 }
