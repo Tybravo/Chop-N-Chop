@@ -85,7 +85,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
     try {
       await authService.logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      console.warn("Logout error:", error);
     }
   };
 

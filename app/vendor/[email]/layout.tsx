@@ -28,10 +28,9 @@ export default function VendorDashboardLayout({
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 dark:bg-black overflow-hidden font-sans">
-      <VendorSidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
+      <div className="hidden lg:block">
+        <VendorSidebar isOpen={false} onClose={() => setIsSidebarOpen(false)} />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <VendorHeader onMenuClick={() => setIsSidebarOpen(true)} />
@@ -44,6 +43,10 @@ export default function VendorDashboardLayout({
         </main>
 
         <BottomNavigation />
+      </div>
+
+      <div className="lg:hidden absolute z-[100] left-0 top-0 h-[100dvh]">
+        <VendorSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       </div>
     </div>
   );
