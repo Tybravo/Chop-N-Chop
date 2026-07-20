@@ -89,6 +89,7 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
         objectUrlRef.current = null;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageFile, isOpen]); // Removed draw from dependencies to prevent infinite loops
 
   useEffect(() => {

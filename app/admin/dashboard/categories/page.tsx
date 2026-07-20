@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import axios from "axios";
 import { Plus, Search, Filter, Edit, Eye, EyeOff, Layers, Trash2 } from "lucide-react";
 import { categoryService } from "@/services/admin/category.service";
 import { MealCategory } from "@/types/category";
@@ -36,9 +37,15 @@ export default function CategoriesPage() {
       setError(null);
       const data = await categoryService.getCategories();
       setCategories(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch categories failed in UI:", err);
-      setError(err?.response?.data?.message || err?.message || "Unable to load categories. Please try again.");
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || err.message || "Unable to load categories. Please try again.");
+      } else if (err instanceof Error) {
+        setError(err.message || "Unable to load categories. Please try again.");
+      } else {
+        setError("Unable to load categories. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
