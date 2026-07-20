@@ -20,7 +20,8 @@ import {
   BarChart3,
   Bell,
   Shield,
-  Activity
+  Activity,
+  Layers
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
@@ -30,6 +31,7 @@ type MenuItem = { name: string; href: string; icon: React.ElementType; role?: "S
 const MENU_ITEMS: MenuItem[] = [
   { name: "Overview", href: "/admin/dashboard", icon: LayoutGrid },
   { name: "View Summary", href: "/admin/dashboard/summary", icon: Activity },
+  { name: "Categories", href: "/admin/dashboard/categories", icon: Layers },
   { name: "Admins", href: "/admin/dashboard/admins", icon: Shield, role: "SUPER_ADMIN" },
   { name: "Orders", href: "/admin/dashboard/orders", icon: ShoppingCart },
   { name: "Batches", href: "/admin/batches", icon: SquareDashedBottom },
