@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/landing/Navbar"; // Updated import
 import { CartSidebar } from "@/components/CartSidebar";
 import { ThemeProvider } from "@/app/context/ThemeContext";
+import { AdminAuthProvider } from "@/context/AdminAuthContext";
 
 export const metadata: Metadata = {
   title: "Chopnchop - Scheduled Food Delivery",
@@ -41,27 +42,29 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning className="antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground">
         <ThemeProvider>
-          <Navbar />
-          <main className="flex-1 flex flex-col">
-            {children}
-          </main>
-          <CartSidebar />
-          
-          {/* Simple Footer */}
-          <footer className="border-t border-secondary-light/20 bg-secondary-light/5 py-8 mt-auto">
-            <div className="container mx-auto px-4 text-center">
-              <p className="text-sm font-medium text-foreground/70">
-                &copy; {new Date().getFullYear()} Chop<span className="text-primary">n</span>chop. All rights reserved.
-              </p>
-              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-foreground/50">
-                <span>Lekki • Yaba • Victoria Island</span>
-                <span>•</span>
-                <a href="/admin/login" className="hover:text-primary transition-colors">
-                  Admin Portal
-                </a>
+          <AdminAuthProvider>
+            <Navbar />
+            <main className="flex-1 flex flex-col">
+              {children}
+            </main>
+            <CartSidebar />
+            
+            {/* Simple Footer */}
+            <footer className="border-t border-secondary-light/20 bg-secondary-light/5 py-8 mt-auto">
+              <div className="container mx-auto px-4 text-center">
+                <p className="text-sm font-medium text-foreground/70">
+                  &copy; {new Date().getFullYear()} Chop<span className="text-primary">n</span>chop. All rights reserved.
+                </p>
+                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-foreground/50">
+                  <span>Lekki • Yaba • Victoria Island</span>
+                  <span>•</span>
+                  <a href="/admin/login" className="hover:text-primary transition-colors">
+                    Admin Portal
+                  </a>
+                </div>
               </div>
-            </div>
-          </footer>
+            </footer>
+          </AdminAuthProvider>
         </ThemeProvider>
       </body>
     </html>
