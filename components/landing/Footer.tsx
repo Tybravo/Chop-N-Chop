@@ -64,8 +64,8 @@ export default function Footer() {
         <div className="flex flex-col items-center text-center md:items-start md:text-left md:col-span-3">
           <h4 className="text-[17px] font-bold text-[#3E3D42] dark:text-white mb-4">Contact</h4>
           <div className="flex flex-col gap-3 text-[15px] text-[#555F66] dark:text-gray-400">
-            <p>Tel: +234 800 123 4567</p>
-            <p>Email Address: hello@chopnchop.ng</p>
+            <p>Tel: +234 817 202 8728</p>
+            <p>Email Address: chopnchop.system@gmail.com</p>
             <p className="mt-2">
               Days & Time: Monday – Saturday<br />
               8:00 AM – 6:00 PM
