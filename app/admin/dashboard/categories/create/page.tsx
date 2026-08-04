@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Save, Upload, Utensils } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import axios from "axios";
 import { categoryService } from "@/services/admin/category.service";
 import Image from "next/image";
 import { ImageCropperModal } from "@/components/admin/categories/ImageCropperModal";
@@ -79,8 +80,8 @@ export default function CreateCategoryPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 819200) {
-      setPictureError("Image must be smaller than 800KB");
+    if (file.size > 1536000) {
+      setPictureError("Image must be smaller than 1500KB");
       return;
     }
 
@@ -139,8 +140,24 @@ export default function CreateCategoryPage() {
       setTimeout(() => {
         router.push("/admin/dashboard/categories");
       }, 1500);
-    } catch (_err) {
-      setSubmitError("Unable to create category. Please try again.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const backendMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error;
+
+        if (status === 403) {
+          setSubmitError("You do not have permission to create categories. Please contact an administrator.");
+        } else {
+          setSubmitError(
+            (typeof backendMessage === "string" && backendMessage) ||
+            "Unable to create category. Please try again."
+          );
+        }
+      } else {
+        setSubmitError("Unable to create category. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
