@@ -6,13 +6,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { useUiStore } from '@/store/uiStore';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { PreOrderIcon } from './PreOrderIcon'; 
 
 export default function Navbar() {
   const getTotalItems = useCartStore((state) => state.getTotalItems());
   const toggleCart = useUiStore((state) => state.toggleCart);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
@@ -20,53 +21,41 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="flex items-center justify-between w-full py-[20px] px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
+    <nav className="relative z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] md:px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
       
-      {/* Logo - Side by side icon and text with optical alignment */}
-      <div className="flex-shrink-0">
+      {/* Logo */}
+      <div className="flex-shrink-0 z-50">
         <Link href="/" className="flex items-center gap-2.5 group">
-          {/* The Bowl Icon - Scaled up for better visual presence */}
           <Image
             src="/logo_icon.png"                 
             alt="Chop n Chop Icon"
             width={44}
             height={44}
-            className="w-auto h-8 md:h-9 object-contain transition-transform group-hover:scale-105"
+            className="w-auto h-7 md:h-9 object-contain transition-transform group-hover:scale-105"
             priority
           />
-          {/* The Text Logo - Nudged down slightly (mt-1) to center perfectly with the bowl */}
           <Image
             src="/Chopnchop.png"                 
             alt="Chop n Chop Text"
             width={130}
             height={32}
-            className="w-auto h-6 md:h-[26px] object-contain mt-1"
+            className="w-auto h-5 md:h-[26px] object-contain mt-1"
             priority
           />
         </Link>
       </div>
 
-      {/* Center Navigation Links */}
+      {/* Desktop Navigation Links */}
       <div className="hidden md:flex items-center gap-8 text-sm font-medium text-foreground">
-        <Link href="#how-it-works" className="hover:text-[#FF6633] transition-colors">
-          How it works
-        </Link>
-        <Link href="#todays-drop" className="hover:text-[#FF6633] transition-colors">
-          Today&apos;s drop
-        </Link>
-        <Link href="#faqs" className="hover:text-[#FF6633] transition-colors">
-          FAQs
-        </Link>
-        <Link href="#contact-us" className="hover:text-[#FF6633] transition-colors">
-          Contact Us
-        </Link>
-        <Link href="/vendor/login" className="hover:text-[#FF6633] transition-colors">
-          Vendor
-        </Link>
+        <Link href="#how-it-works" className="hover:text-[#FF6633] transition-colors">How it works</Link>
+        <Link href="#todays-drop" className="hover:text-[#FF6633] transition-colors">Today&apos;s drop</Link>
+        <Link href="#faqs" className="hover:text-[#FF6633] transition-colors">FAQs</Link>
+        <Link href="#contact-us" className="hover:text-[#FF6633] transition-colors">Contact Us</Link>
+        <Link href="/vendor/login" className="hover:text-[#FF6633] transition-colors">Vendor</Link>
       </div>
 
       {/* Right Side Actions */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6 z-50">
         <ThemeToggle />
         
         <button
@@ -82,13 +71,34 @@ export default function Navbar() {
           )}
         </button>
 
-        {/* Order Now Button - Exactly matching Figma */}
         <button className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-2.5 rounded-lg hidden sm:flex items-center gap-2 shadow-sm">
           <PreOrderIcon size={16} />
           <span className="font-semibold text-white tracking-[0.25px]">Order Now</span>
         </button>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="md:hidden p-2 text-foreground hover:text-[#FF6633]"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
       </div>
-      
+
+      {/* Mobile Navigation Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 w-full bg-background border-b border-[#E5E7EB] dark:border-gray-800 shadow-lg flex flex-col py-6 px-6 gap-6 md:hidden z-40">
+          <Link href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">How it works</Link>
+          <Link href="#todays-drop" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Today&apos;s drop</Link>
+          <Link href="#faqs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">FAQs</Link>
+          <Link href="#contact-us" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Contact Us</Link>
+          <Link href="/vendor/login" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Vendor Portal</Link>
+          <button className="bg-[#FF6633] text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm w-full mt-2">
+            <PreOrderIcon size={16} />
+            <span className="font-semibold text-white tracking-[0.25px]">Order Now</span>
+          </button>
+        </div>
+      )}
     </nav>
   );
 }
