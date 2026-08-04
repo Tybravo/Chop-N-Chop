@@ -91,8 +91,8 @@ export function EditCategoryModal({ category, isOpen, onClose, onSuccess }: Edit
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 819200) {
-      setPictureError("Image must be smaller than 800KB");
+    if (file.size > 1536000) {
+      setPictureError("Image must be smaller than 1500KB");
       return;
     }
 

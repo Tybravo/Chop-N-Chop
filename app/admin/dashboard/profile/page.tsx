@@ -118,9 +118,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional: Add some client-side validation for size (e.g. 800KB = 819200 bytes)
-    if (file.size > 819200) {
-      setPictureError("Image must be smaller than 800KB");
+    // Optional: Add some client-side validation for size (e.g. 1500KB = 1536000 bytes)
+    if (file.size > 1536000) {
+      setPictureError("Image must be smaller than 1500KB");
       return;
     }
 

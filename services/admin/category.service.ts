@@ -13,9 +13,9 @@ export const categoryService = {
       return response.data?.data || response.data || [];
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error('Error fetching categories:', error.response?.data || error.message);
+        console.warn('Error fetching categories:', error.response?.data || error.message);
       } else {
-        console.error('Unexpected error fetching categories:', error);
+        console.warn('Unexpected error fetching categories:', error);
       }
       throw error;
     }
