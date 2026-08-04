@@ -166,7 +166,7 @@ export default function CategoriesPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex w-full sm:w-auto items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+          <div className="flex w-full sm:w-auto items-center gap-2 overflow-x-auto p-1">
             <select 
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
@@ -230,7 +230,7 @@ export default function CategoriesPage() {
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+          <div className="hidden md:block bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-[#FC6B31]/30 dark:border-[#FC6B31]/30 overflow-hidden transition-all duration-300 hover:border-[#FC6B31] hover:shadow-xl hover:-translate-y-1">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-black/50 border-b border-gray-100 dark:border-gray-800">
@@ -322,7 +322,7 @@ export default function CategoriesPage() {
               const isCategoryActive = category.active !== undefined ? category.active : category.isActive;
               
               return (
-                <div key={category.id} className="bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+                <div key={category.id} className="bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-[#FC6B31]/30 dark:border-[#FC6B31]/30 p-4 transition-all duration-300 hover:border-[#FC6B31] hover:shadow-xl hover:-translate-y-1">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <div className="relative w-12 h-12 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
@@ -438,8 +438,10 @@ export default function CategoriesPage() {
           category={editingCategory}
           isOpen={true}
           onClose={() => setEditingCategory(null)}
-          onSuccess={(updated) => {
-            setCategories(prev => prev.map(c => c.id === updated.id ? updated : c));
+          onSuccess={() => {
+            // Refetch the full list so displayOrder values re-sync after the
+            // backend auto-shifts other categories (it only returns the single updated item).
+            fetchCategories();
             setEditingCategory(null);
           }}
         />
