@@ -109,6 +109,8 @@ export default function Footer() {
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[12px] md:text-[14px] font-medium">
+            <Link href="/admin/login" className="hover:text-white/80 transition-colors whitespace-nowrap">Admin</Link>
+            <span className="text-white/70">|</span>
             <Link href="/privacy" className="hover:text-white/80 transition-colors whitespace-nowrap">Privacy Policy</Link>
             <span className="text-white/70">|</span>
             <Link href="/terms" className="hover:text-white/80 transition-colors whitespace-nowrap">Terms & Conditions</Link>
