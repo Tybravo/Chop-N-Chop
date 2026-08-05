@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
+import Image from 'next/image';
 
 const faqs = [
   { question: "What is Chop'n Chop?", answer: "Chop'n Chop is a meal delivery service that lets you order from a curated daily meal drop. Simply place your order before the cutoff time, and we'll deliver your meal within the scheduled delivery window." },
@@ -23,7 +24,6 @@ function FaqItem({ question, answer, isOpen, onClick }: FaqItemProps) {
           {isOpen ? <Minus size={20} strokeWidth={2.5} /> : <Plus size={20} strokeWidth={2.5} />}
         </span>
       </button>
-      
       <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
         <div className="overflow-hidden">
           <div className="pb-[20px] px-[16px] md:pb-[23px] md:px-[24px] text-[#555F66] dark:text-gray-400 text-[14px] md:text-[15px] leading-relaxed">
@@ -39,15 +39,27 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faqs" className="w-full flex flex-col items-center pt-12 md:pt-16 pb-16 md:pb-24 px-4 md:px-[10px] bg-white dark:bg-background">
-      <div className="w-full max-w-[637px] flex flex-col items-center">
+    // Added 'relative' and 'overflow-hidden' to contain the background image
+    <section id="faqs" className="relative w-full flex flex-col items-center pt-12 md:pt-16 pb-16 md:pb-24 px-4 md:px-[10px] bg-white dark:bg-background overflow-hidden">
+      
+      {/* 10% Opacity Background Overlay */}
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+        <Image 
+          src="/bg_overlay.png" 
+          alt="Street Background Overlay" 
+          fill 
+          className="object-cover object-top" 
+          quality={100}
+        />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[637px] flex flex-col items-center">
         <h2 className="text-[28px] md:text-[40px] font-bold text-[#3E3D42] dark:text-white mb-2 text-center">
           FAQ&apos;s
         </h2>
         <p className="text-[15px] md:text-[16px] text-[#555F66] dark:text-gray-400 mb-8 md:mb-12 text-center">
           Everything you need to know before placing an order.
         </p>
-
         <div className="w-full flex flex-col gap-2">
           {faqs.map((faq, index) => (
             <FaqItem key={index} question={faq.question} answer={faq.answer} isOpen={openIndex === index} onClick={() => setOpenIndex(openIndex === index ? null : index)} />
