@@ -61,6 +61,9 @@ export default function ContactUs() {
           <a href="tel:+2348172028728" className="mt-auto text-[#FF6633] font-semibold text-[14px] lg:text-[15px] underline decoration-[#FF6633]/30 underline-offset-4 hover:decoration-[#FF6633] transition-colors">
             +234 817 202 8728
           </a>
+          <a href="tel:+2347032819318" className="mt-2 text-[#FF6633] font-semibold text-[14px] lg:text-[15px] underline decoration-[#FF6633]/30 underline-offset-4 hover:decoration-[#FF6633] transition-colors">
+            +234 703 281 9318
+          </a>
         </div>
 
       </div>
