@@ -12,6 +12,16 @@ export interface VendorProfile {
   joinedAt: string;
 }
 
+export interface PendingVendorApplication {
+  vendorProfileId: string;
+  businessName: string;
+  email: string;
+  contactPhone: string;
+  hubId?: string;
+  cacRegistrationNumber?: string;
+  brand?: string;
+}
+
 export interface MealComponent {
   id: string;
   ingredient: string;
