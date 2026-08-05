@@ -12,11 +12,13 @@ interface StatusItemProps {
 
 function StatusItem({ icon: Icon, title, text }: StatusItemProps) {
   return (
-    <div className="flex items-center gap-3 md:gap-4 text-left w-full md:w-auto">
+    // Mobile: stacked (flex-col), centered (items-center, text-center)
+    // Desktop: inline (md:flex-row), left-aligned (md:text-left)
+    <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-left w-full md:w-auto">
       <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#FF6633]/10 text-[#FF6633]">
         <Icon size={20} className="md:w-6 md:h-6" strokeWidth={1.5} />
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col items-center md:items-start">
         <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 dark:text-white leading-tight mb-0.5">
           {title}
         </h3>
@@ -34,7 +36,6 @@ export default function Hero() {
       
       <div className="relative z-10 flex flex-col items-center w-full max-w-[1122px] gap-6 md:gap-8 mx-auto">
         
-        {/* Headline - Scaled dynamically for mobile */}
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[128px] font-bold leading-[1.1] md:leading-[0.94] tracking-[-0.08em] text-[#3E3D42] dark:text-white">
           Fresh Cooked Meals.<br />
           Delivered <span className="text-[#FF6633]">Smarter</span>
@@ -65,7 +66,6 @@ export default function Hero() {
       
       <div className="relative z-20 w-full max-w-[1122px] mx-auto -mt-10 md:-mt-16 mb-12 md:mb-16 bg-white dark:bg-gray-900 rounded-[20px] md:rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 dark:border-gray-800 p-6 md:px-10 md:py-6">
         
-        {/* Grid layout on mobile, inline-flex on desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:flex md:flex-row md:items-center justify-between md:gap-10">
           <StatusItem icon={Soup} title="Today's Drop" text="Smoky Jollof & Chicken" />
           <div className="hidden md:block w-px h-12 bg-gray-200 dark:bg-gray-700" />

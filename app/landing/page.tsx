@@ -1,23 +1,49 @@
+// app/landing/page.tsx
 'use client';
 
+import Navbar from '@/components/landing/Navbar';
 import Hero from '@/components/landing/Hero';
 import HowItWorks from '@/components/landing/HowItWorks';
-import Faq from '@/components/landing/Faq'; // Import new component
+import Faq from '@/components/landing/Faq';
 import ContactUs from '@/components/landing/ContactUs';
-import Footer from '@/components/landing/Footer'; 
+import Footer from '@/components/landing/Footer';
 
 export default function NewLandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-background">
-     
-      <main className="flex-grow">
+      {/* <Navbar /> */}
+      
+      <main className="flex-grow flex flex-col">
         <Hero />
         <HowItWorks />
-        <Faq />
-        <ContactUs />
-      </main>
+        
+        {/* --- SHARED BACKGROUND SECTION FOR FAQ & CONTACT --- */}
+        <div className="relative w-full bg-[#FFF7F5] dark:bg-gray-950 overflow-hidden">
+          
+          <div 
+            className="absolute inset-0 z-0 pointer-events-none opacity-85"
+            style={{
+              backgroundImage: 'url("/bg_overlay.png")',
+              /* Anchored to bottom so the road sits under the Contact cards */
+              backgroundPosition: 'center bottom',
+              backgroundSize: 'clamp(1440px, 100vw, 2400px) auto',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+          
+          {/* The content sitting on top of the overlay */}
+          <div className="relative z-10 w-full flex flex-col">
+            <Faq />
+            <ContactUs />
+          </div>
 
-      <Footer />
+        </div>
+        {/* --- END SHARED SECTION --- */}
+        
+        {/* Footer is now completely separate from the background image wrapper! */}
+        <Footer />
+
+      </main>
     </div>
   );
 }

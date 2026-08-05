@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
-import Image from 'next/image';
 
 const faqs = [
   { question: "What is Chop'n Chop?", answer: "Chop'n Chop is a meal delivery service that lets you order from a curated daily meal drop. Simply place your order before the cutoff time, and we'll deliver your meal within the scheduled delivery window." },
@@ -39,21 +38,9 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    // Added 'relative' and 'overflow-hidden' to contain the background image
-    <section id="faqs" className="relative w-full flex flex-col items-center pt-12 md:pt-16 pb-16 md:pb-24 px-4 md:px-[10px] bg-white dark:bg-background overflow-hidden">
-      
-      {/* 10% Opacity Background Overlay */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <Image 
-          src="/bg_overlay.png" 
-          alt="Street Background Overlay" 
-          fill 
-          className="object-cover object-top" 
-          quality={100}
-        />
-      </div>
-
-      <div className="relative z-10 w-full max-w-[637px] flex flex-col items-center">
+    // FIXED: Changed pt-0 to pt-16 md:pt-24 to restore the top spacing!
+    <section id="faqs" className="w-full flex flex-col items-center pt-16 md:pt-24 pb-16 md:pb-24 px-4 md:px-[10px] bg-transparent">
+      <div className="w-full max-w-[637px] flex flex-col items-center">
         <h2 className="text-[28px] md:text-[40px] font-bold text-[#3E3D42] dark:text-white mb-2 text-center">
           FAQ&apos;s
         </h2>

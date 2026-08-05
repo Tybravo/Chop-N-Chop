@@ -20,8 +20,9 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
+  // Using lg:px-[80px] so landscape phones don't lose horizontal space
   return (
-    <nav className="relative z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] md:px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
+    <nav className="relative z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] lg:px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
       
       {/* Logo */}
       <div className="flex-shrink-0 z-50">
@@ -46,7 +47,7 @@ export default function Navbar() {
       </div>
 
       {/* Desktop Navigation Links */}
-      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-foreground">
+      <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-foreground">
         <Link href="#how-it-works" className="hover:text-[#FF6633] transition-colors">How it works</Link>
         <Link href="#todays-drop" className="hover:text-[#FF6633] transition-colors">Today&apos;s drop</Link>
         <Link href="#faqs" className="hover:text-[#FF6633] transition-colors">FAQs</Link>
@@ -78,7 +79,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Toggle */}
         <button 
-          className="md:hidden p-2 text-foreground hover:text-[#FF6633]"
+          className="lg:hidden p-2 text-foreground hover:text-[#FF6633]"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -87,7 +88,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation Dropdown */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-background border-b border-[#E5E7EB] dark:border-gray-800 shadow-lg flex flex-col py-6 px-6 gap-6 md:hidden z-40">
+        <div className="absolute top-full left-0 w-full bg-background border-b border-[#E5E7EB] dark:border-gray-800 shadow-lg flex flex-col py-6 px-6 gap-6 lg:hidden z-40">
           <Link href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">How it works</Link>
           <Link href="#todays-drop" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Today&apos;s drop</Link>
           <Link href="#faqs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">FAQs</Link>
