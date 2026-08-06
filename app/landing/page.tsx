@@ -21,10 +21,9 @@ export default function NewLandingPage() {
         <div className="relative w-full bg-[#FFF7F5] dark:bg-gray-950 overflow-hidden">
           
           <div 
-            className="absolute inset-0 z-0 pointer-events-none opacity-85"
+            className="absolute inset-0 z-0 pointer-events-none"
             style={{
               backgroundImage: 'url("/bg_overlay.png")',
-              /* Anchored to bottom so the road sits under the Contact cards */
               backgroundPosition: 'center bottom',
               backgroundSize: 'clamp(1440px, 100vw, 2400px) auto',
               backgroundRepeat: 'no-repeat',
@@ -40,7 +39,6 @@ export default function NewLandingPage() {
         </div>
         {/* --- END SHARED SECTION --- */}
         
-        {/* Footer is now completely separate from the background image wrapper! */}
         <Footer />
 
       </main>
