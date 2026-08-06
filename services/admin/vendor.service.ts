@@ -26,10 +26,15 @@ export const vendorService = {
    */
   async approveVendor(vendorProfileId: string): Promise<void> {
     try {
-      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/approve`);
+      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/approve`, {});
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error(`Error approving vendor ${vendorProfileId}:`, error.response?.data || error.message);
+        console.error(`Error approving vendor ${vendorProfileId}:`, {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message,
+        });
       } else {
         console.error(`Unexpected error approving vendor ${vendorProfileId}:`, error);
       }
@@ -43,7 +48,7 @@ export const vendorService = {
    */
   async suspendVendor(vendorProfileId: string): Promise<void> {
     try {
-      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/suspend`);
+      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/suspend`, {});
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error(`Error suspending vendor ${vendorProfileId}:`, error.response?.data || error.message);
@@ -60,7 +65,7 @@ export const vendorService = {
    */
   async rejectVendor(vendorProfileId: string): Promise<void> {
     try {
-      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/reject`);
+      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/reject`, {});
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error(`Error rejecting vendor ${vendorProfileId}:`, error.response?.data || error.message);

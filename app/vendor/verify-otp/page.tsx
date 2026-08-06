@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
-import { useVendorAuth } from "@/context/VendorAuthContext";
 import { Loader2, X, Eye, EyeOff } from "lucide-react";
 
 // Define the shape of our toast notification state
@@ -15,8 +14,8 @@ interface ToastNotification {
 
 function VerifyOtpContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const email = searchParams.get("email") || "";
-  const { login } = useVendorAuth();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -90,8 +89,11 @@ function VerifyOtpContent() {
 
     try {
       setLoading(true);
-      const res = await authService.verifyOtp(email, otpValue);
-      login(res.user, res.token);
+      // Verify OTP but do NOT log the user into a session.
+      // After a successful application, the vendor must wait for admin approval.
+      await authService.verifyOtp(email, otpValue);
+      const businessName = searchParams.get("businessName") || "";
+      router.push(`/vendor/application-pending?businessName=${encodeURIComponent(businessName)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
