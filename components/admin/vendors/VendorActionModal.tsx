@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { Loader2, CheckCircle, XCircle, Ban } from "lucide-react";
 import { PendingVendorApplication } from "@/types/vendor";
 import { vendorService } from "@/services/admin/vendor.service";
@@ -65,8 +66,20 @@ export function VendorActionModal({ vendor, action, isOpen, onClose, onSuccess }
         await vendorService.rejectVendor(vendor.vendorProfileId);
       }
       onSuccess(vendor.vendorProfileId, action);
-    } catch (_err) {
-      setError(`Unable to ${action} vendor. Please try again.`);
+    } catch (err: unknown) {
+      let message = `Unable to ${action} vendor. Please try again.`;
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const backendMessage = err.response?.data?.message || err.response?.data?.error;
+        if (status === 403) {
+          message = "You do not have permission to perform this action.";
+        } else if (status === 404) {
+          message = "This vendor application could not be found. It may have already been processed.";
+        } else if (typeof backendMessage === "string" && backendMessage) {
+          message = backendMessage;
+        }
+      }
+      setError(message);
     } finally {
       setIsProcessing(false);
     }
