@@ -4,7 +4,7 @@ import { Loader2, CheckCircle, XCircle, Ban } from "lucide-react";
 import { PendingVendorApplication } from "@/types/vendor";
 import { vendorService } from "@/services/admin/vendor.service";
 
-type ActionType = "approve" | "suspend" | "reject";
+type ActionType = "approve" | "reject" | "suspend";
 
 interface VendorActionModalProps {
   vendor: PendingVendorApplication;
@@ -28,9 +28,9 @@ const ACTION_CONFIG = {
     title: "Suspend Vendor",
     description: "This will temporarily lock the vendor out of their account and prevent them from managing inventory.",
     icon: Ban,
-    iconBg: "bg-orange-50 dark:bg-orange-900/20",
-    iconColor: "text-orange-500",
-    buttonBg: "bg-orange-600 hover:bg-orange-700",
+    iconBg: "bg-yellow-50 dark:bg-yellow-900/20",
+    iconColor: "text-yellow-500",
+    buttonBg: "bg-yellow-600 hover:bg-yellow-700",
     buttonText: "Yes, Suspend",
   },
   reject: {
@@ -62,7 +62,7 @@ export function VendorActionModal({ vendor, action, isOpen, onClose, onSuccess }
         await vendorService.approveVendor(vendor.vendorProfileId);
       } else if (action === "suspend") {
         await vendorService.suspendVendor(vendor.vendorProfileId);
-      } else if (action === "reject") {
+      } else {
         await vendorService.rejectVendor(vendor.vendorProfileId);
       }
       onSuccess(vendor.vendorProfileId, action);
