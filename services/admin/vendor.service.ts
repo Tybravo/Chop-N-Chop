@@ -142,6 +142,26 @@ export const vendorService = {
   },
 
   /**
+   * Verify an unverified vendor's KYC
+   * Forcefully changes the vendor status to APPROVED after KYC review
+   * PATCH /api/v1/admin/vendors/{vendorProfileId}/status
+   */
+  async verifyVendor(vendorProfileId: string): Promise<void> {
+    try {
+      await adminApiClient.patch(`/api/v1/admin/vendors/${vendorProfileId}/status`, {
+        status: "APPROVED",
+      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error verifying vendor ${vendorProfileId}:`, error.response?.data || error.message);
+      } else {
+        console.error(`Unexpected error verifying vendor ${vendorProfileId}:`, error);
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Reject a pending vendor application
    * Declines the application and keeps the user locked out
    */
