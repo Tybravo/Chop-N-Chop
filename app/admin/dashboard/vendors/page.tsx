@@ -6,6 +6,8 @@ import { Store, CheckCircle, XCircle, Ban, ShieldCheck, RefreshCw, Filter } from
 import { vendorService } from "@/services/admin/vendor.service";
 import { PendingVendorApplication } from "@/types/vendor";
 import { VendorActionModal } from "@/components/admin/vendors/VendorActionModal";
+import { OnboardDetailsModal } from "@/components/admin/vendors/OnboardDetailsModal";
+import { KycDetailsModal } from "@/components/admin/vendors/KycDetailsModal";
 
 type ActionType = "approve" | "reject" | "suspend" | "verify";
 
@@ -85,6 +87,10 @@ export default function VendorsPage() {
 
   const [selectedVendor, setSelectedVendor] = useState<PendingVendorApplication | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
+
+  // Detail modal states
+  const [onboardDetailsVendor, setOnboardDetailsVendor] = useState<PendingVendorApplication | null>(null);
+  const [kycDetailsVendor, setKycDetailsVendor] = useState<PendingVendorApplication | null>(null);
 
   // Determine the effective filter for fetching/display
   const effectiveFilter: DisplayFilterStatus =
@@ -169,6 +175,22 @@ export default function VendorsPage() {
   const closeAction = () => {
     setSelectedVendor(null);
     setSelectedAction(null);
+  };
+
+  const openOnboardDetails = (vendor: PendingVendorApplication) => {
+    setOnboardDetailsVendor(vendor);
+  };
+
+  const closeOnboardDetails = () => {
+    setOnboardDetailsVendor(null);
+  };
+
+  const openKycDetails = (vendor: PendingVendorApplication) => {
+    setKycDetailsVendor(vendor);
+  };
+
+  const closeKycDetails = () => {
+    setKycDetailsVendor(null);
   };
 
   const handleActionSuccess = (vendorId: string, action: ActionType) => {
@@ -289,6 +311,28 @@ export default function VendorsPage() {
   const showActionsColumn = () => {
     if (activeFilterSection === "onboard" && onboardFilter === "ALL") return false;
     return true;
+  };
+
+  // Determine which details link to show based on active filter section
+  const getDetailsLink = (vendor: PendingVendorApplication) => {
+    if (activeFilterSection === "kyc") {
+      return (
+        <button
+          onClick={() => openKycDetails(vendor)}
+          className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+        >
+          KYC Details
+        </button>
+      );
+    }
+    return (
+      <button
+        onClick={() => openOnboardDetails(vendor)}
+        className="text-xs font-medium text-[#FC6B31] hover:underline transition-colors"
+      >
+        Onboard Details
+      </button>
+    );
   };
 
   const renderSkeletons = () => (
@@ -493,6 +537,7 @@ export default function VendorsPage() {
                     <th className="px-6 py-4 font-medium">Business Name</th>
                     <th className="px-6 py-4 font-medium">Email</th>
                     <th className="px-6 py-4 font-medium text-center">Status</th>
+                    <th className="px-6 py-4 font-medium text-center">Details</th>
                     {showActionsColumn() && (
                       <th className="px-6 py-4 font-medium text-right">Actions</th>
                     )}
@@ -516,6 +561,9 @@ export default function VendorsPage() {
                         >
                           {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase()}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {getDetailsLink(vendor)}
                       </td>
                       {showActionsColumn() && (
                         <td className="px-6 py-4 text-right">
@@ -553,6 +601,10 @@ export default function VendorsPage() {
                   </span>
                 </div>
 
+                <div className="mb-3">
+                  {getDetailsLink(vendor)}
+                </div>
+
                 {showActionsColumn() && (
                   <div className="flex flex-col gap-2">
                     {getActionButtons(vendor)}
@@ -581,6 +633,26 @@ export default function VendorsPage() {
           isOpen={true}
           onClose={closeAction}
           onSuccess={handleActionSuccess}
+        />
+      )}
+
+      {/* Onboard Details Modal */}
+      {onboardDetailsVendor && (
+        <OnboardDetailsModal
+          vendorId={onboardDetailsVendor.vendorProfileId}
+          businessName={onboardDetailsVendor.businessName}
+          isOpen={true}
+          onClose={closeOnboardDetails}
+        />
+      )}
+
+      {/* KYC Details Modal */}
+      {kycDetailsVendor && (
+        <KycDetailsModal
+          vendorId={kycDetailsVendor.vendorProfileId}
+          businessName={kycDetailsVendor.businessName}
+          isOpen={true}
+          onClose={closeKycDetails}
         />
       )}
     </div>

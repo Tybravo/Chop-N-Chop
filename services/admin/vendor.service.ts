@@ -41,6 +41,45 @@ function normalizePendingVendor(v: Record<string, unknown>): PendingVendorApplic
 
 export const vendorService = {
   /**
+   * Get the full profile details of a single vendor.
+   * Fetches from GET /api/v1/admin/vendors/{vendorProfileId}/profile
+   * Returns the raw payload so all fields (including nulls) are preserved.
+   */
+  async getVendorById(vendorProfileId: string): Promise<Record<string, unknown>> {
+    try {
+      const response = await adminApiClient.get(`/api/v1/admin/vendors/${vendorProfileId}/profile`);
+      return response.data?.data || response.data || {};
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error fetching vendor profile ${vendorProfileId}:`, error.response?.data || error.message);
+      } else {
+        console.error(`Unexpected error fetching vendor profile ${vendorProfileId}:`, error);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get the KYC details of a single vendor.
+   * Extracts the `kyc` section from GET /api/v1/admin/vendors/{vendorProfileId}/profile
+   * Returns the raw payload so all fields (including nulls) are preserved.
+   */
+  async getVendorKyc(vendorProfileId: string): Promise<Record<string, unknown>> {
+    try {
+      const profile = await this.getVendorById(vendorProfileId);
+      const kyc = (profile as Record<string, unknown>)?.kyc;
+      return (kyc && typeof kyc === "object" ? kyc : {}) as Record<string, unknown>;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error fetching KYC for vendor ${vendorProfileId}:`, error.response?.data || error.message);
+      } else {
+        console.error(`Unexpected error fetching KYC for vendor ${vendorProfileId}:`, error);
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Get all vendor applications with their statuses.
    * Fetches from GET /api/v1/admin/vendors (optionally filterable by ?status=).
    */
