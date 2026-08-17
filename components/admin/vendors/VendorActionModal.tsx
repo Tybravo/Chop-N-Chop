@@ -1,10 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
-import { Loader2, CheckCircle, XCircle, Ban } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Ban, ShieldCheck } from "lucide-react";
 import { PendingVendorApplication } from "@/types/vendor";
 import { vendorService } from "@/services/admin/vendor.service";
 
-type ActionType = "approve" | "reject" | "suspend";
+type ActionType = "approve" | "reject" | "suspend" | "verify";
 
 interface VendorActionModalProps {
   vendor: PendingVendorApplication;
@@ -32,6 +32,15 @@ const ACTION_CONFIG = {
     iconColor: "text-yellow-500",
     buttonBg: "bg-yellow-600 hover:bg-yellow-700",
     buttonText: "Yes, Suspend",
+  },
+  verify: {
+    title: "Verify Vendor KYC",
+    description: "Are you sure you want to verify this vendor? Please confirm that the vendor has met all criteria and their KYC documents have been reviewed and approved.",
+    icon: ShieldCheck,
+    iconBg: "bg-blue-50 dark:bg-blue-900/20",
+    iconColor: "text-blue-500",
+    buttonBg: "bg-blue-600 hover:bg-blue-700",
+    buttonText: "Yes, Verify",
   },
   reject: {
     title: "Reject Vendor Application",
@@ -62,6 +71,8 @@ export function VendorActionModal({ vendor, action, isOpen, onClose, onSuccess }
         await vendorService.approveVendor(vendor.vendorProfileId);
       } else if (action === "suspend") {
         await vendorService.suspendVendor(vendor.vendorProfileId);
+      } else if (action === "verify") {
+        await vendorService.verifyVendor(vendor.vendorProfileId);
       } else {
         await vendorService.rejectVendor(vendor.vendorProfileId);
       }

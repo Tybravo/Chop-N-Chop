@@ -2,63 +2,110 @@
 
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { Store, CheckCircle, XCircle, Ban, RefreshCw, Filter } from "lucide-react";
+import { Store, CheckCircle, XCircle, Ban, ShieldCheck, RefreshCw, Filter } from "lucide-react";
 import { vendorService } from "@/services/admin/vendor.service";
 import { PendingVendorApplication } from "@/types/vendor";
 import { VendorActionModal } from "@/components/admin/vendors/VendorActionModal";
+import { OnboardDetailsModal } from "@/components/admin/vendors/OnboardDetailsModal";
+import { KycDetailsModal } from "@/components/admin/vendors/KycDetailsModal";
 
-type ActionType = "approve" | "reject" | "suspend";
-type FilterStatus = "ALL" | "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED" | "UNVERIFIED";
+type ActionType = "approve" | "reject" | "suspend" | "verify";
 
-const STATUS_BADGE_STYLES: Record<FilterStatus, string> = {
+// Onboard filter statuses (excluding UNVERIFIED which moves to KYC)
+type OnboardFilterStatus = "ALL" | "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED";
+// KYC filter statuses
+type KycFilterStatus = "VERIFIED" | "UNVERIFIED";
+
+// Combined status for the badge display
+type DisplayFilterStatus = OnboardFilterStatus | KycFilterStatus;
+
+const STATUS_BADGE_STYLES: Record<DisplayFilterStatus, string> = {
   ALL: "bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400",
   PENDING: "bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/20 dark:border-orange-800/30 dark:text-orange-400",
   APPROVED: "bg-green-50 text-green-600 border border-green-100 dark:bg-green-900/20 dark:border-green-800/30 dark:text-green-400",
   SUSPENDED: "bg-yellow-50 text-yellow-600 border border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-800/30 dark:text-yellow-400",
   REJECTED: "bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-800/30 dark:text-red-400",
   UNVERIFIED: "bg-purple-50 text-purple-600 border border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/30 dark:text-purple-400",
+  VERIFIED: "bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/30 dark:text-blue-400",
 };
 
-const FILTER_LABELS: Record<FilterStatus, string> = {
+const FILTER_LABELS: Record<DisplayFilterStatus, string> = {
   ALL: "All",
   PENDING: "Pending",
   APPROVED: "Approved",
   SUSPENDED: "Suspended",
   REJECTED: "Rejected",
   UNVERIFIED: "Unverified",
+  VERIFIED: "Verified",
 };
+
+// Onboard filter options
+const ONBOARD_FILTER_OPTIONS: { value: OnboardFilterStatus; label: string }[] = [
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "APPROVED", label: "Approved" },
+  { value: "SUSPENDED", label: "Suspended" },
+  { value: "REJECTED", label: "Rejected" },
+];
+
+// KYC filter options
+const KYC_FILTER_OPTIONS: { value: KycFilterStatus; label: string }[] = [
+  { value: "VERIFIED", label: "Verified" },
+  { value: "UNVERIFIED", label: "Unverified" },
+];
 
 // 3D embossed button styles
 const ACTION_BUTTON_STYLES = {
   approve:
-    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-green-600 border-b-4 border-green-800 shadow-md hover:bg-green-500 hover:border-green-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
+    "w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-green-600 border-b-4 border-green-800 shadow-md hover:bg-green-500 hover:border-green-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
   reject:
-    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 border-b-4 border-red-800 shadow-md hover:bg-red-500 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
+    "w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 border-b-4 border-red-800 shadow-md hover:bg-red-500 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
   suspend:
-    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-yellow-500 border-b-4 border-yellow-700 shadow-md hover:bg-yellow-400 hover:border-yellow-600 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
+    "w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-yellow-500 border-b-4 border-yellow-700 shadow-md hover:bg-yellow-400 hover:border-yellow-600 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
+  verify:
+    "w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 border-b-4 border-blue-800 shadow-md hover:bg-blue-500 hover:border-blue-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
+};
+
+// Map KYC filter values to vendor status for filtering
+// VERIFIED -> APPROVED status, UNVERIFIED -> UNVERIFIED status
+const KYC_STATUS_MAP: Record<KycFilterStatus, PendingVendorApplication["status"]> = {
+  VERIFIED: "APPROVED",
+  UNVERIFIED: "UNVERIFIED",
 };
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<PendingVendorApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("PENDING");
+
+  // Dual filter states
+  const [onboardFilter, setOnboardFilter] = useState<OnboardFilterStatus>("ALL");
+
+  // Track which filter box is currently active (for data fetching and UI)
+  const [activeFilterSection, setActiveFilterSection] = useState<"onboard" | "kyc">("onboard");
+  const [activeKycStatus, setActiveKycStatus] = useState<KycFilterStatus | null>(null);
 
   const [selectedVendor, setSelectedVendor] = useState<PendingVendorApplication | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
 
-  const fetchVendors = async () => {
+  // Detail modal states
+  const [onboardDetailsVendor, setOnboardDetailsVendor] = useState<PendingVendorApplication | null>(null);
+  const [kycDetailsVendor, setKycDetailsVendor] = useState<PendingVendorApplication | null>(null);
+
+  // Determine the effective filter for fetching/display
+  const effectiveFilter: DisplayFilterStatus =
+    activeFilterSection === "kyc" && activeKycStatus
+      ? activeKycStatus
+      : onboardFilter;
+
+  const fetchVendors = async (silent = false) => {
     try {
-      setLoading(true);
-      setError(null);
-      let data: PendingVendorApplication[];
-      if (filterStatus === "ALL") {
-        data = await vendorService.getAllVendors();
-      } else if (filterStatus === "PENDING") {
-        data = await vendorService.getPendingApplications();
-      } else {
-        data = await vendorService.getVendorsByStatus(filterStatus);
+      if (!silent) {
+        setLoading(true);
       }
+      setError(null);
+      // Always fetch all vendors, then filter client-side for both filter boxes
+      const data = await vendorService.getAllVendors();
       setVendors(data);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -69,19 +116,56 @@ export default function VendorsPage() {
         setError("Unable to load vendor applications. Please try again.");
       }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchVendors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus]);
+  }, []);
 
+  // Apply client-side filtering based on active filter section
   const filteredVendors = useMemo(() => {
-    if (filterStatus === "ALL") return vendors;
-    return vendors.filter((v) => v.status === filterStatus);
-  }, [vendors, filterStatus]);
+    if (activeFilterSection === "kyc" && activeKycStatus) {
+      // KYC filters map to actual vendor statuses
+      const targetStatus = KYC_STATUS_MAP[activeKycStatus];
+      return vendors.filter((v) => v.status === targetStatus);
+    }
+
+    // Onboard filters
+    if (onboardFilter === "ALL") return vendors;
+
+    // Approved includes both APPROVED and UNVERIFIED vendors
+    // (UNVERIFIED vendors are approved/onboarded, just awaiting KYC verification)
+    if (onboardFilter === "APPROVED") {
+      return vendors.filter(
+        (v) => v.status === "APPROVED" || v.status === "UNVERIFIED"
+      );
+    }
+
+    return vendors.filter((v) => v.status === onboardFilter);
+  }, [vendors, onboardFilter, activeFilterSection, activeKycStatus]);
+
+  // Handle selecting a KYC filter option
+  const handleKycFilterSelect = (status: KycFilterStatus) => {
+    setActiveFilterSection("kyc");
+    setActiveKycStatus(status);
+  };
+
+  // Handle selecting an Onboard filter option
+  const handleOnboardFilterSelect = (status: OnboardFilterStatus) => {
+    setActiveFilterSection("onboard");
+    setOnboardFilter(status);
+    // Clear any active KYC selection
+    setActiveKycStatus(null);
+  };
+
+  // Clear all filters (reset to default Onboard ALL)
+  const clearAllFilters = () => {
+    handleOnboardFilterSelect("ALL");
+  };
 
   const openAction = (vendor: PendingVendorApplication, action: ActionType) => {
     setSelectedVendor(vendor);
@@ -93,20 +177,162 @@ export default function VendorsPage() {
     setSelectedAction(null);
   };
 
+  const openOnboardDetails = (vendor: PendingVendorApplication) => {
+    setOnboardDetailsVendor(vendor);
+  };
+
+  const closeOnboardDetails = () => {
+    setOnboardDetailsVendor(null);
+  };
+
+  const openKycDetails = (vendor: PendingVendorApplication) => {
+    setKycDetailsVendor(vendor);
+  };
+
+  const closeKycDetails = () => {
+    setKycDetailsVendor(null);
+  };
+
   const handleActionSuccess = (vendorId: string, action: ActionType) => {
     const newStatus: PendingVendorApplication["status"] =
-      action === "approve" ? "APPROVED" : action === "suspend" ? "SUSPENDED" : "REJECTED";
+      action === "approve" || action === "verify"
+        ? "APPROVED"
+        : action === "suspend"
+          ? "SUSPENDED"
+          : action === "reject" && activeFilterSection === "kyc" && activeKycStatus === "UNVERIFIED"
+            ? "UNVERIFIED"
+            : "REJECTED";
 
-    if (filterStatus === "ALL") {
-      // Keep the vendor in the list but update its status
-      setVendors((prev) =>
-        prev.map((v) => (v.vendorProfileId === vendorId ? { ...v, status: newStatus } : v))
-      );
-    } else {
-      // Remove the vendor from the list since it no longer matches the filter
-      setVendors((prev) => prev.filter((v) => v.vendorProfileId !== vendorId));
-    }
+    // Update the vendor in the master list optimistically
+    setVendors((prev) =>
+      prev.map((v) => (v.vendorProfileId === vendorId ? { ...v, status: newStatus } : v))
+    );
     closeAction();
+
+    // Silent refresh: re-fetch all vendors from the server to ensure
+    // all status tables reflect the actual server state in real-time.
+    // This runs in the background without showing loading skeletons.
+    fetchVendors(true);
+  };
+
+  // Determine which action buttons to show based on active filter section and status
+  const getActionButtons = (vendor: PendingVendorApplication) => {
+    // KYC section: Unverified shows Verify + Reject buttons
+    if (activeFilterSection === "kyc" && activeKycStatus === "UNVERIFIED") {
+      return (
+        <>
+          <button
+            onClick={() => openAction(vendor, "verify")}
+            className={ACTION_BUTTON_STYLES.verify}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Verify
+          </button>
+          <button
+            onClick={() => openAction(vendor, "reject")}
+            className={ACTION_BUTTON_STYLES.reject}
+          >
+            <XCircle className="w-4 h-4" />
+            Reject
+          </button>
+        </>
+      );
+    }
+
+    // KYC section: Verified shows Suspend button
+    if (activeFilterSection === "kyc" && activeKycStatus === "VERIFIED") {
+      return (
+        <button
+          onClick={() => openAction(vendor, "suspend")}
+          className={ACTION_BUTTON_STYLES.suspend}
+        >
+          <Ban className="w-4 h-4" />
+          Suspend
+        </button>
+      );
+    }
+
+    // Onboard section: Approved shows Suspend button
+    if (activeFilterSection === "onboard" && onboardFilter === "APPROVED") {
+      return (
+        <button
+          onClick={() => openAction(vendor, "suspend")}
+          className={ACTION_BUTTON_STYLES.suspend}
+        >
+          <Ban className="w-4 h-4" />
+          Suspend
+        </button>
+      );
+    }
+
+    // Onboard section: Suspended or Rejected shows Approve button
+    if (
+      activeFilterSection === "onboard" &&
+      (onboardFilter === "SUSPENDED" || onboardFilter === "REJECTED")
+    ) {
+      return (
+        <button
+          onClick={() => openAction(vendor, "approve")}
+          className={ACTION_BUTTON_STYLES.approve}
+        >
+          <CheckCircle className="w-4 h-4" />
+          Approve
+        </button>
+      );
+    }
+
+    // Onboard section: Pending shows Approve + Reject buttons
+    if (activeFilterSection === "onboard" && onboardFilter === "PENDING") {
+      return (
+        <>
+          <button
+            onClick={() => openAction(vendor, "approve")}
+            className={ACTION_BUTTON_STYLES.approve}
+          >
+            <CheckCircle className="w-4 h-4" />
+            Approve
+          </button>
+          <button
+            onClick={() => openAction(vendor, "reject")}
+            className={ACTION_BUTTON_STYLES.reject}
+          >
+            <XCircle className="w-4 h-4" />
+            Reject
+          </button>
+        </>
+      );
+    }
+
+    // Onboard ALL: show no action buttons (read-only table)
+    return null;
+  };
+
+  // Determine if actions column should be shown
+  const showActionsColumn = () => {
+    if (activeFilterSection === "onboard" && onboardFilter === "ALL") return false;
+    return true;
+  };
+
+  // Determine which details link to show based on active filter section
+  const getDetailsLink = (vendor: PendingVendorApplication) => {
+    if (activeFilterSection === "kyc") {
+      return (
+        <button
+          onClick={() => openKycDetails(vendor)}
+          className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+        >
+          KYC Details
+        </button>
+      );
+    }
+    return (
+      <button
+        onClick={() => openOnboardDetails(vendor)}
+        className="text-xs font-medium text-[#FC6B31] hover:underline transition-colors"
+      >
+        Onboard Details
+      </button>
+    );
   };
 
   const renderSkeletons = () => (
@@ -118,10 +344,18 @@ export default function VendorsPage() {
   );
 
   const getEmptyStateMessage = () => {
-    if (filterStatus === "ALL") {
+    if (activeFilterSection === "onboard" && onboardFilter === "ALL") {
       return "There are no vendor applications at the moment.";
     }
-    return `There are no ${FILTER_LABELS[filterStatus].toLowerCase()} vendor applications at the moment.`;
+    const label = effectiveFilter;
+    return `There are no ${FILTER_LABELS[label].toLowerCase()} vendor applications at the moment.`;
+  };
+
+  const getActiveFilterLabel = () => {
+    if (activeFilterSection === "kyc" && activeKycStatus) {
+      return `KYC: ${FILTER_LABELS[activeKycStatus]}`;
+    }
+    return FILTER_LABELS[onboardFilter];
   };
 
   return (
@@ -135,7 +369,7 @@ export default function VendorsPage() {
             {!loading && !error && (
               <span className="flex items-center gap-2 px-3 py-1 bg-orange-50 text-[#FC6B31] rounded-full text-sm font-medium border border-orange-100 dark:bg-orange-900/20 dark:border-orange-800/30">
                 <Store className="w-4 h-4" />
-                {filteredVendors.length} {filterStatus === "ALL" ? "Vendors" : FILTER_LABELS[filterStatus]}
+                {filteredVendors.length} {getActiveFilterLabel()}
               </span>
             )}
           </div>
@@ -145,7 +379,7 @@ export default function VendorsPage() {
         </div>
 
         <button
-          onClick={fetchVendors}
+          onClick={() => fetchVendors()}
           disabled={loading}
           className="hidden md:flex items-center gap-2 bg-white dark:bg-[#26292C] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-60"
         >
@@ -154,23 +388,114 @@ export default function VendorsPage() {
         </button>
       </div>
 
-      {/* Filter Dropdown */}
+      {/* Dual Filter Box - Onboard and KYC */}
       <div className="bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-          <div className="flex w-full sm:w-auto items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-400 shrink-0" />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-              className="w-full sm:w-48 bg-gray-50 dark:bg-black border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FC6B31]"
+        <div className="flex flex-col sm:flex-row gap-2 mb-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span>Filters</span>
+          </div>
+          {(onboardFilter !== "ALL" || (activeKycStatus !== null && activeKycStatus !== undefined)) && (
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-[#FC6B31] hover:underline ml-auto sm:ml-0"
             >
-              <option value="ALL">All</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="SUSPENDED">Suspended</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="UNVERIFIED">Unverified</option>
-            </select>
+              Clear all
+            </button>
+          )}
+        </div>
+
+        {/* Desktop: Two side-by-side filter boxes */}
+        <div className="hidden sm:flex flex-col sm:flex-row gap-4">
+          {/* Onboard Filter Box */}
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              Onboard
+            </label>
+            <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 dark:bg-black/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              {ONBOARD_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleOnboardFilterSelect(option.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                    activeFilterSection === "onboard" && onboardFilter === option.value
+                      ? "bg-[#FC6B31] text-white shadow-md"
+                      : "bg-white dark:bg-[#26292C] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KYC Filter Box */}
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              KYC
+            </label>
+            <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 dark:bg-black/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              {KYC_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleKycFilterSelect(option.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                    activeFilterSection === "kyc" && activeKycStatus === option.value
+                      ? "bg-[#FC6B31] text-white shadow-md"
+                      : "bg-white dark:bg-[#26292C] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Stacked filter boxes */}
+        <div className="sm:hidden space-y-4">
+          {/* Onboard Filter Box */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              Onboard
+            </label>
+            <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 dark:bg-black/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              {ONBOARD_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleOnboardFilterSelect(option.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                    activeFilterSection === "onboard" && onboardFilter === option.value
+                      ? "bg-[#FC6B31] text-white shadow-md"
+                      : "bg-white dark:bg-[#26292C] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KYC Filter Box */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              KYC
+            </label>
+            <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 dark:bg-black/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              {KYC_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleKycFilterSelect(option.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                    activeFilterSection === "kyc" && activeKycStatus === option.value
+                      ? "bg-[#FC6B31] text-white shadow-md"
+                      : "bg-white dark:bg-[#26292C] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -181,7 +506,7 @@ export default function VendorsPage() {
         <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-xl flex flex-col items-center justify-center text-center">
           <p className="mb-4">{error}</p>
           <button
-            onClick={fetchVendors}
+            onClick={() => fetchVendors()}
             className="bg-red-100 dark:bg-red-900/40 px-4 py-2 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/60 transition-colors"
           >
             Retry
@@ -193,7 +518,9 @@ export default function VendorsPage() {
             <Store className="w-8 h-8 text-[#FC6B31]" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            {filterStatus === "ALL" ? "No vendor applications" : `No ${FILTER_LABELS[filterStatus].toLowerCase()} vendors`}
+            {activeFilterSection === "onboard" && onboardFilter === "ALL"
+              ? "No vendor applications"
+              : `No ${FILTER_LABELS[effectiveFilter].toLowerCase()} vendors`}
           </h3>
           <p className="text-gray-500 dark:text-gray-400 max-w-sm">
             {getEmptyStateMessage()}
@@ -210,7 +537,8 @@ export default function VendorsPage() {
                     <th className="px-6 py-4 font-medium">Business Name</th>
                     <th className="px-6 py-4 font-medium">Email</th>
                     <th className="px-6 py-4 font-medium text-center">Status</th>
-                    {filterStatus !== "ALL" && (
+                    <th className="px-6 py-4 font-medium text-center">Details</th>
+                    {showActionsColumn() && (
                       <th className="px-6 py-4 font-medium text-right">Actions</th>
                     )}
                   </tr>
@@ -228,47 +556,19 @@ export default function VendorsPage() {
                       </td>
                       <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{vendor.email}</td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE_STYLES[vendor.status]}`}>
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE_STYLES[vendor.status as DisplayFilterStatus]}`}
+                        >
                           {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase()}
                         </span>
                       </td>
-                      {filterStatus !== "ALL" && (
+                      <td className="px-6 py-4 text-center">
+                        {getDetailsLink(vendor)}
+                      </td>
+                      {showActionsColumn() && (
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {filterStatus === "APPROVED" ? (
-                              <button
-                                onClick={() => openAction(vendor, "suspend")}
-                                className={ACTION_BUTTON_STYLES.suspend}
-                              >
-                                <Ban className="w-4 h-4" />
-                                Suspend
-                              </button>
-                            ) : filterStatus === "SUSPENDED" || filterStatus === "REJECTED" ? (
-                              <button
-                                onClick={() => openAction(vendor, "approve")}
-                                className={ACTION_BUTTON_STYLES.approve}
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                                Approve
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => openAction(vendor, "approve")}
-                                  className={ACTION_BUTTON_STYLES.approve}
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => openAction(vendor, "reject")}
-                                  className={ACTION_BUTTON_STYLES.reject}
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                  Reject
-                                </button>
-                              </>
-                            )}
+                            {getActionButtons(vendor)}
                           </div>
                         </td>
                       )}
@@ -294,43 +594,20 @@ export default function VendorsPage() {
                     <p className="font-semibold text-gray-900 dark:text-white truncate">{vendor.businessName}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{vendor.email}</p>
                   </div>
-                  <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_BADGE_STYLES[vendor.status]}`}>
+                  <span
+                    className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_BADGE_STYLES[vendor.status as DisplayFilterStatus]}`}
+                  >
                     {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase()}
                   </span>
                 </div>
 
-                {filterStatus === "ALL" ? null : filterStatus === "APPROVED" ? (
-                  <button
-                    onClick={() => openAction(vendor, "suspend")}
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-yellow-500 border-b-4 border-yellow-700 shadow-md hover:bg-yellow-400 hover:border-yellow-600 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150"
-                  >
-                    <Ban className="w-4 h-4" />
-                    Suspend
-                  </button>
-                ) : filterStatus === "SUSPENDED" || filterStatus === "REJECTED" ? (
-                  <button
-                    onClick={() => openAction(vendor, "approve")}
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-green-600 border-b-4 border-green-800 shadow-md hover:bg-green-500 hover:border-green-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    Approve
-                  </button>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => openAction(vendor, "approve")}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-green-600 border-b-4 border-green-800 shadow-md hover:bg-green-500 hover:border-green-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => openAction(vendor, "reject")}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-red-600 border-b-4 border-red-800 shadow-md hover:bg-red-500 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150"
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Reject
-                    </button>
+                <div className="mb-3">
+                  {getDetailsLink(vendor)}
+                </div>
+
+                {showActionsColumn() && (
+                  <div className="flex flex-col gap-2">
+                    {getActionButtons(vendor)}
                   </div>
                 )}
               </div>
@@ -341,7 +618,7 @@ export default function VendorsPage() {
 
       {/* Mobile Refresh FAB */}
       <button
-        onClick={fetchVendors}
+        onClick={() => fetchVendors()}
         disabled={loading}
         className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#FC6B31] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#e55a20] active:scale-95 transition-all z-40 disabled:opacity-60"
       >
@@ -356,6 +633,26 @@ export default function VendorsPage() {
           isOpen={true}
           onClose={closeAction}
           onSuccess={handleActionSuccess}
+        />
+      )}
+
+      {/* Onboard Details Modal */}
+      {onboardDetailsVendor && (
+        <OnboardDetailsModal
+          vendorId={onboardDetailsVendor.vendorProfileId}
+          businessName={onboardDetailsVendor.businessName}
+          isOpen={true}
+          onClose={closeOnboardDetails}
+        />
+      )}
+
+      {/* KYC Details Modal */}
+      {kycDetailsVendor && (
+        <KycDetailsModal
+          vendorId={kycDetailsVendor.vendorProfileId}
+          businessName={kycDetailsVendor.businessName}
+          isOpen={true}
+          onClose={closeKycDetails}
         />
       )}
     </div>
