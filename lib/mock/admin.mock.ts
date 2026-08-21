@@ -8,7 +8,7 @@ export const MOCK_ADMINS: AdminUser[] = [
     role: "SUPER_ADMIN",
     status: "ACTIVE",
     createdAt: "2024-01-01T00:00:00Z",
-    avatarUrl: "https://i.pravatar.cc/150?u=super",
+    avatarUrl: "/avatar-placeholder.svg",
   },
   {
     id: "admin_02",
@@ -17,7 +17,7 @@ export const MOCK_ADMINS: AdminUser[] = [
     role: "SUB_ADMIN",
     status: "ACTIVE",
     createdAt: "2024-02-01T00:00:00Z",
-    avatarUrl: "https://i.pravatar.cc/150?u=sub",
+    avatarUrl: "/avatar-placeholder.svg",
   },
 ];
 
@@ -32,10 +32,10 @@ const MOCK_RECENT_ORDERS: Order[] = [
 ];
 
 const MOCK_DISPATCH_STATUS: DispatchRider[] = [
-  { id: "r1", name: "Peter", batch: "Batch #104", status: "In Transit", location: "Lekki Hub", eta: "12:30 PM", avatarUrl: "https://i.pravatar.cc/150?u=peter" },
-  { id: "r2", name: "Tunde", batch: "Batch #105", status: "Awaiting Pickup", location: "Yaba", avatarUrl: "https://i.pravatar.cc/150?u=tunde" },
-  { id: "r3", name: "Amaka", batch: "Batch #106", status: "Delayed", location: "VI Office", delay: "+6 min", avatarUrl: "https://i.pravatar.cc/150?u=amaka" },
-  { id: "r4", name: "Osinachi", batch: "Batch #107", status: "Delayed", location: "Ikeja Hub", delay: "+8 min", avatarUrl: "https://i.pravatar.cc/150?u=osinachi" },
+  { id: "r1", name: "Peter", batch: "Batch #104", status: "In Transit", location: "Lekki Hub", eta: "12:30 PM", avatarUrl: "/avatar-placeholder.svg" },
+  { id: "r2", name: "Tunde", batch: "Batch #105", status: "Awaiting Pickup", location: "Yaba", avatarUrl: "/avatar-placeholder.svg" },
+  { id: "r3", name: "Amaka", batch: "Batch #106", status: "Delayed", location: "VI Office", delay: "+6 min", avatarUrl: "/avatar-placeholder.svg" },
+  { id: "r4", name: "Osinachi", batch: "Batch #107", status: "Delayed", location: "Ikeja Hub", delay: "+8 min", avatarUrl: "/avatar-placeholder.svg" },
 ];
 
 const MOCK_ISSUES: Issue[] = [
