@@ -193,8 +193,14 @@ adminApiClient.interceptors.response.use(
         return adminApiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.clear();
-        window.location.href = '/';
+        // Session can no longer be refreshed (expired/revoked). Only clear the
+        // admin tokens so the auth layer / dashboard layout can route the user
+        // to the login page naturally. Do NOT hard-redirect to '/' here: doing
+        // so forces repeated full-page reloads that re-trigger the refresh
+        // endpoint and cause the login<->dashboard loop.
+        localStorage.removeItem('adminUser');
+        localStorage.removeItem('admin_access_token');
+        localStorage.removeItem('admin_refresh_token');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

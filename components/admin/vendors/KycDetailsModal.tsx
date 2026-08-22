@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Loader2, X, ShieldCheck, AlertCircle, FileX } from "lucide-react";
+import { Loader2, X, ShieldCheck, AlertCircle, FileX, RefreshCw } from "lucide-react";
 import { vendorService } from "@/services/admin/vendor.service";
 
 interface KycDetailsModalProps {
@@ -48,6 +48,7 @@ export function KycDetailsModal({ vendorId, businessName, isOpen, onClose }: Kyc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noKyc, setNoKyc] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!isOpen || !vendorId) return;
@@ -73,14 +74,24 @@ export function KycDetailsModal({ vendorId, businessName, isOpen, onClose }: Kyc
           if (axios.isAxiosError(err) && err.response?.status === 404) {
             setNoKyc(true);
           } else {
-            let message = "Unable to load KYC details. Please try again.";
+            // Show a friendly message instead of the raw backend error
+            let message = "The server encountered an error while loading this vendor's KYC details. Please try again later.";
             if (axios.isAxiosError(err)) {
-              const backendMessage = err.response?.data?.message || err.response?.data?.error;
-              if (typeof backendMessage === "string" && backendMessage) {
-                message = backendMessage;
+              const status = err.response?.status;
+              if (status === 401 || status === 403) {
+                message = "Your session may have expired. Please refresh the page and try again.";
+              } else if (status === 500) {
+                message = "The server encountered an error while loading this vendor's KYC details. Please try again later.";
+              } else if (err.code === "ECONNABORTED") {
+                message = "The request timed out. Please check your connection and try again.";
+              } else if (!err.response) {
+                message = "Unable to reach the server. Please check your connection and try again.";
               }
             } else if (err instanceof Error) {
-              message = err.message || message;
+              // Only use the raw message if it's not a generic "Internal Server Error"
+              if (err.message && err.message !== "Internal Server Error" && !err.message.toLowerCase().includes("500")) {
+                message = err.message || message;
+              }
             }
             setError(message);
           }
@@ -96,7 +107,11 @@ export function KycDetailsModal({ vendorId, businessName, isOpen, onClose }: Kyc
     return () => {
       cancelled = true;
     };
-  }, [isOpen, vendorId]);
+  }, [isOpen, vendorId, retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1);
+  };
 
   if (!isOpen) return null;
 
@@ -135,7 +150,14 @@ export function KycDetailsModal({ vendorId, businessName, isOpen, onClose }: Kyc
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <AlertCircle className="w-8 h-8 text-red-500 mb-3" />
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mb-4 max-w-sm">{error}</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Retry
+              </button>
             </div>
           ) : noKyc ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">

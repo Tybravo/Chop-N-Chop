@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { Loader2, X, Store, AlertCircle } from "lucide-react";
+import { Loader2, X, Store, AlertCircle, RefreshCw } from "lucide-react";
 import { vendorService } from "@/services/admin/vendor.service";
 
 interface OnboardDetailsModalProps {
@@ -93,45 +93,56 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
+  const loadDetails = useCallback(async () => {
     if (!isOpen || !vendorId) return;
 
-    let cancelled = false;
-    const loadDetails = async () => {
-      setLoading(true);
-      setError(null);
-      setDetails(null);
-      try {
-        const data = await vendorService.getVendorById(vendorId);
-        if (!cancelled) {
-          setDetails(data);
+    setLoading(true);
+    setError(null);
+    setDetails(null);
+    try {
+      const data = await vendorService.getVendorById(vendorId);
+      setDetails(data);
+    } catch (err: unknown) {
+      // Show a friendly message instead of the raw backend error.
+      // Only fall back to the raw error message if we can't determine
+      // a user-friendly contextual message.
+      let message = "The server encountered an error while loading this vendor's details. Please try again later.";
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 404) {
+          message = "Vendor details not found. This vendor may no longer exist.";
+        } else if (status === 401 || status === 403) {
+          message = "Your session may have expired. Please refresh the page and try again.";
+        } else if (status === 500) {
+          message = "The server encountered an error while loading this vendor's details. Please try again later.";
+        } else if (err.code === "ECONNABORTED") {
+          message = "The request timed out. Please check your connection and try again.";
+        } else if (!err.response) {
+          message = "Unable to reach the server. Please check your connection and try again.";
         }
-      } catch (err: unknown) {
-        if (!cancelled) {
-          let message = "Unable to load vendor details. Please try again.";
-          if (axios.isAxiosError(err)) {
-            const backendMessage = err.response?.data?.message || err.response?.data?.error;
-            if (typeof backendMessage === "string" && backendMessage) {
-              message = backendMessage;
-            }
-          } else if (err instanceof Error) {
-            message = err.message || message;
-          }
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
+      } else if (err instanceof Error) {
+        // Only use the raw message if it's not a generic "Internal Server Error"
+        if (err.message && err.message !== "Internal Server Error" && !err.message.toLowerCase().includes("500")) {
+          message = err.message || message;
         }
       }
-    };
-
-    loadDetails();
-    return () => {
-      cancelled = true;
-    };
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }, [isOpen, vendorId]);
+
+  useEffect(() => {
+    if (isOpen && vendorId) {
+      loadDetails();
+    }
+  }, [isOpen, vendorId, retryCount, loadDetails]);
+
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1);
+  };
 
   if (!isOpen) return null;
 
@@ -178,7 +189,14 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <AlertCircle className="w-8 h-8 text-red-500 mb-3" />
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mb-4 max-w-sm">{error}</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#FC6B31] hover:bg-[#e55a20] transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Retry
+              </button>
             </div>
           ) : details && (scalarEntries.length > 0 || sectionEntries.length > 0) ? (
             <>
