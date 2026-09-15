@@ -24,7 +24,7 @@ export default function HowItWorks() {
       
       <div className="w-full max-w-[1281px] h-[70px] md:h-[90px] bg-[#FF6633] rounded-[20px] md:rounded-[24px] flex items-center justify-center mb-8 md:mb-12 shadow-sm">
         <h2 className="text-white text-[24px] md:text-[32px] font-semibold leading-none tracking-[-0.02em]">
-          How it Works
+          How It Works
         </h2>
       </div>
 
