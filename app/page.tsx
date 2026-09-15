@@ -1,6 +1,7 @@
 'use client';
 
-// import Navbar from '@/components/landing/Navbar';
+import Navbar from '@/components/landing/Navbar';
+import { CartSidebar } from '@/components/CartSidebar';
 import Hero from '@/components/landing/Hero';
 import HowItWorks from '@/components/landing/HowItWorks';
 import Faq from '@/components/landing/Faq';
@@ -10,7 +11,7 @@ import Footer from '@/components/landing/Footer';
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-background">
-      {/* <Navbar /> */}
+      <Navbar />
       
       <main className="flex-grow flex flex-col">
         <Hero />
@@ -40,6 +41,8 @@ export default function Home() {
         <Footer />
 
       </main>
+
+      <CartSidebar />
     </div>
   );
 }
