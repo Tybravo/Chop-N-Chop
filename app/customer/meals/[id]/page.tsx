@@ -1,107 +1,153 @@
 "use client";
 
-import { ArrowLeft, Clock, Users, Check } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { ArrowLeft, Heart, Share2, Star, Minus, Plus, Package } from "lucide-react";
 
 export default function FoodDetailsPage() {
   const router = useRouter();
+  
+  // --- Interactive States ---
+  const [quantity, setQuantity] = useState(1);
+  const [isLiked, setIsLiked] = useState(false);
+
+  // --- Mock Data (Pre-packed meal format) ---
+  const meal = {
+    name: "Smoky Jollof & Chicken Pack",
+    vendor: "Taste & See",
+    rating: 4.8,
+    reviews: "2.2k",
+    price: 5000,
+    image: "/hero-food-illustration.png", 
+    description: "Our signature party-style smoky Jollof rice, served with tender grilled chicken, fried plantains (dodo), and a side of creamy coleslaw. Packed fresh for your daily drop.",
+    packContents: [
+      "Smoky Jollof Rice (Large portion)",
+      "1x Quarter Grilled Chicken",
+      "Fried Plantain Cubes",
+      "Fresh Coleslaw"
+    ]
+  };
+
+  // --- Price Calculation ---
+  const totalPrice = meal.price * quantity;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-900 pb-20">
-      {/* Orange Curved Header */}
-      <div className="bg-orange-500 pt-6 pb-14 px-4 rounded-b-[2.5rem] relative flex flex-col items-center">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 pb-32">
+      
+      {/* --- HEADER --- */}
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-4 py-4 flex items-center justify-between">
         <button 
-          onClick={() => router.back()} 
-          className="absolute top-6 left-4 text-white p-2 rounded-full hover:bg-white/20 transition-colors"
+          onClick={() => router.back()}
+          className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
         </button>
-        
-        <div className="w-36 h-36 rounded-full border-4 border-white shadow-xl overflow-hidden mt-6 bg-white">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsLiked(!isLiked)}
+            className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <Heart className={`w-5 h-5 transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-gray-900 dark:text-white"}`} />
+          </button>
+          <button className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors">
+            <Share2 className="w-5 h-5 text-gray-900 dark:text-white" />
+          </button>
+        </div>
+      </header>
+
+      {/* --- FOOD IMAGE HERO --- */}
+      <div className="w-full flex justify-center py-6 px-4">
+        <div className="relative w-[280px] h-[280px] md:w-[350px] md:h-[350px]">
+          <div className="absolute inset-0 bg-[#FC6B31]/10 rounded-full blur-3xl scale-90" />
           <img 
-            src="/hero-food-illustration.png" 
-            alt="Spaghetti with Meatballs" 
-            className="w-full h-full object-cover"
-            onError={(e) => { e.currentTarget.src = "https://placehold.co/200x200/orange/white?text=Food"; }}
+            src={meal.image} 
+            alt={meal.name} 
+            className="w-full h-full object-cover rounded-full drop-shadow-2xl relative z-10"
+            onError={(e) => { e.currentTarget.src = "https://placehold.co/400x400/orange/white?text=Food"; }}
           />
         </div>
-        <h1 className="text-xl font-bold text-white mt-4 text-center px-4">Spaghetti with Meatballs</h1>
-        <p className="text-xs text-orange-100 flex items-center gap-1 mt-1 font-medium">
-          The Brunch Club <span className="text-[10px]">●</span> Verified Vendor
-        </p>
       </div>
 
-      {/* Meal Info Body */}
-      <div className="p-6 space-y-6 flex-1 -mt-4 relative z-10 bg-white dark:bg-zinc-900 rounded-t-[2.5rem]">
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Details</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">
-            Savor the tasty mix in our Stir Fry Spaghetti! This quick meal features al dente spaghetti, fresh veggies, tender chicken, and a savory sauce.
-          </p>
+      {/* --- DETAILS SECTION --- */}
+      <div className="px-5 md:px-8 max-w-3xl mx-auto">
+        <div className="flex justify-between items-start gap-4 mb-2">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
+            {meal.name}
+          </h1>
+          <span className="text-xl md:text-2xl font-extrabold text-[#FC6B31] shrink-0 mt-0.5">
+            ₦{meal.price.toLocaleString()}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-4 text-sm font-medium mb-6">
+          <span className="text-gray-500 flex items-center gap-1.5">
+            <span className="text-[#FC6B31]">🏪</span> {meal.vendor}
+          </span>
+          <div className="w-1 h-1 bg-gray-300 rounded-full" />
+          <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            {meal.rating} <span className="text-gray-400">({meal.reviews})</span>
+          </span>
         </div>
 
-        {/* Pricing Row */}
-        <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-2xl border border-gray-100 dark:border-zinc-800">
-          <div>
-            <span className="text-[11px] text-gray-400 block uppercase tracking-wider font-semibold">Original Price</span>
-            <span className="text-sm line-through text-gray-400 font-bold mt-0.5">₦4,500</span>
-          </div>
-          <div className="w-px h-8 bg-gray-200 dark:bg-zinc-700"></div>
-          <div>
-            <span className="text-[11px] text-orange-500 block uppercase tracking-wider font-bold">Today's Drop</span>
-            <span className="text-lg font-extrabold text-gray-900 dark:text-white mt-0.5">₦3,000</span>
-          </div>
-        </div>
+        {/* --- DESCRIPTION --- */}
+        <p className="text-[14px] text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
+          {meal.description}
+        </p>
 
-        {/* What's Included */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">What's Included?</h3>
-          <ul className="space-y-2.5 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-gray-100 dark:border-zinc-800">
-            {["4 scoops of Jollof Rice", "Whole Chicken", "Special Soy Sauce Dipping"].map((item, idx) => (
-              <li key={idx} className="flex items-center gap-3">
-                <div className="bg-orange-100 dark:bg-orange-500/20 p-1 rounded-full">
-                  <Check className="w-3 h-3 text-orange-500" />
-                </div>
-                <span className="font-medium">{item}</span>
+        {/* --- WHAT'S IN THE PACK --- */}
+        <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-[20px] p-5 border border-gray-100 dark:border-zinc-800">
+          <h3 className="text-[15px] font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Package className="w-4 h-4 text-[#FC6B31]" />
+            What's inside this pack
+          </h3>
+          <ul className="space-y-3">
+            {meal.packContents.map((item, index) => (
+              <li key={index} className="flex items-start gap-3 text-[14px] text-gray-700 dark:text-gray-300">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#FC6B31] mt-1.5 shrink-0" />
+                <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
+      </div>
 
-        {/* Stats Badges */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm">
-            <div className="bg-gray-100 dark:bg-zinc-800 p-2 rounded-full">
-              <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            </div>
-            <div>
-              <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Prep Time</span>
-              <span className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5 block">30mins - 1hr</span>
-            </div>
+      {/* --- FIXED BOTTOM BAR --- */}
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-zinc-950 border-t border-gray-100 dark:border-zinc-800 p-4 pb-safe-offset-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          
+          {/* Quantity Selector */}
+          <div className="flex items-center gap-4 px-4 py-3.5 border-2 border-gray-100 dark:border-zinc-800 rounded-full bg-white dark:bg-zinc-900">
+            <button 
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+            <span className="font-bold text-[15px] w-4 text-center text-gray-900 dark:text-white">{quantity}</span>
+            <button 
+              onClick={() => setQuantity(quantity + 1)}
+              className="text-gray-400 hover:text-[#FC6B31] transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 shadow-sm">
-            <div className="bg-orange-100 dark:bg-orange-500/20 p-2 rounded-full">
-              <Users className="w-4 h-4 text-orange-500" />
-            </div>
-            <div>
-              <span className="text-[10px] text-orange-500 block uppercase font-bold tracking-wider">Servings Left</span>
-              <span className="text-xs font-bold text-orange-600 dark:text-orange-400 mt-0.5 block">100 available</span>
-            </div>
-          </div>
+
+          {/* Add to Cart Button */}
+          <button 
+            onClick={() => {
+              console.log(`Added ${quantity}x ${meal.name} to cart`);
+              router.push('/customer/cart');
+            }}
+            className="flex-1 bg-[#FC6B31] hover:bg-orange-600 transition-colors text-white py-4 px-6 rounded-full font-bold text-[15px] flex items-center justify-between shadow-lg shadow-orange-500/20 active:scale-[0.98]"
+          >
+            <span>Add to Cart</span>
+            <span>₦{totalPrice.toLocaleString()}</span>
+          </button>
+          
         </div>
       </div>
 
-      {/* Sticky Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-gray-100 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md z-40 max-w-md mx-auto">
-        <button
-          onClick={() => router.push("/cart")}
-          className="w-full py-4 px-4 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-2xl shadow-lg shadow-orange-500/30 transition flex items-center justify-center gap-2"
-        >
-          <span>Pay ₦3,000</span>
-          <ArrowLeft className="w-4 h-4 rotate-180" />
-        </button>
-      </div>
     </div>
   );
 }
