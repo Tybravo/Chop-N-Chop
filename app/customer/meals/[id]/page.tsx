@@ -1,35 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Heart, Share2, Star, Minus, Plus, Package } from "lucide-react";
 
 export default function FoodDetailsPage() {
   const router = useRouter();
+  const params = useParams();
   
   // --- Interactive States ---
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
 
-  // --- Mock Data (Pre-packed meal format) ---
+  // --- Pre-packed Dish Data (No sizes or variant modifications) ---
   const meal = {
-    name: "Smoky Jollof & Chicken Pack",
-    vendor: "Taste & See",
+    id: params?.id || "meal-1",
+    name: "Melting Cheese Pizza",
+    vendor: "Pizza Italiano",
     rating: 4.8,
     reviews: "2.2k",
-    price: 5000,
+    price: 10990,
     image: "/hero-food-illustration.png", 
-    description: "Our signature party-style smoky Jollof rice, served with tender grilled chicken, fried plantains (dodo), and a side of creamy coleslaw. Packed fresh for your daily drop.",
+    description: "Our signature pre-packed artisan pizza loaded with rich melting cheese, freshly prepared for guaranteed delivery windows.",
     packContents: [
-      "Smoky Jollof Rice (Large portion)",
-      "1x Quarter Grilled Chicken",
-      "Fried Plantain Cubes",
-      "Fresh Coleslaw"
+      "10-inch artisan crust",
+      "Special blend mozzarella & cheddar cheese",
+      "Signature house tomato base",
+      "Fresh herbs & seasoning"
     ]
   };
 
-  // --- Price Calculation ---
   const totalPrice = meal.price * quantity;
+
+  const handleAddToCart = () => {
+    // TODO: Add to global cart state/backend
+    console.log(`Added ${quantity}x ${meal.name} to cart`);
+    router.push('/customer/cart');
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 pb-32">
@@ -38,18 +45,18 @@ export default function FoodDetailsPage() {
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-4 py-4 flex items-center justify-between">
         <button 
           onClick={() => router.back()}
-          className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
         </button>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsLiked(!isLiked)}
-            className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <Heart className={`w-5 h-5 transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-gray-900 dark:text-white"}`} />
           </button>
-          <button className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 transition-colors">
+          <button className="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
             <Share2 className="w-5 h-5 text-gray-900 dark:text-white" />
           </button>
         </div>
@@ -120,7 +127,7 @@ export default function FoodDetailsPage() {
           <div className="flex items-center gap-4 px-4 py-3.5 border-2 border-gray-100 dark:border-zinc-800 rounded-full bg-white dark:bg-zinc-900">
             <button 
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
             >
               <Minus className="w-5 h-5" />
             </button>
@@ -133,12 +140,9 @@ export default function FoodDetailsPage() {
             </button>
           </div>
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart Button (Using your brand #FC6B31 color) */}
           <button 
-            onClick={() => {
-              console.log(`Added ${quantity}x ${meal.name} to cart`);
-              router.push('/customer/cart');
-            }}
+            onClick={handleAddToCart}
             className="flex-1 bg-[#FC6B31] hover:bg-orange-600 transition-colors text-white py-4 px-6 rounded-full font-bold text-[15px] flex items-center justify-between shadow-lg shadow-orange-500/20 active:scale-[0.98]"
           >
             <span>Add to Cart</span>
