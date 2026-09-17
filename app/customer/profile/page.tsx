@@ -9,7 +9,8 @@ import {
   Heart, 
   Headphones, 
   LogOut, 
-  ChevronRight, 
+  ChevronRight,
+  ChevronLeft, 
   Moon, 
   Sun, 
   Truck, 
@@ -55,9 +56,10 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between pt-2">
               <button 
                 onClick={() => router.back()}
-                className="w-10 h-10 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm"
+                className="w-10 h-10 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                aria-label="Go back"
               >
-                ←
+                <ChevronLeft className="w-5 h-5" />
               </button>
               <h1 className="text-lg font-extrabold text-gray-900 dark:text-white tracking-tight">Profile</h1>
               <button 
@@ -65,7 +67,7 @@ export default function ProfilePage() {
                   localStorage.removeItem("chopnchop_session");
                   router.push("/customer/login");
                 }}
-                className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 flex items-center justify-center text-red-500 shadow-sm"
+                className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 flex items-center justify-center text-red-500 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                 aria-label="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -116,10 +118,21 @@ export default function ProfilePage() {
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">Adjust app appearance</p>
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" checked={isDarkMode} onChange={toggleDarkMode} className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-600 peer-checked:bg-[#FC6B31]"></div>
-              </label>
+               <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isDarkMode}
+                    onClick={toggleDarkMode}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isDarkMode ? "bg-[#FC6B31]" : "bg-gray-200 dark:bg-zinc-700"
+                    }`}
+                  >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                      isDarkMode ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
             </div>
 
             {/* GROUPED NAVIGATION CARD 1 */}
