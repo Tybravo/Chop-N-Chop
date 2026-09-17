@@ -15,18 +15,6 @@ import {
   Truck, 
   Package,
   ShieldCheck,
-  User,
-  Lock,
-  FileText,
-  Download,
-  CheckCircle2,
-  Plus,
-  ExternalLink,
-  Settings,
-  CreditCard,
-  Home,
-  Search,
-  ShoppingBag
 } from "lucide-react";
 import DesktopProfileDashboard from "./desktop-profile";
 
@@ -136,7 +124,7 @@ export default function ProfilePage() {
 
             {/* GROUPED NAVIGATION CARD 1 */}
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
-              <button onClick={() => router.push("/customer/orders")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button onClick={() => router.push("/customer/wallet")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FC6B31] flex items-center justify-center">
                     <Wallet className="w-4 h-4" />
@@ -149,7 +137,7 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/orders")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button onClick={() => router.push("/customer/locations")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
                     <MapPin className="w-4 h-4" />
@@ -162,7 +150,7 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/orders")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button onClick={() => router.push("/customer/favorites")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-950/40 text-red-500 flex items-center justify-center">
                     <Heart className="w-4 h-4" />
@@ -175,7 +163,7 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/orders")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button onClick={() => router.push("/customer/notifications")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
                     <Bell className="w-4 h-4" />
@@ -204,14 +192,14 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/orders")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button onClick={() => router.push("/customer/drops")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
                     <Package className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Order History & Invoices</span>
-                    <span className="text-[11px] text-gray-400">Past drops and receipts</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Drops & Order History</span>
+                    <span className="text-[11px] text-gray-400">Track drops and view past receipts</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />

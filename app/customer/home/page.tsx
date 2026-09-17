@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Bell, ChevronDown, Search, Star, ShoppingCart } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import DeliveryDropBanner from "@/components/customer/DeliveryDropBanner";
 import MealDetailsModal from "@/components/customer/MealDetailsModal"; 
 import TodaysDealsSection from "@/components/customer/TodaysDealsSection"; 
@@ -53,7 +52,6 @@ export default function CustomerHome() {
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-          <ThemeToggle />
           <button className="relative p-2.5 rounded-full border border-gray-100 dark:border-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors">
             <Bell className="w-5 h-5" />
             {notificationCount > 0 && (

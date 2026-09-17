@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Compass,
+  Package,
   ShoppingBag,
   UserRound,
 } from "lucide-react";
@@ -15,6 +16,7 @@ export default function FloatingBottomNav() {
   const navItems = [
     { name: "Home", path: "/customer/home", icon: Home },
     { name: "Explore", path: "/customer/explore", icon: Compass },
+    { name: "Drops", path: "/customer/drops", icon: Package }, // The new Tracking tab
     { name: "Cart", path: "/customer/cart", icon: ShoppingBag, badge: "2" },
     { name: "Profile", path: "/customer/profile", icon: UserRound },
   ];
@@ -24,39 +26,27 @@ export default function FloatingBottomNav() {
       
       <div className="relative w-full max-w-[360px] h-[58px] pointer-events-auto drop-shadow-[0_12px_25px_rgba(0,0,0,0.15)]">
 
-        {/* =========================================
-            LAYER 1: WHITE OUTLINE 
-            ========================================= */}
+        {/* LAYER 1: WHITE OUTLINE */}
         <div className="absolute inset-0 z-0 flex items-center">
-          {/* Connecting Bridge */}
           <div className="absolute left-[29px] right-[29px] h-[42px] bg-white" />
-          {/* The 5 Outer Nodes */}
           <div className="w-full flex justify-between">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="w-[58px] h-[58px] bg-white rounded-full shrink-0" />
             ))}
           </div>
         </div>
 
-        {/* =========================================
-            LAYER 2: INNER FILL 
-            (Slightly lighter ash `bg-zinc-200` on light mode, 
-             and `#27272A` on dark mode)
-            ========================================= */}
+        {/* LAYER 2: INNER FILL */}
         <div className="absolute inset-0 z-10 flex items-center px-[4px]">
-          {/* Connecting Bridge */}
           <div className="absolute left-[29px] right-[29px] h-[34px] bg-zinc-200 dark:bg-[#27272A]" />
-          {/* The 4 Inner Nodes */}
           <div className="w-full flex justify-between relative z-10">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="w-[50px] h-[50px] bg-zinc-200 dark:bg-[#27272A] rounded-full shrink-0" />
             ))}
           </div>
         </div>
 
-        {/* =========================================
-            LAYER 3: INTERACTIVE FOREGROUND BUTTONS
-            ========================================= */}
+        {/* LAYER 3: INTERACTIVE FOREGROUND BUTTONS */}
         <nav className="absolute inset-0 z-20 flex items-center justify-between px-[4px]">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -84,8 +74,6 @@ export default function FloatingBottomNav() {
                     className="w-[20px] h-[20px]"
                     strokeWidth={isActive ? 2.5 : 2.5}
                   />
-
-                  {/* Cart badge */}
                   {item.badge && (
                     <span
                       className={`
