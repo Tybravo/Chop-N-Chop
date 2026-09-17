@@ -6,7 +6,8 @@ import { Bell, ChevronDown, Search, Star, ShoppingCart } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import DeliveryDropBanner from "@/components/customer/DeliveryDropBanner";
-import MealDetailsModal from "@/components/customer/MealDetailsModal"; // NEW IMPORT
+import MealDetailsModal from "@/components/customer/MealDetailsModal"; 
+import TodaysDealsSection from "@/components/customer/TodaysDealsSection"; 
 
 export default function CustomerHome() {
   const [notificationCount, setNotificationCount] = useState(0);
@@ -199,6 +200,9 @@ export default function CustomerHome() {
           
         </div>
       </section>
+
+      {/* TODAY'S DEALS REUSABLE COMPONENT */}
+      <TodaysDealsSection onSelectMeal={setSelectedMeal} />
 
       {/* =========================================
           THE NEW DETAILS MODAL
