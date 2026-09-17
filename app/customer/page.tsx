@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ArrowRight, Droplets, Sparkles } from "lucide-react";
 
 export default function CustomerWelcomePage() {
-  
   const router = useRouter();
 
   useEffect(() => {
@@ -15,9 +14,13 @@ export default function CustomerWelcomePage() {
     }
   }, [router]);
 
-  const handleLoginOrSignup = () => {
-    localStorage.setItem("chopnchop_session", "active");
-    router.push("/customer/home");
+  // Specific routing handlers
+  const handleSignUp = () => {
+    router.push("/customer/signup");
+  };
+
+  const handleLogin = () => {
+    router.push("/customer/login");
   };
 
   const handleGuestBrowsing = () => {
@@ -112,23 +115,26 @@ export default function CustomerWelcomePage() {
         </div>
 
         <div className="mt-5 space-y-2.5">
+          {/* Sign Up Button -> Routes to /customer/signup */}
           <button
             type="button"
-            onClick={handleLoginOrSignup}
+            onClick={handleSignUp}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FC6B31] text-white text-[14px] font-bold shadow-lg shadow-orange-500/20 transition-all hover:bg-[#e95d27] active:scale-[0.98]"
           >
             <span>Sign Up</span>
             <ArrowRight className="h-4 w-4" />
           </button>
 
+          {/* Log In Button -> Routes to /customer/login */}
           <button
             type="button"
-            onClick={handleLoginOrSignup}
+            onClick={handleLogin}
             className="flex h-12 w-full items-center justify-center rounded-full border border-gray-200 bg-white text-[14px] font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-[0.98]"
           >
             Log in
           </button>
 
+          {/* Guest Browsing Button -> Routes directly to home */}
           <button
             type="button"
             onClick={handleGuestBrowsing}
@@ -142,7 +148,7 @@ export default function CustomerWelcomePage() {
           New here?{" "}
           <button
             type="button"
-            onClick={handleLoginOrSignup}
+            onClick={handleSignUp}
             className="text-[#FC6B31] font-bold hover:underline"
           >
             Create an account

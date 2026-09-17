@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 export default function CustomerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isWelcomePage = pathname === "/customer";
-  const showBottomNav = !isWelcomePage;
+  const isAuthPage = pathname === "/customer/login" || pathname === "/customer/signup" || pathname === "/customer/forgot-password";
+  const showBottomNav = !isWelcomePage && !isAuthPage;
 
   return (
     <div
@@ -14,7 +15,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
         isWelcomePage ? "h-[100dvh] overflow-hidden" : "min-h-screen"
       } bg-gray-50 dark:bg-zinc-950`}
     >
-      <div className={`flex-1 ${isWelcomePage ? "min-h-0 overflow-hidden" : "pb-24"}`}>
+      <div className={`flex-1 ${isWelcomePage ? "min-h-0 overflow-hidden" : "overflow-x-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0"}`}>
         {children}
       </div>
 

@@ -3,15 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Phone, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
-export default function SignupPage() {
+export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
+    identifier: "",
     password: "",
   });
 
@@ -23,9 +22,9 @@ export default function SignupPage() {
 
   return (
     <div className="h-[100dvh] w-full bg-[#FFFBF7] flex items-center justify-center p-4 lg:p-8 overflow-hidden selection:bg-[#FC6B31] selection:text-white">
-      <div className="w-full max-w-5xl h-full lg:h-auto lg:max-h-[720px] bg-white rounded-none lg:rounded-[40px] shadow-none lg:shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row border-0 lg:border border-orange-100/60 overflow-hidden relative">
+      <div className="w-full max-w-5xl h-full lg:h-auto lg:max-h-[680px] bg-white rounded-none lg:rounded-[40px] shadow-none lg:shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row border-0 lg:border border-orange-100/60 overflow-hidden relative">
         
-        {/* LEFT PANEL: Signup Form Container */}
+        {/* LEFT PANEL: Login Form Container */}
         <div className="w-full lg:w-1/2 px-6 py-5 lg:p-12 flex flex-col h-full">
           <div className="w-full flex-1 flex flex-col justify-center">
             {/* Logo & Brand Header */}
@@ -39,55 +38,25 @@ export default function SignupPage() {
 
             {/* Header Title */}
             <div className="mb-4 lg:mb-6 text-center lg:text-left">
-              <h2 className="text-xl lg:text-2xl font-black text-gray-900 tracking-tight">Create Your Account</h2>
-              <p className="text-xs text-gray-500 mt-1">Join ChopnChop and get your favorite meals delivered fresh, fast and hassle-free.</p>
+              <h2 className="text-xl lg:text-2xl font-black text-gray-900 tracking-tight">Welcome Back</h2>
+              <p className="text-xs text-gray-500 mt-1">Login to your ChopnChop account and continue your food journey.</p>
             </div>
 
             {/* Form Fields */}
             <form onSubmit={handleSubmit} className="space-y-3">
               
-              {/* Full Name */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <User className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Full Name"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 lg:py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Email Address */}
+              {/* Email or Phone Number */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 lg:py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Phone Number */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <Phone className="w-4 h-4" />
-                </div>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Phone Number"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 lg:py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
+                  placeholder="Email or Phone Number"
+                  value={formData.identifier}
+                  onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                  className="w-full pl-10 pr-4 py-2.5 lg:py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
                 />
               </div>
 
@@ -102,7 +71,7 @@ export default function SignupPage() {
                   placeholder="Password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-10 pr-11 py-2.5 lg:py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
+                  className="w-full pl-10 pr-11 py-2.5 lg:py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:bg-white transition-all"
                 />
                 <button
                   type="button"
@@ -113,21 +82,37 @@ export default function SignupPage() {
                 </button>
               </div>
 
+              {/* Remember Me & Forgot Password Row */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={rememberMe} 
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 accent-[#FC6B31] rounded"
+                  />
+                  <span className="text-gray-600 font-medium">Remember me</span>
+                </label>
+                <Link href="/customer/forgot-password" className="font-bold text-[#FC6B31] hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
                 className="w-full py-3 px-4 bg-[#FC6B31] hover:bg-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-sm tracking-wide"
               >
-                Sign Up
+                Log In
               </button>
             </form>
 
             {/* Footer Navigation */}
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
-                Already have an account?{" "}
-                <Link href="/customer/login" className="font-extrabold text-[#FC6B31] hover:underline">
-                  Log In
+                Don't have an account?{" "}
+                <Link href="/customer/signup" className="font-extrabold text-[#FC6B31] hover:underline">
+                  Sign Up
                 </Link>
               </p>
             </div>
@@ -136,8 +121,8 @@ export default function SignupPage() {
           {/* Mobile Base Illustration - sits at bottom */}
           <div className="w-full mt-auto flex justify-center lg:hidden overflow-hidden pb-2">
             <img 
-              src="/CNC-bowl%20of%20jolof%20rice%20chicken%20plantain.png" 
-              alt="ChopnChop Jollof Rice Dish" 
+              src="/CNC-tall%20building%20structure.png" 
+              alt="ChopnChop Building Structure" 
               className="w-full max-w-[320px] h-52 object-contain object-bottom"
             />
           </div>
@@ -147,8 +132,8 @@ export default function SignupPage() {
         <div className="hidden lg:flex lg:w-1/2 bg-[#FDF7F2] p-8 items-center justify-center relative overflow-hidden border-l border-orange-100/50">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-amber-50/30 pointer-events-none" />
           <img 
-            src="/CNC-woman%20carry%20bag.png" 
-            alt="ChopnChop Delivery Experience" 
+            src="/CNC-man%20riding%20bike.png" 
+            alt="ChopnChop Rider Delivery" 
             className="w-full h-full max-h-[480px] object-contain relative z-10 drop-shadow-md transform hover:scale-105 transition-transform duration-500"
           />
         </div>

@@ -1,44 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   MapPin, 
   Wallet, 
-  Bell, 
   Heart, 
   Headphones, 
   LogOut, 
   ChevronRight,
   ChevronLeft, 
-  Moon, 
-  Sun, 
   Truck, 
   Package,
   ShieldCheck,
+  Car,
+  Ticket,
+  Settings
 } from "lucide-react";
 import DesktopProfileDashboard from "./desktop-profile";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setIsDarkMode(isDark);
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  };
 
   return (
     <>
@@ -54,24 +35,16 @@ export default function ProfilePage() {
             
             {/* TOP HEADER */}
             <div className="flex items-center justify-between pt-2">
-              <button 
+              <button
+                type="button"
                 onClick={() => router.back()}
-                className="w-10 h-10 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
-                aria-label="Go back"
+                className="w-11 h-11 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+                aria-label="Go back to the previous page"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <h1 className="text-lg font-extrabold text-gray-900 dark:text-white tracking-tight">Profile</h1>
-              <button 
-                onClick={() => {
-                  localStorage.removeItem("chopnchop_session");
-                  router.push("/customer/login");
-                }}
-                className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 flex items-center justify-center text-red-500 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
-                aria-label="Logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <div className="w-10 h-10" /> {/* Empty div to perfectly center the title */}
             </div>
 
             {/* ACTIVE DROP STATUS WIDGET */}
@@ -92,8 +65,8 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3.5">
                 <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#FC6B31]/30 bg-orange-50">
                   <img 
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnDaniel&backgroundColor=f3f4f6" 
-                    alt="John-Daniel" 
+                    src="/avatar-placeholder.svg"
+                    alt=""
                     className="w-full h-full object-cover" 
                   />
                 </div>
@@ -107,37 +80,14 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* THEME TOGGLE CARD */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[24px] px-4 py-3.5 border border-gray-100 dark:border-zinc-800 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-gray-800 dark:text-zinc-200">
-                  {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-orange-500" />}
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Dark Mode</h3>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">Adjust app appearance</p>
-                </div>
-              </div>
-               <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isDarkMode}
-                    onClick={toggleDarkMode}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      isDarkMode ? "bg-[#FC6B31]" : "bg-gray-200 dark:bg-zinc-700"
-                    }`}
-                  >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                      isDarkMode ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-            </div>
-
-            {/* GROUPED NAVIGATION CARD 1 */}
+            {/* BLOCK 1: THE ESSENTIALS */}
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
-              <button onClick={() => router.push("/customer/wallet")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button
+                type="button"
+                onClick={() => router.push("/customer/wallet")}
+                aria-label="Open wallet and quick pay"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FC6B31] flex items-center justify-center">
                     <Wallet className="w-4 h-4" />
@@ -150,7 +100,51 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/locations")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button
+                type="button"
+                onClick={() => router.push("/customer/drops")}
+                aria-label="Open drops and order history"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Drops & Order History</span>
+                    <span className="text-[11px] text-gray-400">Track drops and view past receipts</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/customer/promos")}
+                aria-label="Open promos and rewards"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-pink-100 dark:bg-pink-950/40 text-pink-600 flex items-center justify-center">
+                    <Ticket className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Promos & Rewards</span>
+                    <span className="text-[11px] text-gray-400">Active discounts & coupons</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+
+            {/* BLOCK 2: OPERATIONAL PREFERENCES */}
+            <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
+              <button
+                type="button"
+                onClick={() => router.push("/customer/locations")}
+                aria-label="Open saved hubs and locations"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
                     <MapPin className="w-4 h-4" />
@@ -163,7 +157,30 @@ export default function ProfilePage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button onClick={() => router.push("/customer/favorites")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button
+                type="button"
+                onClick={() => router.push("/customer/vehicles")}
+                aria-label="Open drive-thru vehicles"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center">
+                    <Car className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Drive-Thru Vehicles</span>
+                    <span className="text-[11px] text-gray-400">Make, color & plate numbers</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/customer/favorites")}
+                aria-label="Open favorites and quick reorder"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-950/40 text-red-500 flex items-center justify-center">
                     <Heart className="w-4 h-4" />
@@ -175,24 +192,34 @@ export default function ProfilePage() {
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
+            </div>
 
-              <button onClick={() => router.push("/customer/notifications")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+            {/* BLOCK 3: SETTINGS & SUPPORT */}
+            <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
+              <button
+                type="button"
+                onClick={() => router.push("/customer/settings")}
+                aria-label="Open app settings and preferences"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
-                    <Bell className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 flex items-center justify-center">
+                    <Settings className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Notification Toggles</span>
-                    <span className="text-[11px] text-gray-400">Cut-off times & arrival alerts</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">App Settings & Preferences</span>
+                    <span className="text-[11px] text-gray-400">Dark mode, notifications, security</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
-            </div>
 
-            {/* GROUPED NAVIGATION CARD 2 */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
-              <button onClick={() => window.open("https://wa.me/2348000000000", "_blank")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+              <button
+                type="button"
+                onClick={() => window.open("https://wa.me/2348172028728", "_blank")}
+                aria-label="Contact instant support on WhatsApp"
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center">
                     <Headphones className="w-4 h-4" />
@@ -204,18 +231,21 @@ export default function ProfilePage() {
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
+            </div>
 
-              <button onClick={() => router.push("/customer/drops")} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
-                    <Package className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Drops & Order History</span>
-                    <span className="text-[11px] text-gray-400">Track drops and view past receipts</span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+            {/* STANDALONE LOGOUT */}
+            <div className="pt-2 pb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("chopnchop_session");
+                  localStorage.removeItem("chopnchop-session");
+                  router.push("/customer/login");
+                }}
+                aria-label="Log out of your account"
+                className="min-h-12 w-full flex items-center justify-center gap-2 py-4 rounded-[20px] text-[15px] font-extrabold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+              >
+                <LogOut className="w-5 h-5" /> Log Out
               </button>
             </div>
 

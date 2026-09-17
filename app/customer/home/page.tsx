@@ -1,216 +1,249 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, Search } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, Bell, X } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
 import DeliveryDropBanner from "@/components/customer/DeliveryDropBanner";
-import MealDetailsModal from "@/components/customer/MealDetailsModal"; 
-import TodaysDealsSection from "@/components/customer/TodaysDealsSection"; 
+import MealDetailsModal from "@/components/customer/MealDetailsModal";
+import TodaysDealsSection from "@/components/customer/TodaysDealsSection";
+import CustomerHeader from "@/components/customer/home/CustomerHeader";
+import ActiveOrderTracker from "@/components/customer/home/ActiveOrderTracker";
+import HomeSearchPrompt from "@/components/customer/home/HomeSearchPrompt";
+
+type MealModalData = {
+  name: string;
+  vendor: string;
+  originalPrice: number;
+  discountedPrice: number;
+  image: string;
+};
+
+const categories = [
+  { name: "All", icon: "🍽️" },
+  { name: "Burger", icon: "🍔" },
+  { name: "Fruits", icon: "🍎" },
+  { name: "Pizza", icon: "🍕" },
+  { name: "Drinks", icon: "🥤" },
+];
+
+const bestSellers: MealModalData[] = [
+  {
+    name: "Melting Cheese Pizza",
+    vendor: "Pizza Italiano",
+    originalPrice: 12990,
+    discountedPrice: 10990,
+    image: "/hero-food-illustration.png",
+  },
+  {
+    name: "Cheese Burger",
+    vendor: "Burger Hunt",
+    originalPrice: 5500,
+    discountedPrice: 4990,
+    image: "/hero-food-illustration.png",
+  },
+  {
+    name: "Smoky Jollof & Chicken",
+    vendor: "Taste & See",
+    originalPrice: 6500,
+    discountedPrice: 5000,
+    image: "/hero-food-illustration.png",
+  },
+  {
+    name: "Beef Stir Fry Pasta",
+    vendor: "The Brunch Club",
+    originalPrice: 5000,
+    discountedPrice: 4200,
+    image: "/hero-food-illustration.png",
+  },
+];
+
+const activeOrder = {
+  status: "OUT_FOR_DELIVERY",
+  eta: "1:45 PM",
+  zone: "Yaba - Akoka",
+  step: 3,
+};
 
 export default function CustomerHome() {
-  const [notificationCount, setNotificationCount] = useState(0);
-  
-  // NEW STATE: Controls which meal is currently selected for the modal
-  const [selectedMeal, setSelectedMeal] = useState<any>(null);
+  const [notificationCount, setNotificationCount] = useState(2);
+  const [selectedMeal, setSelectedMeal] = useState<MealModalData | null>(null);
+  const [toastNotif, setToastNotif] = useState<{ title: string; body: string } | null>(null);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const walletBalance = 24500;
 
   useEffect(() => {
-    // Simulated notification count from your Figma design
-    setNotificationCount(2); 
+    let toastTimer: ReturnType<typeof setTimeout> | undefined;
+    const timer = setTimeout(() => {
+      setNotificationCount((count) => count + 1);
+      setToastNotif({
+        title: "Order Dispatched!",
+        body: "Your drop is on its way to your doorstep in Yaba.",
+      });
+      toastTimer = setTimeout(() => setToastNotif(null), 5000);
+    }, 4500);
+
+    return () => {
+      clearTimeout(timer);
+      if (toastTimer) clearTimeout(toastTimer);
+    };
   }, []);
 
-  const categories = [
-    { name: "Rice", icon: "🍛" },
-    { name: "Fast Food", icon: "🍔" },
-    { name: "Soup", icon: "🍲" },
-    { name: "Proteins", icon: "🍗" },
-    { name: "Drinks", icon: "🥤" },
-  ];
+  const openMeal = (meal: MealModalData) => setSelectedMeal(meal);
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto w-full relative pb-32">
-      
-      {/* =========================================
-          1. MOBILE HEADER (Avatar & Welcome Style) 
-      ========================================= */}
-      <header className="md:hidden flex items-center justify-between pt-2">
-        <div className="flex items-center gap-3">
-          {/* Avatar Circular Image */}
-          <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-gray-100 dark:border-zinc-800">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnDaniel&backgroundColor=f3f4f6" 
-              alt="Profile" 
-              className="w-full h-full object-cover" 
-            />
+    <div className="relative w-full max-w-7xl mx-auto px-4 pb-32 md:px-8 md:pb-12 space-y-6 md:space-y-8 overflow-x-hidden">
+      {toastNotif && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 z-[70] md:max-w-md md:left-auto md:right-8 bg-white dark:bg-zinc-900 border border-orange-100 dark:border-orange-900/30 p-4 rounded-[20px] shadow-2xl shadow-orange-500/20 animate-in slide-in-from-top-3 duration-300 flex items-start gap-3"
+        >
+          <div className="w-11 h-11 shrink-0 bg-orange-100 dark:bg-orange-900/40 rounded-full flex items-center justify-center text-[#FC6B31]">
+            <Bell className="h-5 w-5" aria-hidden="true" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[12px] text-gray-500 font-medium">Welcome Back</span>
-            <h1 className="text-[16px] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-              John-Daniel
-            </h1>
+          <div className="flex-1 min-w-0 pr-2">
+            <h4 className="text-[14px] font-extrabold text-gray-900 dark:text-white truncate">{toastNotif.title}</h4>
+            <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2 leading-snug">{toastNotif.body}</p>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 shrink-0">
-          <button className="relative p-2.5 rounded-full border border-gray-100 dark:border-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors">
-            <Bell className="w-5 h-5" />
-            {notificationCount > 0 && (
-              <span className="absolute top-1 right-1.5 bg-[#FC6B31] w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-950" />
-            )}
+          <button
+            type="button"
+            onClick={() => setToastNotif(null)}
+            aria-label="Dismiss notification"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-      </header>
+      )}
 
-      {/* =========================================
-          2. BANNER 
-      ========================================= */}
-      <div className="md:hidden w-full">
+      <CustomerHeader walletBalance={walletBalance} notificationCount={notificationCount} />
+
+      <div className="md:hidden">
         <DeliveryDropBanner />
       </div>
 
-      {/* Desktop Hero (Hidden on Mobile) */}
-      <div className="hidden md:flex relative z-10 bg-[#FC6B31] rounded-t-[2.5rem] pt-12 pb-32 px-12 lg:px-20 items-center justify-between w-full" style={{ clipPath: "polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%)" }}>
-        {/* ... Desktop Hero remains unchanged ... */}
+      <div className="md:hidden">
+        <ActiveOrderTracker activeOrder={activeOrder} />
       </div>
 
-      {/* =========================================
-          3. SEARCH BAR
-      ========================================= */}
-      <div className="w-full md:hidden">
-        <div className="flex items-center gap-2.5 w-full px-4 py-3.5 bg-gray-50 dark:bg-zinc-900/50 rounded-[12px] text-gray-400 border border-gray-100 dark:border-zinc-800 focus-within:border-gray-200 transition-colors">
-          <Search className="w-4 h-4 shrink-0 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search meals or vendors..." 
-            className="bg-transparent border-none outline-none w-full text-[14px] text-gray-900 dark:text-white placeholder-gray-400"
-          />
+      <section className="hidden md:block relative overflow-hidden rounded-[2.5rem] bg-[#FC6B31] px-12 py-12 lg:px-20">
+        <div className="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+        <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="max-w-xl text-white">
+            <p className="mb-4 text-sm font-extrabold uppercase tracking-[0.2em] text-white/80">Scheduled drops, zero wait</p>
+            <h1 className="text-5xl leading-[0.95] font-black tracking-[-0.05em] lg:text-6xl">
+              Food that feels
+              <br />
+              just right...
+            </h1>
+            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/90">
+              Discover meals from trusted local kitchens and choose a delivery window that fits your day.
+            </p>
+            <Link
+              href="/customer/explore"
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-[#FC6B31] shadow-lg transition-transform hover:scale-105 active:scale-95"
+            >
+              Explore meals
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="relative h-[330px] lg:h-[390px]">
+            <div className="absolute inset-8 rounded-full bg-white/15 blur-2xl" />
+            <Image
+              src="/hero-food-illustration.png"
+              alt="Fresh ChopnChop meal"
+              fill
+              className="object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,0.28)]"
+            />
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* =========================================
-          4. BROWSE CATEGORIES (Pill Style)
-      ========================================= */}
-      <section className="space-y-4 md:mt-16 w-full">
-        <div className="flex justify-between items-center mb-2 px-4 md:px-0">
-          <h2 className="text-[18px] font-extrabold text-gray-900 dark:text-white tracking-tight">Categories</h2>
+      <HomeSearchPrompt />
+
+      <section className="w-full space-y-4 md:mt-12" aria-labelledby="categories-title">
+        <div className="flex items-center justify-between px-1 md:px-0">
+          <h2 id="categories-title" className="text-[18px] font-extrabold text-gray-900 dark:text-white tracking-tight">Categories</h2>
           <Link href="/customer/explore" className="text-[13px] font-bold text-gray-500 hover:text-[#FC6B31] transition-colors">
             See all
           </Link>
         </div>
-        
-        {/* Removed negative margins, added clean consistent padding */}
-        <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-4 md:px-0">
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FC6B31] text-white shadow-md shadow-orange-500/20 shrink-0">
-            <span className="font-bold text-[13px]">All</span>
-          </button>
-          
-          {[
-            { name: "Burger", icon: "🍔" },
-            { name: "Fruits", icon: "🍎" },
-            { name: "Pizza", icon: "🍕" },
-            { name: "Drinks", icon: "🥤" },
-          ].map((cat) => (
-            <button key={cat.name} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-700 dark:text-gray-300 shrink-0 hover:border-[#FC6B31] transition-colors">
-              <span className="text-[14px]">{cat.icon}</span>
-              <span className="font-bold text-[13px]">{cat.name}</span>
-            </button>
-          ))}
+        <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-1 md:px-0">
+          {categories.map((category) => {
+            const isActive = activeCategory === category.name;
+            return (
+              <button
+                type="button"
+                key={category.name}
+                onClick={() => setActiveCategory(category.name)}
+                aria-pressed={isActive}
+                className={`flex min-h-[44px] items-center gap-2 rounded-full border px-5 text-[13px] font-bold shadow-sm transition-colors ${
+                  isActive
+                    ? "border-[#FC6B31] bg-[#FC6B31] text-white shadow-orange-500/20"
+                    : "border-gray-100 bg-white text-gray-700 hover:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300"
+                }`}
+              >
+                <span className="text-[14px]" aria-hidden="true">{category.icon}</span>
+                <span>{category.name}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {/* =========================================
-          5. BEST SELLERS (Mobile Carousel)
-      ========================================= */}
-      <section className="space-y-4 md:mt-24 w-full">
-        <div className="flex justify-between items-end mb-2 px-4 md:px-0">
-          <h2 className="text-[17px] md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Best Sellers</h2>
+      <section className="w-full space-y-4 md:mt-16" aria-labelledby="best-sellers-title">
+        <div className="flex items-end justify-between px-1 md:px-0">
+          <h2 id="best-sellers-title" className="text-[17px] font-bold text-gray-900 dark:text-white tracking-tight md:text-2xl">Best Sellers</h2>
           <Link href="/customer/explore" className="text-[13px] font-medium text-[#FC6B31] hover:text-orange-600 transition-colors">
             See All
           </Link>
         </div>
-        
-        {/* Removed negative margins here too */}
-        <div className="flex overflow-x-auto no-scrollbar pb-6 px-4 gap-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible w-auto md:w-full snap-x snap-mandatory">
-          
-          <div className="w-[calc(50vw-24px)] sm:w-[180px] shrink-0 snap-start md:w-auto md:shrink">
-            <MealCard 
-              id="meal-1" 
-              name="Melting Cheese Pizza" 
-              vendor="Pizza Italiano" 
-              price={10990} 
-              onClick={() => setSelectedMeal({
-                name: "Melting Cheese Pizza",
-                vendor: "Pizza Italiano",
-                originalPrice: 12990,
-                discountedPrice: 10990,
-                image: "/hero-food-illustration.png"
-              })}
-            />
-          </div>
-
-          <div className="w-[calc(50vw-24px)] sm:w-[180px] shrink-0 snap-start md:w-auto md:shrink">
-            <MealCard 
-              id="meal-2" 
-              name="Cheese Burger" 
-              vendor="Burger Hunt" 
-              price={4990} 
-              onClick={() => setSelectedMeal({
-                name: "Cheese Burger",
-                vendor: "Burger Hunt",
-                originalPrice: 5500,
-                discountedPrice: 4990,
-                image: "/hero-food-illustration.png"
-              })}
-            />
-          </div>
-
-          <div className="w-[calc(50vw-24px)] sm:w-[180px] shrink-0 snap-start md:w-auto md:shrink">
-            <MealCard 
-              id="meal-3" 
-              name="Smoky Jollof & Chicken" 
-              vendor="Taste & See" 
-              price={5000} 
-              onClick={() => setSelectedMeal({
-                name: "Smoky Jollof & Chicken",
-                vendor: "Taste & See",
-                originalPrice: 6500,
-                discountedPrice: 5000,
-                image: "/hero-food-illustration.png"
-              })}
-            />
-          </div>
-
-          <div className="w-[calc(50vw-24px)] sm:w-[180px] shrink-0 snap-start md:w-auto md:shrink">
-            <MealCard 
-              id="meal-4" 
-              name="Beef Stir Fry Pasta" 
-              vendor="The Brunch Club" 
-              price={4200} 
-              onClick={() => setSelectedMeal({
-                name: "Beef Stir Fry Pasta",
-                vendor: "The Brunch Club",
-                originalPrice: 5000,
-                discountedPrice: 4200,
-                image: "/hero-food-illustration.png"
-              })}
-            />
-          </div>
-          
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {bestSellers.map((meal, index) => (
+            <div key={meal.name} className="relative min-w-0">
+              {index === 1 && (
+                <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-red-500/30">
+                  Only 4 left
+                </span>
+              )}
+              {index === 2 && (
+                <span className="absolute left-2 top-2 z-10 rounded-full bg-[#FC6B31] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-orange-500/30">
+                  Selling fast
+                </span>
+              )}
+              <MealCard
+                id={`meal-${index + 1}`}
+                name={meal.name}
+                vendor={meal.vendor}
+                price={meal.discountedPrice}
+                imageUrl={meal.image}
+                onClick={() => openMeal(meal)}
+              />
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* TODAY'S DEALS REUSABLE COMPONENT */}
-      <TodaysDealsSection onSelectMeal={setSelectedMeal} />
+      <TodaysDealsSection onSelectMeal={openMeal} />
 
-      {/* =========================================
-          THE NEW DETAILS MODAL
-      ========================================= */}
-      <MealDetailsModal 
-        isOpen={!!selectedMeal} 
-        meal={selectedMeal} 
-        onClose={() => setSelectedMeal(null)} 
-      />
+      <MealDetailsModal isOpen={Boolean(selectedMeal)} meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
 
+      <button
+        type="button"
+        onClick={() =>
+          setToastNotif({
+            title: "AI Assistant",
+            body: "Tell us what you are craving and we will help you choose.",
+          })
+        }
+        aria-label="Open AI meal assistant"
+        className="md:hidden fixed bottom-28 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#FC6B31] text-white shadow-lg shadow-orange-500/30 transition-transform hover:scale-105 active:scale-95"
+      >
+        <Sparkles className="h-5 w-5" aria-hidden="true" />
+      </button>
     </div>
   );
 }

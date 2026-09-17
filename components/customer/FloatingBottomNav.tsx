@@ -22,9 +22,9 @@ export default function FloatingBottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex justify-center pointer-events-none md:hidden">
       
-      <div className="relative w-full max-w-[360px] h-[58px] pointer-events-auto drop-shadow-[0_12px_25px_rgba(0,0,0,0.15)]">
+      <div className="relative w-full max-w-full sm:max-w-[360px] h-[58px] pointer-events-auto drop-shadow-[0_12px_25px_rgba(0,0,0,0.15)]">
 
         {/* LAYER 1: WHITE OUTLINE */}
         <div className="absolute inset-0 z-0 flex items-center">
@@ -47,7 +47,7 @@ export default function FloatingBottomNav() {
         </div>
 
         {/* LAYER 3: INTERACTIVE FOREGROUND BUTTONS */}
-        <nav className="absolute inset-0 z-20 flex items-center justify-between px-[4px]">
+        <nav role="navigation" aria-label="Customer navigation" className="absolute inset-0 z-20 flex items-center justify-between px-[4px]">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -60,12 +60,13 @@ export default function FloatingBottomNav() {
                 key={item.name}
                 onClick={() => router.push(item.path)}
                 aria-label={item.name}
+                aria-current={isActive ? "page" : undefined}
                 className={`
-                  relative flex items-center justify-center rounded-full transition-all duration-300 shrink-0
+                  relative flex items-center justify-center rounded-full transition-all duration-300 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] focus-visible:ring-offset-2
                   ${
                     isActive
                       ? "w-[50px] h-[50px] bg-[#FC6B31] text-white shadow-inner scale-[1.02]" 
-                      : "w-[40px] h-[40px] bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 mx-[5px] hover:scale-105 shadow-sm border border-gray-100 dark:border-none" 
+                      : "min-w-[44px] min-h-[44px] w-[44px] h-[44px] bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 mx-[5px] hover:scale-105 shadow-sm border border-gray-100 dark:border-none" 
                   }
                 `}
               >

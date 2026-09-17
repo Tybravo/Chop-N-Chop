@@ -197,9 +197,9 @@ export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionP
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <div>
+                <div className="flex items-center gap-1.5">
                   <span className="text-[13px] font-extrabold text-gray-900 dark:text-white">₦{item.price.toLocaleString()}</span>
-                  <span className="text-[10px] text-gray-400 line-through ml-1.5">₦{item.originalPrice.toLocaleString()}</span>
+                  <span className="text-[13px] text-gray-400 line-through">₦{item.originalPrice.toLocaleString()}</span>
                 </div>
                 <button className="w-7 h-7 rounded-full bg-[#FC6B31] text-white flex items-center justify-center font-bold text-xs shadow-sm hover:bg-orange-600 transition-colors">
                   +

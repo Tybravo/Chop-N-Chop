@@ -141,7 +141,7 @@ export default function ExplorePage() {
               >
                 <div className="w-full h-[130px] shrink-0 rounded-[14px] bg-gray-100 dark:bg-zinc-800 mb-3 overflow-hidden relative">
                   <img 
-                    src={vendor.image} 
+                    src="/hero-food-illustration.png" 
                     alt={vendor.name} 
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => { e.currentTarget.src = "https://placehold.co/400x200/orange/white?text=Store"; }}
