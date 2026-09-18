@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Wallet, Banknote, CreditCard, ChevronRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import OrderReceiptModal from "@/components/customer/OrderReceiptModal"; // Import the decoupled reusable receipt component
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -10,13 +11,15 @@ export default function CheckoutPage() {
   // --- States ---
   const [view, setView] = useState<"summary" | "add-card">("summary");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "wallet" | "card">("card");
+  
+  // Receipt Modal State for Checkout Success / Review
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   // --- Dynamic Card States ---
   const [cardName, setCardName] = useState("John-Daniel Ikechukwu");
   const [cardNumber, setCardNumber] = useState("4716 9627 1635 8047");
   const [expiryDate, setExpiryDate] = useState("02/30");
 
-  // Determine card brand dynamically based on the starting digits
   const getCardBrand = (number: string) => {
     const cleanNum = number.replace(/\D/g, '');
     if (cleanNum.startsWith("4")) return "VISA";
@@ -28,15 +31,19 @@ export default function CheckoutPage() {
 
   // --- Mock Summary Data ---
   const orderDetails = {
+    id: "ORD-7742",
     items: [
       { id: 1, name: "Melting Cheese Pizza", desc: "8'' Small", qty: 1, price: 11880 },
       { id: 2, name: "Chicken Salad", desc: "Medium", qty: 2, price: 9120 }
     ],
     subtotal: 21000,
-    delivery: 1500,
+    deliveryFee: 1500,
     total: 22500,
-    orderDate: "April 12, 2026 | 07:30 PM",
-    address: "14 Allen Avenue, Ikeja, Lagos"
+    date: "April 12, 2026 | 07:30 PM",
+    deliveryAddress: "14 Allen Avenue, Ikeja, Lagos",
+    vendorName: "Mamma Mia Italian",
+    paymentMethod: "Credit Card",
+    status: "Confirmed & Processing"
   };
 
   // ==========================================
@@ -57,7 +64,16 @@ export default function CheckoutPage() {
           
           {/* --- REVIEW SUMMARY --- */}
           <div>
-            <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-4">Review Summary</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[16px] font-bold text-gray-900 dark:text-white">Review Summary</h3>
+              <button 
+                onClick={() => setIsReceiptOpen(true)}
+                className="text-xs font-extrabold text-[#FC6B31] hover:underline"
+              >
+                Preview Receipt
+              </button>
+            </div>
+            
             <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
               
               {orderDetails.items.map((item) => (
@@ -75,11 +91,11 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-[13px]">
                   <span className="text-gray-500">Order Date</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{orderDetails.orderDate}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{orderDetails.date}</span>
                 </div>
                 <div className="flex justify-between items-center text-[13px]">
                   <span className="text-gray-500">Delivery To</span>
-                  <span className="font-medium text-gray-900 dark:text-white truncate max-w-[180px]">{orderDetails.address}</span>
+                  <span className="font-medium text-gray-900 dark:text-white truncate max-w-[180px]">{orderDetails.deliveryAddress}</span>
                 </div>
               </div>
             </div>
@@ -159,6 +175,13 @@ export default function CheckoutPage() {
             </button>
           </div>
         </div>
+
+        {/* REUSABLE RECEIPT MODAL INSTANCE */}
+        <OrderReceiptModal 
+          isOpen={isReceiptOpen}
+          onClose={() => setIsReceiptOpen(false)}
+          order={orderDetails}
+        />
       </div>
     );
   }
@@ -180,13 +203,11 @@ export default function CheckoutPage() {
         
         {/* --- BEAUTIFUL RESPONSIVE CARD MOCKUP --- */}
         <div className="w-full aspect-[1.6/1] bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-800 dark:to-black rounded-[24px] p-5 sm:p-6 text-white shadow-2xl flex flex-col justify-between relative overflow-hidden">
-          {/* Glassmorphism decorative circles */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-y-1/3 -translate-x-1/3" />
           
           <div className="flex justify-between items-start relative z-10">
             <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white/20 rounded-md backdrop-blur-sm border border-white/30" /> 
-            {/* DYNAMIC CARD BRAND */}
             <span className="font-extrabold italic text-lg sm:text-xl tracking-wider">{getCardBrand(cardNumber)}</span>
           </div>
 
@@ -195,7 +216,6 @@ export default function CheckoutPage() {
               {cardNumber || "**** **** **** ****"}
             </p>
             
-            {/* LABELS ROW - Strict flex properties and whitespace-nowrap applied here */}
             <div className="flex justify-between items-end gap-3 w-full">
               <div className="min-w-0 flex-1 overflow-hidden">
                 <p className="text-[8px] sm:text-[10px] text-gray-300 uppercase tracking-widest sm:tracking-wider mb-0.5 sm:mb-1 whitespace-nowrap truncate">

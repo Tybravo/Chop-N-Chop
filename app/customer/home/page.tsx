@@ -230,20 +230,6 @@ export default function CustomerHome() {
       <TodaysDealsSection onSelectMeal={openMeal} />
 
       <MealDetailsModal isOpen={Boolean(selectedMeal)} meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
-
-      <button
-        type="button"
-        onClick={() =>
-          setToastNotif({
-            title: "AI Assistant",
-            body: "Tell us what you are craving and we will help you choose.",
-          })
-        }
-        aria-label="Open AI meal assistant"
-        className="md:hidden fixed bottom-28 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#FC6B31] text-white shadow-lg shadow-orange-500/30 transition-transform hover:scale-105 active:scale-95"
-      >
-        <Sparkles className="h-5 w-5" aria-hidden="true" />
-      </button>
     </div>
   );
 }

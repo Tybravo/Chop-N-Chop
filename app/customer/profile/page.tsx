@@ -8,7 +8,7 @@ import {
   Headphones, 
   LogOut, 
   ChevronRight,
-  ChevronLeft, 
+  ArrowLeft, 
   Truck, 
   Package,
   ShieldCheck,
@@ -41,7 +41,7 @@ export default function ProfilePage() {
                 className="w-11 h-11 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
                 aria-label="Go back to the previous page"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
               <h1 className="text-lg font-extrabold text-gray-900 dark:text-white tracking-tight">Profile</h1>
               <div className="w-10 h-10" /> {/* Empty div to perfectly center the title */}

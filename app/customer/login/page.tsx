@@ -22,7 +22,8 @@ export default function LoginPage() {
 
   return (
     <div className="h-[100dvh] w-full bg-[#FFFBF7] flex items-center justify-center p-4 lg:p-8 overflow-hidden selection:bg-[#FC6B31] selection:text-white">
-      <div className="w-full max-w-5xl h-full lg:h-auto lg:max-h-[680px] bg-white rounded-none lg:rounded-[40px] shadow-none lg:shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row border-0 lg:border border-orange-100/60 overflow-hidden relative">
+      {/* Added mt-6 to give the main card container that clean breathing room at the top */}
+      <div className="w-full max-w-5xl h-full lg:h-auto lg:max-h-[680px] mt-6 sm:mt-0 bg-white rounded-none lg:rounded-[40px] shadow-none lg:shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row border-0 lg:border border-orange-100/60 overflow-hidden relative">
         
         {/* LEFT PANEL: Login Form Container */}
         <div className="w-full lg:w-1/2 px-6 py-5 lg:p-12 flex flex-col h-full">
@@ -99,12 +100,14 @@ export default function LoginPage() {
               </div>
 
               {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full py-3 px-4 bg-[#FC6B31] hover:bg-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-sm tracking-wide"
-              >
-                Log In
-              </button>
+              <div className="pt-6">
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 bg-[#FC6B31] hover:bg-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-sm tracking-wide"
+                >
+                  Log In
+                </button>
+              </div>
             </form>
 
             {/* Footer Navigation */}
