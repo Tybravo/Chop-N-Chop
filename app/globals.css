@@ -168,3 +168,53 @@ body {
     animation: cnc-breath-btn 650ms ease-in-out 1;
   }
 }
+
+/* =========================================================
+   RICH LAYERED STEAM & HAZE ANIMATIONS (TAILWIND V4)
+========================================================== */
+
+@keyframes riseAndFadeSteam {
+  0% {
+    transform: translateY(20px) translateX(0) scale(0.9);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  20% {
+    opacity: 0.65;
+    filter: blur(3px) drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+  }
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-50px) translateX(12px) scale(1.4);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+@keyframes driftHaze {
+  0% {
+    transform: translateX(-15px) translateY(5px) scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateX(15px) translateY(-5px) scale(1.1);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(-15px) translateY(5px) scale(1);
+    opacity: 0.1;
+  }
+}
+
+/* 
+  Using @utility guarantees Tailwind v4 bundles these classes 
+  and makes them available directly in your TSX file.
+*/
+@utility animate-steam-col-1 { animation: riseAndFadeSteam 2.8s ease-in-out infinite; }
+@utility animate-steam-col-2 { animation: riseAndFadeSteam 2.4s ease-in-out infinite 0.7s; }
+@utility animate-steam-col-3 { animation: riseAndFadeSteam 3.2s ease-in-out infinite 0.3s; }
+@utility animate-steam-col-4 { animation: riseAndFadeSteam 2.9s ease-in-out infinite 1.2s; }
+@utility animate-steam-col-5 { animation: riseAndFadeSteam 3.5s ease-in-out infinite 1.8s; }
+@utility animate-haze { animation: driftHaze 8s ease-in-out infinite alternate; }
