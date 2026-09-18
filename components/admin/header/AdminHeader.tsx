@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { LayoutGrid, Search, Shield, Smile, SlidersHorizontal } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 export function AdminHeader() {
   const { user, logout } = useAdminAuth();
@@ -61,8 +61,8 @@ export function AdminHeader() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="relative h-9 w-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-[#FC6B31] focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:ring-offset-2 transition-all block"
           >
-            <Image
-              src={user?.avatarUrl && user.avatarUrl.trim() !== "" ? user.avatarUrl : "https://i.pravatar.cc/150?img=47"}
+            <SafeAvatar
+              src={user?.avatarUrl && user.avatarUrl.trim() !== "" ? user.avatarUrl : "/avatar-placeholder.svg"}
               alt="Admin Profile"
               fill
               sizes="36px"
