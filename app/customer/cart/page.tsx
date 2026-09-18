@@ -10,8 +10,11 @@ export default function CartPage() {
   // --- State ---
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("delivery");
   const [selectedAddress, setSelectedAddress] = useState(1);
-  const [isAddingAddress, setIsAddingAddress] = useState(false);
-  const [newAddressForm, setNewAddressForm] = useState({ type: "", location: "" });
+  
+  // Modal & Form State (Unified for Add & Edit)
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
+  const [addressForm, setAddressForm] = useState({ type: "", location: "" });
   
   const [cartItems, setCartItems] = useState([
     {
@@ -50,21 +53,48 @@ export default function CartPage() {
     );
   };
 
-  const handleAddAddress = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAddressForm.type.trim() || !newAddressForm.location.trim()) return;
+  const openAddAddress = () => {
+    setEditingAddressId(null);
+    setAddressForm({ type: "", location: "" });
+    setIsAddressModalOpen(true);
+  };
 
-    const newId = Math.max(...addresses.map(a => a.id)) + 1;
-    const newAddress = {
-      id: newId,
-      type: newAddressForm.type,
-      location: newAddressForm.location,
-    };
+  const openEditAddress = (e: React.MouseEvent, addr: { id: number, type: string, location: string }) => {
+    e.stopPropagation(); // Crucial: Prevents the click from selecting the address
+    setEditingAddressId(addr.id);
+    setAddressForm({ type: addr.type, location: addr.location });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleSaveAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addressForm.type.trim() || !addressForm.location.trim()) return;
+
+    if (editingAddressId !== null) {
+      // Update existing address
+      setAddresses(prev => prev.map(a => 
+        a.id === editingAddressId ? { ...a, type: addressForm.type, location: addressForm.location } : a
+      ));
+    } else {
+      // Add new address
+      const newId = addresses.length > 0 ? Math.max(...addresses.map(a => a.id)) + 1 : 1;
+      const newAddress = { id: newId, type: addressForm.type, location: addressForm.location };
+      setAddresses([...addresses, newAddress]);
+      setSelectedAddress(newId); // Auto-select newly added address
+    }
     
-    setAddresses([...addresses, newAddress]);
-    setSelectedAddress(newId); // Auto-select the newly added address
-    setIsAddingAddress(false); // Close the modal
-    setNewAddressForm({ type: "", location: "" }); // Reset form
+    setIsAddressModalOpen(false);
+    setEditingAddressId(null);
+    setAddressForm({ type: "", location: "" });
+  };
+
+  // Safe back navigation handler
+  const handleBackNavigation = () => {
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push('/customer/home');
+    }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -76,11 +106,14 @@ export default function CartPage() {
       
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-5 flex items-center justify-between border-b border-gray-100 dark:border-zinc-800">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+        <button 
+          onClick={handleBackNavigation} 
+          className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+        >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Your Chop</h1>
-        <div className="w-9" /> {/* Spacer for centering */}
+        <div className="w-9" />
       </header>
 
       <div className="px-5 md:px-8 max-w-3xl mx-auto pt-6 space-y-8">
@@ -147,7 +180,7 @@ export default function CartPage() {
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-[16px] font-bold text-gray-900 dark:text-white">Delivery Address</h3>
               <button 
-                onClick={() => setIsAddingAddress(true)}
+                onClick={openAddAddress}
                 className="text-[13px] font-semibold text-[#FC6B31] hover:text-[#e35014] transition-colors"
               >
                 Add New
@@ -179,7 +212,11 @@ export default function CartPage() {
                     <p className="text-[13px] text-gray-500 leading-relaxed mt-0.5 pr-4 truncate">{addr.location}</p>
                   </div>
 
-                  <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0">
+                  <button 
+                    onClick={(e) => openEditAddress(e, addr)}
+                    className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0"
+                    aria-label={`Edit ${addr.type} address`}
+                  >
                     <Edit2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -190,29 +227,34 @@ export default function CartPage() {
 
       </div>
 
-      {/* --- ADD NEW ADDRESS MODAL --- */}
-      {isAddingAddress && (
+      {/* --- ADD/EDIT ADDRESS MODAL --- */}
+      {isAddressModalOpen && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-zinc-900 rounded-[24px] w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
             
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-[18px] font-bold text-gray-900 dark:text-white">Add Delivery Address</h3>
+              <h3 className="text-[18px] font-bold text-gray-900 dark:text-white">
+                {editingAddressId ? "Edit Delivery Address" : "Add Delivery Address"}
+              </h3>
               <button 
-                onClick={() => setIsAddingAddress(false)} 
+                onClick={() => {
+                  setIsAddressModalOpen(false);
+                  setEditingAddressId(null);
+                }} 
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddAddress} className="space-y-4">
+            <form onSubmit={handleSaveAddress} className="space-y-4">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">Label</label>
                 <input 
                   type="text" 
                   required 
-                  value={newAddressForm.type}
-                  onChange={e => setNewAddressForm({ ...newAddressForm, type: e.target.value })}
+                  value={addressForm.type}
+                  onChange={e => setAddressForm({ ...addressForm, type: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] dark:focus:border-[#FC6B31] transition-colors"
                   placeholder="e.g., Girlfriend's Place, Studio" 
                 />
@@ -222,8 +264,8 @@ export default function CartPage() {
                 <textarea 
                   required 
                   rows={3}
-                  value={newAddressForm.location}
-                  onChange={e => setNewAddressForm({ ...newAddressForm, location: e.target.value })}
+                  value={addressForm.location}
+                  onChange={e => setAddressForm({ ...addressForm, location: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] dark:focus:border-[#FC6B31] transition-colors resize-none"
                   placeholder="Enter street address, building, apartment..." 
                 />
@@ -232,7 +274,7 @@ export default function CartPage() {
                 type="submit" 
                 className="w-full bg-[#FC6B31] text-white font-bold text-[15px] py-3.5 rounded-xl mt-2 hover:bg-[#e35014] active:scale-[0.98] transition-all shadow-lg shadow-orange-500/25"
               >
-                Save Address
+                {editingAddressId ? "Update Address" : "Save Address"}
               </button>
             </form>
           </div>
@@ -240,7 +282,6 @@ export default function CartPage() {
       )}
 
       {/* --- FIXED BOTTOM CHECKOUT BAR --- */}
-      {/* Increased z-index to z-[200] so it sits firmly above any global bottom navigation components */}
       <div className="fixed bottom-0 left-0 right-0 z-[200] bg-white dark:bg-zinc-950 border-t border-gray-100 dark:border-zinc-800 p-4 pb-safe-offset-4 rounded-t-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
         <div className="max-w-3xl mx-auto space-y-4">
           

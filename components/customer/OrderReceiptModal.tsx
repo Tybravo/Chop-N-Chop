@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Download, CheckCircle2, Share2, Loader2 } from "lucide-react";
-import { toPng } from "html-to-image";
+import { X, Download, CheckCircle2, Share2, Loader2, MessageCircle, Send, Mail } from "lucide-react";
 
 interface ReceiptItem {
   id: string | number;
@@ -42,32 +41,46 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
     window.print();
   };
 
-  // Generates receipt image and opens native device app options (WhatsApp, Email, Telegram, etc.)
-  const handleShare = async () => {
-    if (!receiptRef.current) return;
+  // --- Direct App Share Handlers ---
+  const receiptMessage = 
+    `🧾 *ChopnChop Order Receipt* - ${order.id}\n` +
+    `• Merchant: ChopnChop Global\n` +
+    `• Total Amount: ₦${order.total.toLocaleString()}\n` +
+    `• Status: Verified Transaction ✅\n` +
+    `• Date: ${order.date}`;
+
+  const handleShareWhatsApp = () => {
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(receiptMessage)}`;
+    window.open(url, "_blank");
+  };
+
+  const handleShareTelegram = () => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(receiptMessage)}`;
+    window.open(url, "_blank");
+  };
+
+  const handleShareEmail = () => {
+    const subject = encodeURIComponent(`ChopnChop Receipt - ${order.id}`);
+    const body = encodeURIComponent(`Hello,\n\nHere are the details for my confirmed order:\n\n${receiptMessage.replace(/[*_]/g, '')}\n\nThank you for using ChopnChop!`);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+  };
+
+  const handleGenericShare = async () => {
     setIsSharing(true);
+    const shareData = {
+      title: `ChopnChop Receipt - ${order.id}`,
+      text: receiptMessage.replace(/[*_]/g, ''),
+      url: window.location.href,
+    };
 
     try {
-      // Convert receipt DOM node to a high-quality PNG data URL
-      const dataUrl = await toPng(receiptRef.current, { cacheBust: true, pixelRatio: 2 });
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `ChopnChop-Receipt-${order.id}.png`, { type: "image/png" });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: `ChopnChop Receipt - ${order.id}`,
-          text: `Here is your verified payment slip for Order ${order.id} totaling ₦${order.total.toLocaleString()}`,
-          files: [file],
-        });
+      if (navigator.share) {
+        await navigator.share(shareData);
       } else {
-        // Fallback for browsers that don't support file sharing sheets
-        const link = document.createElement("a");
-        link.download = `ChopnChop-Receipt-${order.id}.png`;
-        link.href = dataUrl;
-        link.click();
+        handleShareWhatsApp();
       }
     } catch (err) {
-      console.log("Sharing error or cancelled:", err);
+      console.log("Sharing cancelled or unsupported:", err);
     } finally {
       setIsSharing(false);
     }
@@ -133,17 +146,15 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
 
       <div id="printable-receipt-portal" className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
         
-        {/* Main Wrapper Container */}
         <div className="w-full max-w-md my-auto flex flex-col">
           
-          {/* THE ACTUAL RECEIPT SLIP CARD (Captured by Share & Print) */}
+          {/* THE RECEIPT SLIP CARD */}
           <div 
             id="printable-receipt"
             ref={receiptRef}
             className="w-full bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col p-6 sm:p-8 space-y-6 text-left font-sans"
           >
             
-            {/* Fintech Success Header & Verified Badge */}
             <div className="text-center pb-6 border-b border-dashed border-gray-200 dark:border-zinc-800 space-y-3">
               <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50/50 dark:ring-emerald-950/20">
                 <CheckCircle2 className="w-8 h-8" strokeWidth={2.5} />
@@ -157,7 +168,6 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
               </div>
             </div>
 
-            {/* Transaction Details Grid */}
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1.5 border-b border-gray-50 dark:border-zinc-800/60">
                 <span className="text-gray-400 font-medium">Merchant</span>
@@ -180,7 +190,6 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
              {addressText && (
                 <div className="flex justify-between py-1.5 border-b border-gray-50 dark:border-zinc-800/60 items-start gap-4">
                   <span className="text-gray-400 font-medium shrink-0">Destination</span>
-                  {/* line-clamp-2 allows up to 2 rows before gracefully truncating */}
                   <span className="font-semibold text-gray-900 dark:text-white text-right line-clamp-2 max-w-[220px]">
                     {addressText}
                   </span>
@@ -188,7 +197,6 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
               )}
             </div>
 
-            {/* Itemized Breakdown */}
             <div className="space-y-4 pt-2">
               <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-zinc-800 pb-2">
                 Item Breakdown {isMultiVendor && "(Multi-Vendor)"}
@@ -217,7 +225,6 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
               ))}
             </div>
 
-            {/* Financial Summary */}
             <div className="border-t border-dashed border-gray-200 dark:border-zinc-800 pt-4 space-y-2 text-xs">
               <div className="flex justify-between text-gray-400">
                 <span>Subtotal</span>
@@ -233,7 +240,6 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
               </div>
             </div>
 
-            {/* Simulated Barcode Footer */}
             <div className="pt-4 text-center space-y-2">
               <div className="font-mono tracking-[0.3em] text-[10px] text-gray-400">
                 ||| | |||| || | |||||| |||| | ||
@@ -243,31 +249,60 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
 
           </div>
 
-          {/* Action Footer (Close, Share Slip & Download) outside printable card */}
-          <div className="no-print mt-3 flex items-center justify-between gap-3">
+          {/* Action Footer with Centralized App Icons & Icon-Only PDF Save Button */}
+          <div className="no-print mt-3 flex items-center justify-between gap-2">
+            
+            {/* Close Button */}
             <button 
               onClick={onClose}
-              className="p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors"
               title="Close"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex-1 flex gap-2">
+            
+            {/* Centralized Quick Share Icons */}
+            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/10">
               <button 
-                onClick={handleShare}
-                disabled={isSharing}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white text-gray-900 hover:bg-gray-100 text-xs font-extrabold shadow-lg transition-all disabled:opacity-50"
+                onClick={handleShareWhatsApp}
+                className="w-10 h-10 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-md transition-transform active:scale-95"
+                title="Share to WhatsApp"
               >
-                {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4 text-[#FC6B31]" />} 
-                {isSharing ? "Generating..." : "Share Slip"}
+                <MessageCircle className="w-4 h-4" />
               </button>
               <button 
-                onClick={handlePrint}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-[#FC6B31] hover:bg-orange-600 text-white text-xs font-extrabold shadow-lg shadow-orange-500/20 transition-all"
+                onClick={handleShareTelegram}
+                className="w-10 h-10 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] text-white flex items-center justify-center shadow-md transition-transform active:scale-95"
+                title="Share to Telegram"
               >
-                <Download className="w-4 h-4" /> Save PDF
+                <Send className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleShareEmail}
+                className="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center shadow-md transition-transform active:scale-95"
+                title="Share via Email"
+              >
+                <Mail className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleGenericShare}
+                disabled={isSharing}
+                className="w-10 h-10 rounded-xl bg-white text-gray-900 hover:bg-gray-100 flex items-center justify-center shadow-md transition-transform active:scale-95 disabled:opacity-50"
+                title="More Apps / System Share"
+              >
+                {isSharing ? <Loader2 className="w-4 h-4 animate-spin text-[#FC6B31]" /> : <Share2 className="w-4 h-4 text-[#FC6B31]" />}
               </button>
             </div>
+
+            {/* Save PDF Action Button (Icon Only) */}
+            <button 
+              onClick={handlePrint}
+              className="w-12 h-12 rounded-2xl bg-[#FC6B31] hover:bg-orange-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/20 transition-transform active:scale-95 shrink-0"
+              title="Save PDF"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+
           </div>
 
         </div>
