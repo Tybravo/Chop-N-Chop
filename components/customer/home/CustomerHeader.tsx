@@ -1,16 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, ChevronDown, Wallet, Bell } from "lucide-react";
+import { MapPin, ChevronDown, Wallet, Bell, Clock } from "lucide-react";
+import { useOrderContext } from "@/store/useOrderContext";
 
 interface CustomerHeaderProps {
   walletBalance: number;
   notificationCount: number;
 }
 
+const WINDOW_LABELS: Record<string, string> = {
+  'today-lunch': 'Today • 12-2 PM',
+  'today-dinner': 'Today • 6-8 PM',
+  'tomorrow-lunch': 'Tmrw • 12-2 PM',
+};
+
 export default function CustomerHeader({ walletBalance, notificationCount }: CustomerHeaderProps) {
   const router = useRouter();
+  const { location, deliveryWindow, resetContext } = useOrderContext();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const displayLocation = location || "Select Zone";
+  const displayWindow = deliveryWindow && WINDOW_LABELS[deliveryWindow]
+    ? WINDOW_LABELS[deliveryWindow]
+    : "Select Drop Window";
+
+  if (!mounted) {
+    // Lightweight hydration skeleton matching the header's dimensions
+    return <div className="h-[52px] w-full animate-pulse bg-gray-50 dark:bg-zinc-900 rounded-full md:hidden mt-2" />;
+  }
 
   return (
     <header className="md:hidden flex items-center justify-between gap-2 pt-2 relative z-10">
@@ -29,18 +53,24 @@ export default function CustomerHeader({ walletBalance, notificationCount }: Cus
         />
       </button>
 
+      {/* Dynamic Context Gateway Trigger */}
       <button
         type="button"
-        onClick={() => router.push("/customer/locations")}
-        aria-label="Change delivery location"
-        className="flex h-11 min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-gray-100 bg-gray-50 px-3 dark:border-zinc-800 dark:bg-zinc-900 hover:border-[#FC6B31] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
+        onClick={() => {
+          // If you are using the Gateway Modal on the Home page, 
+          // resetting context forces it to re-open instantly.
+          resetContext();
+        }}
+        aria-label="Change delivery location and window"
+        className="flex h-11 min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-gray-100 bg-gray-50 px-2 dark:border-zinc-800 dark:bg-zinc-900 hover:border-[#FC6B31] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
       >
-        <span className="flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider text-[#FC6B31]">
-          <MapPin className="h-3 w-3" aria-hidden="true" />
-          Delivering to
+        <span className="flex w-full items-center justify-center gap-1 text-[10px] font-extrabold uppercase text-[#FC6B31]">
+          <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+          <span className="truncate">{displayLocation}</span>
         </span>
-        <span className="flex w-full items-center justify-center gap-1 truncate text-[12px] font-bold text-gray-900 dark:text-white">
-          Yaba - Akoka
+        <span className="flex w-full items-center justify-center gap-1 text-[11px] font-bold text-gray-900 dark:text-white">
+          <Clock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
+          <span className="truncate">{displayWindow}</span>
           <ChevronDown className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
         </span>
       </button>

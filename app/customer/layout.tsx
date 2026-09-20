@@ -15,14 +15,17 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   // 2. Use .startsWith() to catch nested routes (e.g., /customer/login/verify)
   const isAuthPage = pathname.startsWith("/customer/login") || 
                      pathname.startsWith("/customer/signup") || 
-                     pathname.startsWith("/customer/forgot-password");
+                     pathname.startsWith("/customer/forgot-pin");
                      
   // 3. Catch the entire checkout flow, including the success page
   const isCheckoutFlow = pathname.startsWith("/customer/cart") || 
                          pathname.startsWith("/customer/checkout") || 
                          pathname.startsWith("/customer/success");
+
+   const isMisceleanous = pathname.startsWith("/customer/settings") ||
+                          pathname.startsWith("/customer/profile") ;
   
-  const showGlobalUI = !isWelcomePage && !isAuthPage && !isCheckoutFlow;
+  const showGlobalUI = !isWelcomePage && !isAuthPage && !isCheckoutFlow && !isMisceleanous;
 
   // Dynamically remove the bottom padding if the bottom nav is hidden
   const bottomPaddingClass = showGlobalUI 
