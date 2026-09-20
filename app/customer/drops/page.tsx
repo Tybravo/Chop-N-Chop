@@ -1,18 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Package, Truck, CheckCircle2, Clock, MapPin, ChevronRight, RotateCcw, PhoneCall, X, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Package, Truck, CheckCircle2, Clock, MapPin, ChevronRight, RotateCcw, PhoneCall, X, MessageSquare, ArrowLeft } from "lucide-react";
 import OrderReceiptModal from "@/components/customer/OrderReceiptModal";
 
 export default function DropsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
   
   // State for controlling the receipt modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<any>(null);
 
-  // State for Contact Driver Support Modal (since a dedicated driver page doesn't exist yet)
+  // State for Contact Driver Support Modal
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+
+  const handleBackNavigation = () => {
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push('/customer/home');
+    }
+  };
 
   // Mock active order details data structure matching the receipt schema
   const activeOrderReceiptData = {
@@ -68,10 +78,25 @@ export default function DropsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 pb-32 pt-4 px-4 md:px-8 selection:bg-[#FC6B31] selection:text-white">
       <div className="max-w-2xl mx-auto space-y-6">
         
-        <header className="pt-2">
-          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Your Drops</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track active deliveries and review your meal history.</p>
+        {/* TOP HEADER WITH BACK BUTTON */}
+        <header className="flex items-center justify-between pt-2">
+          <button 
+            onClick={handleBackNavigation}
+            aria-label="Go back"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-lg font-extrabold text-gray-900 dark:text-white tracking-tight">Your Drops</h1>
+          </div>
+
+          {/* Spacer to keep title perfectly centered */}
+          <div className="h-10 w-10" aria-hidden="true" />
         </header>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2 px-1">Track active deliveries and review your meal history.</p>
 
         {/* TABS */}
         <div className="flex bg-gray-200/50 dark:bg-zinc-900 rounded-full p-1 border border-gray-200 dark:border-zinc-800">
@@ -152,7 +177,7 @@ export default function DropsPage() {
                 </div>
               </div>
 
-              {/* Action Area - Wired Up View Receipt & Contact Driver Modal Trigger */}
+              {/* Action Area */}
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 flex gap-3 border-t border-gray-100 dark:border-zinc-800">
                 <button 
                   onClick={() => handleOpenReceipt(activeOrderReceiptData)}
@@ -216,7 +241,7 @@ export default function DropsPage() {
         />
       )}
 
-      {/* CONTACT DRIVER MODAL (Fallback for missing driver page) */}
+      {/* CONTACT DRIVER MODAL */}
       {isDriverModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-zinc-900 rounded-[24px] w-full max-w-sm p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">

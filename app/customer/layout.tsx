@@ -22,10 +22,13 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                          pathname.startsWith("/customer/checkout") || 
                          pathname.startsWith("/customer/success");
 
-   const isMisceleanous = pathname.startsWith("/customer/settings") ||
-                          pathname.startsWith("/customer/profile") ;
+  const isMiscellanous = pathname.startsWith("/customer/settings") ||
+                         pathname.startsWith("/customer/profile");
+
+  // 4. Catch the drops page to hide the floating AI icon there
+  const isDropsPage = pathname.startsWith("/customer/drops");
   
-  const showGlobalUI = !isWelcomePage && !isAuthPage && !isCheckoutFlow && !isMisceleanous;
+  const showGlobalUI = !isWelcomePage && !isAuthPage && !isCheckoutFlow && !isMiscellanous && !isDropsPage;
 
   // Dynamically remove the bottom padding if the bottom nav is hidden
   const bottomPaddingClass = showGlobalUI 
