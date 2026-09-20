@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useCartStore } from "@/store/useCartStore";
+import { useEffect, useState } from "react";
 import {
   Home,
   Compass,
@@ -12,12 +14,25 @@ import {
 export default function FloatingBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const getTotalItems = useCartStore((state) => state.getTotalItems);
+  const [cartCount, setCartCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setCartCount(getTotalItems());
+    // Subscribe to store changes
+    const unsubscribe = useCartStore.subscribe((state) => {
+      setCartCount(state.getTotalItems());
+    });
+    return unsubscribe;
+  }, [getTotalItems]);
 
   const navItems = [
     { name: "Home", path: "/customer/home", icon: Home },
     { name: "Explore", path: "/customer/explore", icon: Compass },
-    { name: "Drops", path: "/customer/drops", icon: Package }, // The new Tracking tab
-    { name: "Cart", path: "/customer/cart", icon: ShoppingBag, badge: "2" },
+    { name: "Drops", path: "/customer/drops", icon: Package },
+    { name: "Cart", path: "/customer/cart", icon: ShoppingBag },
     { name: "Profile", path: "/customer/profile", icon: UserRound },
   ];
 
@@ -75,8 +90,9 @@ export default function FloatingBottomNav() {
                     className="w-[20px] h-[20px]"
                     strokeWidth={isActive ? 2.5 : 2.5}
                   />
-                  {item.badge && (
+                  {item.name === "Cart" && mounted && cartCount > 0 && (
                     <span
+                      suppressHydrationWarning
                       className={`
                         absolute -top-2.5 -right-3 min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-extrabold flex items-center justify-center border-2
                         ${
@@ -86,7 +102,7 @@ export default function FloatingBottomNav() {
                         }
                       `}
                     >
-                      {item.badge}
+                      {cartCount}
                     </span>
                   )}
                 </div>

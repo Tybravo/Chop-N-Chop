@@ -1,41 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore"; // Import global Zustand cart store
 
 export default function CartPage() {
   const router = useRouter();
 
-  // --- State ---
+  // --- Global Store State ---
+  const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
+
+  // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Modal & Form State
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
-  const [addressForm, setAddressForm] = useState({ type: "", location: "" });
+const [addressForm, setAddressForm] = useState({ type: "", location: "" });
   
-  // Multi-vendor cart items mapped to the consolidated UI
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Melting Cheese Pizza",
-      desc: "Vendor A • 8'' Small",
-      price: 11880,
-      quantity: 1,
-      image: "/hero-food-illustration.png"
-    },
-    {
-      id: 2,
-      name: "Chicken Salad",
-      desc: "Vendor B • Medium",
-      price: 4560,
-      quantity: 2,
-      image: "/hero-food-illustration.png"
-    }
-  ]);
-
+  const typeInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLTextAreaElement>(null);
+  
   // --- Address State (Specific location within the pre-selected Zone) ---
   const [addresses, setAddresses] = useState([
     { id: 1, type: "Home", location: "14 Allen Avenue, Ikeja, Lagos" },
@@ -44,33 +31,30 @@ export default function CartPage() {
 
   // --- Handlers ---
   
-  // Smart 2-Step Delete Logic
-  const updateQuantity = (id: number, delta: number) => {
-    if (delta === 1) {
-      // If user adds to an item that was pending deletion, cancel the deletion and add.
-      if (deleteConfirmId === id) setDeleteConfirmId(null);
-      
-      setCartItems(items => 
-        items.map(item => item.id === id ? { ...item, quantity: item.quantity + 1 } : item)
-      );
-    } else if (delta === -1) {
-      const item = cartItems.find(i => i.id === id);
-      
-      if (item && item.quantity === 1) {
-        if (deleteConfirmId === id) {
-          // Step 2: Confirm Delete (Bin was tapped)
-          setCartItems(items => items.filter(i => i.id !== id));
-          setDeleteConfirmId(null);
+  // Smart 2-Step Delete Logic linked to global store
+  const handleQuantityChange = (id: number | string, delta: number) => {
+    const item = cartItems.find(i => i.id === id);
+    if (!item) return;
+
+    const newQty = item.quantity + delta;
+
+    if (delta === -1 && item.quantity === 1) {
+      if (deleteConfirmId === id) {
+        // Step 2: Confirm Delete (Bin was tapped) -> completely removes item
+        if (typeof removeFromCart === "function") {
+          removeFromCart(id);
         } else {
-          // Step 1: Intend to Delete (Minus tapped at qty 1, show bin)
-          setDeleteConfirmId(id);
+          updateQuantity(id, 0); // Fallback if store uses updateQuantity for removal
         }
+        setDeleteConfirmId(null);
       } else {
-        // Normal subtraction
-        setCartItems(items => 
-          items.map(item => item.id === id ? { ...item, quantity: item.quantity - 1 } : item)
-        );
+        // Step 1: Intend to Delete (Minus tapped at qty 1, show bin icon)
+        setDeleteConfirmId(id);
       }
+    } else {
+      // Normal increment/decrement - ALWAYS clear delete confirmation on any other action
+      setDeleteConfirmId(null);
+      updateQuantity(id, newQty);
     }
   };
 
@@ -85,6 +69,11 @@ export default function CartPage() {
     setEditingAddressId(addr.id);
     setAddressForm({ type: addr.type, location: addr.location });
     setIsAddressModalOpen(true);
+    // Move cursor to end after render
+    setTimeout(() => {
+      typeInputRef.current?.setSelectionRange(addr.type.length, addr.type.length);
+      locationInputRef.current?.setSelectionRange(addr.location.length, addr.location.length);
+    }, 0);
   };
 
   const handleSaveAddress = (e: React.FormEvent) => {
@@ -117,9 +106,9 @@ export default function CartPage() {
 
   // --- Consolidated Hub Pricing Engine ---
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const packagingFee = 500; 
-  const deliveryFee = 1500; 
-  const total = subtotal + packagingFee + deliveryFee;
+  const packagingFee = cartItems.length > 0 ? 500 : 0; 
+  const deliveryFee = cartItems.length > 0 ? 1500 : 0; 
+  const total = subtotal + (cartItems.length > 0 ? packagingFee + deliveryFee : 0);
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 pb-64 relative">
@@ -167,7 +156,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex flex-col items-center justify-between bg-gray-50 dark:bg-zinc-800/50 p-1.5 rounded-full border border-gray-100 dark:border-zinc-700/50 h-[85px] w-[38px] shrink-0">
-                    <button onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center text-gray-600 shadow-sm hover:text-[#FC6B31] shrink-0 transition-colors">
+                    <button onClick={() => handleQuantityChange(item.id, 1)} className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center text-gray-600 shadow-sm hover:text-[#FC6B31] shrink-0 transition-colors">
                       <Plus className="w-3.5 h-3.5" />
                     </button>
                     
@@ -179,7 +168,7 @@ export default function CartPage() {
                     
                     {/* 2-Step UI Swap based on deletion intent state */}
                     <button 
-                      onClick={() => updateQuantity(item.id, -1)} 
+                      onClick={() => handleQuantityChange(item.id, -1)} 
                       className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shrink-0 hover:bg-white dark:hover:bg-zinc-700 hover:shadow-sm
                         ${isConfirmingDelete 
                           ? 'text-red-500 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20' 
@@ -273,6 +262,7 @@ export default function CartPage() {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">Label</label>
                 <input 
+                  ref={typeInputRef}
                   type="text" 
                   required 
                   value={addressForm.type}
@@ -284,6 +274,7 @@ export default function CartPage() {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">Full Address</label>
                 <textarea 
+                  ref={locationInputRef}
                   required 
                   rows={3}
                   value={addressForm.location}

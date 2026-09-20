@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeft,
   Plus,
@@ -10,6 +11,8 @@ import {
   CheckCircle2,
   Loader2,
   X,
+  Lock,
+  UserPlus,
 } from "lucide-react";
 
 type TransactionType = "debit" | "credit";
@@ -29,11 +32,13 @@ const initialTransactions: Transaction[] = [
   { id: 3, type: "debit", title: "Order #ORD-9104", date: "Sep 14, 2:15 PM", amount: "-₦3,500" },
 ];
 
-const initialBalance = 24500;
-
 export default function WalletPage() {
   const router = useRouter();
-  const [balance, setBalance] = useState(initialBalance);
+  
+  // Toggle authentication state for previewing the guest view vs wallet view
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const [balance, setBalance] = useState(24500);
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [action, setAction] = useState<WalletAction | null>(null);
   const [amount, setAmount] = useState("");
@@ -148,94 +153,128 @@ export default function WalletPage() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl">
-        <div className="relative mb-8 mt-6 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#FC6B31] to-orange-600 p-5 text-white shadow-lg shadow-orange-500/20 sm:p-6">
-          <div className="pointer-events-none absolute -right-4 -bottom-4 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-          <span className="mb-1 block text-[13px] font-bold uppercase tracking-wider text-orange-100">Available Balance</span>
-          <h2 className="mb-6 text-3xl font-black sm:text-4xl">{formatNaira(balance)}</h2>
-          <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:gap-3">
-            <button
-              type="button"
-              onClick={() => openAction("fund")}
-              className="flex w-full flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-[14px] font-extrabold text-[#FC6B31] shadow-sm transition-transform hover:bg-orange-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#FC6B31]"
-            >
-              <Plus className="h-4 w-4" /> Fund
-            </button>
-            <button
-              type="button"
-              onClick={() => openAction("transfer")}
-              className="flex w-full flex-1 items-center justify-center gap-2 rounded-2xl bg-orange-700/50 py-3.5 text-[14px] font-extrabold text-white backdrop-blur-sm transition-transform hover:bg-orange-700/70 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#FC6B31]"
-            >
-              <ArrowUpRight className="h-4 w-4" /> Transfer
-            </button>
-          </div>
-        </div>
-
-        {statusMessage && (
-          <div role="status" className="mb-4 flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-[13px] font-medium text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-300">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{statusMessage}</span>
-          </div>
-        )}
-
-        <section aria-labelledby="recent-transactions-heading">
-          <h3 id="recent-transactions-heading" className="mb-4 px-2 text-[15px] font-extrabold text-gray-900 dark:text-white">
-            Recent Transactions
-          </h3>
-          {transactions.length === 0 ? (
-            <div role="status" className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
-              <ArrowDownLeft className="mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
-              <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No transactions yet</h4>
-              <p className="mt-1 text-[13px] text-gray-500">Fund your wallet to start building your history.</p>
+        {!isAuthenticated ? (
+          // Guest State Screen
+          <div className="mt-8 rounded-[32px] border border-orange-100 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900 space-y-5">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-50 text-[#FC6B31] dark:bg-zinc-800">
+              <Lock className="h-6 w-6" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white">Unlock Your Chop Wallet</h2>
+              <p className="mx-auto max-w-md text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Sign in or create an account to manage your balance, claim welcome bonuses, and track rewards effortlessly.
+              </p>
+            </div>
+            <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+              <Link
+                href="/customer/login"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FC6B31] px-6 py-3.5 text-sm font-extrabold text-white shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+              >
+                <UserPlus className="h-4 w-4" /> Sign In
+              </Link>
               <button
                 type="button"
-                onClick={() => openAction("fund")}
-                className="mt-4 rounded-full bg-gray-900 px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:bg-white dark:text-zinc-900"
+                onClick={() => setIsAuthenticated(true)}
+                className="rounded-full border border-gray-200 bg-gray-50 px-5 py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300"
               >
-                Fund wallet
+                Simulate Login
               </button>
             </div>
-          ) : (
-            <div className="divide-y divide-gray-50 overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm dark:divide-zinc-800/50 dark:border-zinc-800 dark:bg-zinc-900">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                  <div className="min-w-0 flex items-center gap-4">
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                        transaction.type === "credit"
-                          ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30"
-                          : "bg-red-50 text-red-500 dark:bg-red-950/30"
-                      }`}
-                    >
-                      {transaction.type === "credit" ? (
-                        <ArrowDownLeft className="h-5 w-5" />
-                      ) : (
-                        <ArrowUpRight className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="truncate text-[14px] font-bold text-gray-900 dark:text-white">{transaction.title}</h4>
-                      <p className="text-[12px] text-gray-500">{transaction.date}</p>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <span
-                      className={`text-[14px] font-extrabold ${
-                        transaction.type === "credit" ? "text-emerald-600" : "text-gray-900 dark:text-white"
-                      }`}
-                    >
-                      {transaction.amount}
-                    </span>
-                    <div className="mt-1 flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600">
-                      <CheckCircle2 className="h-3 w-3" /> Success
-                    </div>
-                  </div>
-                </div>
-              ))}
+          </div>
+        ) : (
+          // Authenticated State Screen
+          <>
+            <div className="relative mb-8 mt-6 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#FC6B31] to-orange-600 p-5 text-white shadow-lg shadow-orange-500/20 sm:p-6">
+              <div className="pointer-events-none absolute -right-4 -bottom-4 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+              <span className="mb-1 block text-[13px] font-bold uppercase tracking-wider text-orange-100">Available Balance</span>
+              <h2 className="mb-6 text-3xl font-black sm:text-4xl">{formatNaira(balance)}</h2>
+              <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => openAction("fund")}
+                  className="flex w-full flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-[14px] font-extrabold text-[#FC6B31] shadow-sm transition-transform hover:bg-orange-50 active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" /> Fund
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAction("transfer")}
+                  className="flex w-full flex-1 items-center justify-center gap-2 rounded-2xl bg-orange-700/50 py-3.5 text-[14px] font-extrabold text-white backdrop-blur-sm transition-transform hover:bg-orange-700/70 active:scale-[0.98]"
+                >
+                  <ArrowUpRight className="h-4 w-4" /> Transfer
+                </button>
+              </div>
             </div>
-          )}
-        </section>
+
+            {statusMessage && (
+              <div role="status" className="mb-4 flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-[13px] font-medium text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-300">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{statusMessage}</span>
+              </div>
+            )}
+
+            <section aria-labelledby="recent-transactions-heading">
+              <h3 id="recent-transactions-heading" className="mb-4 px-2 text-[15px] font-extrabold text-gray-900 dark:text-white">
+                Recent Transactions
+              </h3>
+              {transactions.length === 0 ? (
+                <div role="status" className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                  <ArrowDownLeft className="mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No transactions yet</h4>
+                  <p className="mt-1 text-[13px] text-gray-500">Fund your wallet to start building your history.</p>
+                  <button
+                    type="button"
+                    onClick={() => openAction("fund")}
+                    className="mt-4 rounded-full bg-gray-900 px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-gray-700 dark:bg-white dark:text-zinc-900"
+                  >
+                    Fund wallet
+                  </button>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50 overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm dark:divide-zinc-800/50 dark:border-zinc-800 dark:bg-zinc-900">
+                  {transactions.map((transaction) => (
+                    <div key={transaction.id} className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                      <div className="min-w-0 flex items-center gap-4">
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                            transaction.type === "credit"
+                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30"
+                              : "bg-red-50 text-red-500 dark:bg-red-950/30"
+                          }`}
+                        >
+                          {transaction.type === "credit" ? (
+                            <ArrowDownLeft className="h-5 w-5" />
+                          ) : (
+                            <ArrowUpRight className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="truncate text-[14px] font-bold text-gray-900 dark:text-white">{transaction.title}</h4>
+                          <p className="text-[12px] text-gray-500">{transaction.date}</p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <span
+                          className={`text-[14px] font-extrabold ${
+                            transaction.type === "credit" ? "text-emerald-600" : "text-gray-900 dark:text-white"
+                          }`}
+                        >
+                          {transaction.amount}
+                        </span>
+                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600">
+                          <CheckCircle2 className="h-3 w-3" /> Success
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
+      {/* Wallet Action Modal */}
       {action && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4"
@@ -261,7 +300,7 @@ export default function WalletPage() {
                 onClick={closeAction}
                 disabled={isProcessing}
                 aria-label="Close wallet action"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -287,14 +326,12 @@ export default function WalletPage() {
                       setAmount(event.target.value);
                       setActionError("");
                     }}
-                    aria-invalid={Boolean(actionError)}
-                    aria-describedby={actionError ? "wallet-amount-error" : undefined}
                     placeholder="0.00"
-                    className="w-full rounded-[18px] border border-gray-200 bg-white py-4 pl-9 pr-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-[18px] border border-gray-200 bg-white py-4 pl-9 pr-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
                 {actionError && (
-                  <p id="wallet-amount-error" role="alert" className="mt-2 text-[12px] font-medium text-red-600 dark:text-red-400">
+                  <p role="alert" className="mt-2 text-[12px] font-medium text-red-600 dark:text-red-400">
                     {actionError}
                   </p>
                 )}
@@ -315,7 +352,7 @@ export default function WalletPage() {
                       setActionError("");
                     }}
                     placeholder="Name or wallet ID"
-                    className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
               )}
@@ -323,7 +360,7 @@ export default function WalletPage() {
               <button
                 type="submit"
                 disabled={isProcessing || !amount.trim() || (action === "transfer" && recipient.trim().length < 3)}
-                className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#FC6B31] py-4 text-[14px] font-extrabold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#FC6B31] py-4 text-[14px] font-extrabold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isProcessing ? (
                   <>

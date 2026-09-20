@@ -7,6 +7,14 @@ import { ArrowLeft, Search, SlidersHorizontal, Star, MapPin, ChefHat, X } from "
 import MealCard from "@/components/customer/MealCard";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
 
+const handleBackNavigation = (router: ReturnType<typeof useRouter>) => {
+  if (window.history.length > 2) {
+    router.back();
+  } else {
+    router.push('/customer/home');
+  }
+};
+
 export default function ExplorePage() {
   const router = useRouter();
   
@@ -70,7 +78,7 @@ export default function ExplorePage() {
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-4 flex flex-col gap-4 border-b border-gray-100 dark:border-zinc-800">
         <div className="flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
+          <button onClick={() => handleBackNavigation(router)} className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Explore</h1>

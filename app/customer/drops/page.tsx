@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Package, Truck, CheckCircle2, Clock, MapPin, ChevronRight, RotateCcw } from "lucide-react";
-import OrderReceiptModal from "@/components/customer/OrderReceiptModal"; // Import your reusable component
+import { Package, Truck, CheckCircle2, Clock, MapPin, ChevronRight, RotateCcw, PhoneCall, X, MessageSquare } from "lucide-react";
+import OrderReceiptModal from "@/components/customer/OrderReceiptModal";
 
 export default function DropsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
@@ -10,6 +10,9 @@ export default function DropsPage() {
   // State for controlling the receipt modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<any>(null);
+
+  // State for Contact Driver Support Modal (since a dedicated driver page doesn't exist yet)
+  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
 
   // Mock active order details data structure matching the receipt schema
   const activeOrderReceiptData = {
@@ -149,15 +152,18 @@ export default function DropsPage() {
                 </div>
               </div>
 
-              {/* Action Area - Wired Up View Receipt */}
+              {/* Action Area - Wired Up View Receipt & Contact Driver Modal Trigger */}
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 flex gap-3 border-t border-gray-100 dark:border-zinc-800">
                 <button 
                   onClick={() => handleOpenReceipt(activeOrderReceiptData)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-sm font-bold py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-sm font-bold py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors text-gray-900 dark:text-white"
                 >
                   View Receipt
                 </button>
-                <button className="flex-1 bg-[#FC6B31] text-white text-sm font-bold py-3 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors">
+                <button 
+                  onClick={() => setIsDriverModalOpen(true)}
+                  className="flex-1 bg-[#FC6B31] text-white text-sm font-bold py-3 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+                >
                   Contact Driver
                 </button>
               </div>
@@ -208,6 +214,51 @@ export default function DropsPage() {
           onClose={() => setIsReceiptOpen(false)}
           order={selectedOrderForReceipt}
         />
+      )}
+
+      {/* CONTACT DRIVER MODAL (Fallback for missing driver page) */}
+      {isDriverModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-[24px] w-full max-w-sm p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Contact Delivery Driver</h3>
+              <button 
+                onClick={() => setIsDriverModalOpen(false)} 
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-orange-50 dark:bg-zinc-800 border border-orange-100 dark:border-zinc-700">
+              <div className="w-12 h-12 rounded-full bg-[#FC6B31] text-white flex items-center justify-center font-black text-base shrink-0">
+                <span>EM</span>
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">Emmanuel (Rider)</h4>
+                <p className="text-xs text-gray-500 truncate">Assigned to Victoria Island Hub Drop</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <a 
+                href="tel:+2348000000000" 
+                className="w-full flex items-center justify-center gap-2 bg-[#FC6B31] text-white font-bold text-sm py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20"
+              >
+                <PhoneCall className="w-4 h-4" /> Call Driver (+234 800 000 0000)
+              </a>
+              <button 
+                onClick={() => {
+                  alert("Opening quick support chat with driver...");
+                  setIsDriverModalOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200 font-bold text-sm py-3.5 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" /> Send Dispatch Note
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Sparkles, Plus, Check, ArrowRight } from "lucide-react";
+import { X, Send, Sparkles, Plus, Check } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
+// import { useOrderContext } from "@/store/useOrderContext";
 
 interface Message {
   id: string;
   sender: "user" | "ai";
   text: string;
   suggestionCard?: {
+    id: string;
     title: string;
     vendor: string;
-    price: string;
+    price: number;
+    priceFormatted: string;
     image: string;
   };
 }
@@ -31,7 +35,14 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
     }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Track which items have been added to cart in this session to show a green check state
+  const [addedItemIds, setAddedItemIds] = useState<Record<string, boolean>>({});
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Cart store hook
+  const addToCart = useCartStore((state) => state.addToCart);
 
   useEffect(() => {
     if (initialQuery) {
@@ -59,16 +70,40 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
-        text: "Based on your craving, I found this freshly batched hot meal ready for today's delivery window!",
+        text: "Based on your craving, I found this freshly batched hot meal ready for today's delivery window! Want me to toss it into your cart?",
         suggestionCard: {
+          id: "deal-3",
           title: "Smoky Party Jollof & Turkey",
           vendor: "Taste & See Kitchen",
-          price: "₦4,500",
-          image: "/CNC-bowl of jolof rice chicken plantain.png"
+          price: 4500,
+          priceFormatted: "₦4,500",
+          image: "/hero-food-illustration.png"
         }
       };
       setMessages((prev) => [...prev, aiResponse]);
     }, 1200);
+  };
+
+  const handleAddToCart = (card: NonNullable<Message["suggestionCard"]>) => {
+    // 1. Trigger actual cart addition logic here
+    addToCart({
+      id: card.id,
+      name: card.title,
+      desc: `${card.vendor} • Standard`,
+      price: card.price,
+      image: card.image
+    });
+
+    // 2. Mark this specific card item as added to show confirmation state
+    setAddedItemIds((prev) => ({ ...prev, [card.id]: true }));
+
+    // 3. Have the AI respond naturally to keep the conversation flowing
+    const confirmationMsg: Message = {
+      id: Date.now().toString(),
+      sender: "ai",
+      text: `Added **${card.title}** to your single consolidated cart! Anything else you'd like to add before checkout?`
+    };
+    setMessages((prev) => [...prev, confirmationMsg]);
   };
 
   return (
@@ -106,9 +141,9 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
                 {msg.text}
               </div>
 
-              {/* Optional Rich Suggestion Card Inside Chat */}
+              {/* Rich Suggestion Card Inside Chat */}
               {msg.suggestionCard && (
-                <div className="mt-2.5 w-full max-w-[280px] bg-white dark:bg-zinc-800 rounded-2xl p-3 border border-orange-100 dark:border-zinc-700 shadow-md space-y-2.5">
+                <div className="mt-2.5 w-full max-w-[280px] bg-white dark:bg-zinc-800 rounded-2xl p-3 border border-orange-100 dark:border-zinc-700 shadow-md space-y-2.5 animate-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-zinc-700 flex items-center justify-center shrink-0 overflow-hidden">
                       <img src={msg.suggestionCard.image} alt="Meal" className="w-full h-full object-cover" />
@@ -116,14 +151,28 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
                     <div>
                       <h4 className="font-extrabold text-xs text-gray-900 dark:text-white">{msg.suggestionCard.title}</h4>
                       <p className="text-[10px] text-gray-400">{msg.suggestionCard.vendor}</p>
-                      <span className="text-xs font-black text-[#FC6B31]">{msg.suggestionCard.price}</span>
+                      <span className="text-xs font-black text-[#FC6B31]">{msg.suggestionCard.priceFormatted}</span>
                     </div>
                   </div>
+                  
                   <button 
-                    onClick={() => alert("Added to cart!")}
-                    className="w-full py-2 bg-orange-50 dark:bg-zinc-700 hover:bg-[#FC6B31] hover:text-white text-[#FC6B31] text-[11px] font-extrabold rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    onClick={() => handleAddToCart(msg.suggestionCard!)}
+                    disabled={addedItemIds[msg.suggestionCard.id]}
+                    className={`w-full py-2 rounded-xl text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                      addedItemIds[msg.suggestionCard.id]
+                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 cursor-default"
+                        : "bg-orange-50 dark:bg-zinc-700 hover:bg-[#FC6B31] hover:text-white text-[#FC6B31]"
+                    }`}
                   >
-                    <Plus className="w-3.5 h-3.5" /> Quick Add to Cart
+                    {addedItemIds[msg.suggestionCard.id] ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" /> Added to Cart!
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3.5 h-3.5" /> Quick Add to Cart
+                      </>
+                    )}
                   </button>
                 </div>
               )}

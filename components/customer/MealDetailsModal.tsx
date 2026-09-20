@@ -2,21 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { X, Heart, Share2, Minus, Plus } from "lucide-react";
-
+import { useCartStore } from "@/store/useCartStore";
 interface MealDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  meal: { name: string; vendor: string; originalPrice: number; discountedPrice: number; image: string; } | null;
+  meal: { 
+    id?: string | number;
+    name: string; 
+    vendor: string; 
+    originalPrice: number; 
+    discountedPrice: number; 
+    image: string; 
+  } | null;
 }
 
 export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsModalProps) {
   const [quantity, setQuantity] = useState(1);
+  const addToCart = useCartStore((state) => state.addToCart);
 
   useEffect(() => {
     if (!isOpen) setQuantity(1); // Reset on close
   }, [isOpen]);
 
   if (!isOpen || !meal) return null;
+
+  const handleAddToCart = () => {
+    // Add item the specified number of times (or you can adjust your store to accept quantity increments)
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: meal.id || meal.name,
+        name: meal.name,
+        desc: `${meal.vendor} • Custom Drop`,
+        price: meal.discountedPrice,
+        image: meal.image,
+      });
+    }
+    onClose(); // Close modal after adding
+  };
 
   return (
     <div className="fixed inset-0 z-[120] flex flex-col justify-end">
@@ -65,7 +87,7 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
               A comprehensive mix of ingredients perfect for your scheduled drop. Enjoy fresh and high-quality meals sourced from top vendors, perfectly packed for guaranteed delivery windows.
             </p>
 
-            <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-3">What's Inside</h3>
+            <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-3">What&apos;s Inside</h3>
             <ul className="text-[13px] text-gray-500 leading-relaxed space-y-2">
               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#FC6B31] rounded-full"/> 1 Juicy beef patty</li>
               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#FC6B31] rounded-full"/> 1 Slice of cheddar cheese</li>
@@ -91,7 +113,10 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
           </div>
 
           {/* Add to Cart Button */}
-          <button className="flex-1 bg-[#FC6B31] text-white font-bold rounded-full flex justify-between items-center px-6 h-[56px] hover:bg-orange-600 transition-colors active:scale-[0.98] shadow-lg shadow-orange-500/20">
+          <button 
+            onClick={handleAddToCart}
+            className="flex-1 bg-[#FC6B31] text-white font-bold rounded-full flex justify-between items-center px-6 h-[56px] hover:bg-orange-600 transition-colors active:scale-[0.98] shadow-lg shadow-orange-500/20"
+          >
             <span>Add to cart</span>
             <span>₦{(meal.discountedPrice * quantity).toLocaleString()}</span>
           </button>
