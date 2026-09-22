@@ -58,7 +58,10 @@ export default function LoginPage() {
         if (startRes.ok) {
           setStep("OTP");
         } else {
-          setError("Failed to send verification code. Please try again.");
+          // Parse the actual backend error to see why it's failing
+          const errorData = await startRes.json().catch(() => ({}));
+          console.error("Backend OTP Error:", errorData);
+          setError(errorData.message || "Failed to send verification code. Please try again.");
         }
       }
     } catch (err) {
@@ -91,7 +94,8 @@ export default function LoginPage() {
         
         router.push("/customer/home");
       } else {
-        setError("Incorrect PIN. Please try again.");
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || "Incorrect PIN. Please try again.");
       }
     } catch (err) {
       setError("Network error. Please check your connection.");
@@ -123,7 +127,8 @@ export default function LoginPage() {
         // Push to home (System will prompt for PIN setup later as requested)
         router.push("/customer/home");
       } else {
-        setError("Invalid verification code. Please check and try again.");
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || "Invalid verification code. Please check and try again.");
       }
     } catch (err) {
       setError("Network error. Please check your connection.");
@@ -136,14 +141,18 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await fetch(`${API_BASE_URL}/api/v1/auth/resend`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/resend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-      // Optionally show a success toast here
+      
+      if (!res.ok) {
+         const errorData = await res.json().catch(() => ({}));
+         setError(errorData.message || "Failed to resend code.");
+      }
     } catch (err) {
-      setError("Failed to resend code.");
+      setError("Network error. Failed to resend code.");
     } finally {
       setIsLoading(false);
     }
@@ -173,21 +182,19 @@ export default function LoginPage() {
             </h2>
           </div>
 
-          {/* Mobile Illustration */}
-          {step === "EMAIL" && (
-            <div className="w-full flex flex-col items-center lg:hidden shrink-0 my-2">
-              <div className="flex min-h-[140px] max-h-[190px] w-full justify-center items-center overflow-hidden mb-2">
-                <Image 
-                  src="/CNC-bowl%20of%20jolof%20rice%20chicken%20plantain.png" 
-                  alt="ChopnChop Jollof Rice Dish" 
-                  width={340}
-                  height={190}
-                  priority
-                  className="max-h-full w-auto max-w-[340px] object-contain drop-shadow-md" 
-                />
-              </div>
+          {/* Mobile Illustration (Dynamic based on step) */}
+          <div className="w-full flex flex-col items-center lg:hidden shrink-0 my-2">
+            <div className="flex min-h-[140px] max-h-[190px] w-full justify-center items-center overflow-hidden mb-2">
+              <Image 
+                src={step === "EMAIL" ? "/CNC-bowl%20of%20jolof%20rice%20chicken%20plantain.png" : "/food_pack.png"} 
+                alt="ChopnChop Illustration" 
+                width={340}
+                height={190}
+                priority
+                className="max-h-full w-auto max-w-[340px] object-contain drop-shadow-md transition-all duration-300" 
+              />
             </div>
-          )}
+          </div>
 
           {/* Subtext */}
           <div className="text-center shrink-0 mb-6 lg:mb-8">
@@ -227,7 +234,7 @@ export default function LoginPage() {
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continue <ArrowRight className="w-4 h-4" /></>}
                 </button>
 
-                {/* Google OAuth Stub based on API */}
+                {/* Google OAuth Stub */}
                 <div className="pt-4 flex flex-col gap-3">
                   <div className="relative flex items-center py-2">
                     <div className="flex-grow border-t border-gray-100"></div>
@@ -252,13 +259,24 @@ export default function LoginPage() {
             {/* STEP 2A: PIN */}
             {step === "PIN" && (
               <form onSubmit={handlePinSubmit} className="space-y-4 w-full animate-in slide-in-from-right-4 duration-300">
+                
+                {/* DUMMY INPUTS TO ABSORB BROWSER AUTOFILL */}
+                <input type="text" name="fakeusernameremembered" style={{ display: 'none' }} aria-hidden="true" />
+                <input type="password" name="fakepasswordremembered" style={{ display: 'none' }} aria-hidden="true" />
+                
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                     <Lock className="w-5 h-5" />
                   </div>
                   <input
-                    type={showPin ? "text" : "password"} inputMode="numeric" pattern="\d{4}" maxLength={4} required
-                    placeholder="4-Digit PIN" autoFocus
+                    type={showPin ? "text" : "password"} 
+                    inputMode="numeric" 
+                    pattern="\d{4}" 
+                    maxLength={4} 
+                    required
+                    placeholder="4-Digit PIN" 
+                    autoFocus
+                    autoComplete="one-time-code" // Tricks password managers into ignoring this field
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     className="w-full pl-[48px] pr-12 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[18px] font-mono tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
@@ -290,6 +308,7 @@ export default function LoginPage() {
                   <input
                     type="text" inputMode="numeric" maxLength={6} required
                     placeholder="6-Digit Code" autoFocus
+                    autoComplete="one-time-code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     className="w-full pl-[48px] pr-4 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[18px] font-mono tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm text-center"
