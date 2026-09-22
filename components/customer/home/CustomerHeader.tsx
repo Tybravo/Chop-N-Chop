@@ -5,10 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MapPin, ChevronDown, Wallet, Bell, Clock } from "lucide-react";
 import { useOrderContext } from "@/store/useOrderContext";
+import { useNotifications } from "@/context/NotificationContext";
 
 interface CustomerHeaderProps {
   walletBalance: number;
-  notificationCount: number;
 }
 
 const WINDOW_LABELS: Record<string, string> = {
@@ -17,9 +17,10 @@ const WINDOW_LABELS: Record<string, string> = {
   'tomorrow-lunch': 'Tmrw • 12-2 PM',
 };
 
-export default function CustomerHeader({ walletBalance, notificationCount }: CustomerHeaderProps) {
+export default function CustomerHeader({ walletBalance }: CustomerHeaderProps) {
   const router = useRouter();
   const { location, deliveryWindow, resetContext } = useOrderContext();
+  const { unreadCount } = useNotifications();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,7 +33,6 @@ export default function CustomerHeader({ walletBalance, notificationCount }: Cus
     : "Select Drop Window";
 
   if (!mounted) {
-    // Lightweight hydration skeleton matching the header's dimensions
     return <div className="h-[52px] w-full animate-pulse bg-gray-50 dark:bg-zinc-900 rounded-full md:hidden mt-2" />;
   }
 
@@ -57,8 +57,6 @@ export default function CustomerHeader({ walletBalance, notificationCount }: Cus
       <button
         type="button"
         onClick={() => {
-          // If you are using the Gateway Modal on the Home page, 
-          // resetting context forces it to re-open instantly.
           resetContext();
         }}
         aria-label="Change delivery location and window"
@@ -91,13 +89,13 @@ export default function CustomerHeader({ walletBalance, notificationCount }: Cus
         <button
           type="button"
           onClick={() => router.push("/customer/notifications")}
-          aria-label={`Open notifications, ${notificationCount} unread`}
+          aria-label={`Open notifications, ${unreadCount} unread`}
           className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
-          {notificationCount > 0 && (
+          {unreadCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#FC6B31] text-[9px] font-black text-white dark:border-zinc-900">
-              {notificationCount}
+              {unreadCount}
             </span>
           )}
         </button>

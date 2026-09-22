@@ -12,20 +12,10 @@ import {
   CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
+import { useNotifications, type AppNotification } from "@/context/NotificationContext";
 
 type NotificationCategory = "all" | "orders" | "deliveries" | "payments" | "system";
 type DateGroup = "today" | "earlier";
-
-interface InAppNotification {
-  id: string;
-  category: NotificationCategory;
-  title: string;
-  body: string;
-  time: string;
-  isRead: boolean;
-  dateGroup: DateGroup;
-  link: string;
-}
 
 const tabs: Array<{ id: NotificationCategory; label: string }> = [
   { id: "all", label: "All" },
@@ -35,78 +25,43 @@ const tabs: Array<{ id: NotificationCategory; label: string }> = [
   { id: "system", label: "System" },
 ];
 
-const initialNotifications: InAppNotification[] = [
-  {
-    id: "n1",
-    category: "deliveries",
-    title: "Rider is Approaching!",
-    body: "Your drop from Taste & See is 2 minutes away from the Victoria Island Hub.",
-    time: "2 mins ago",
-    isRead: false,
-    dateGroup: "today",
-    link: "/customer/drops",
-  },
-  {
-    id: "n2",
-    category: "orders",
-    title: "Order Ready for Pickup",
-    body: "Your Drop meal is ready at the Yaba Hub. Show your pickup code: 492X1.",
-    time: "1 hour ago",
-    isRead: false,
-    dateGroup: "today",
-    link: "/customer/drops",
-  },
-  {
-    id: "n3",
-    category: "payments",
-    title: "Wallet Funded Successfully",
-    body: "₦10,000 has been added to your ChopNChop wallet via Bank Transfer.",
-    time: "4 hours ago",
-    isRead: true,
-    dateGroup: "today",
-    link: "/customer/wallet",
-  },
-  {
-    id: "n4",
-    category: "system",
-    title: "New Feature: Multi-Hub Saving",
-    body: "You can now save multiple office and home delivery hubs for faster checkout.",
-    time: "Yesterday at 4:30 PM",
-    isRead: true,
-    dateGroup: "earlier",
-    link: "/customer/locations",
-  },
-  {
-    id: "n5",
-    category: "payments",
-    title: "Payment Failed",
-    body: "Your card ending in 4242 was declined for Order #ORD-9104. Please update your payment method.",
-    time: "Sep 15 at 1:15 PM",
-    isRead: true,
-    dateGroup: "earlier",
-    link: "/customer/wallet",
-  },
-];
-
 export default function NotificationsPage() {
   const router = useRouter();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [activeTab, setActiveTab] = useState<NotificationCategory>("all");
-  const [notifications, setNotifications] = useState<InAppNotification[]>(initialNotifications);
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif)),
-    );
+  // Helper to determine if a notification is from today or earlier based on its createdAt timestamp
+  const getDateGroup = (dateString: string): DateGroup => {
+    if (!dateString) return "earlier";
+    const date = new Date(dateString);
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+      ? "today"
+      : "earlier";
   };
 
-  const openNotification = (notification: InAppNotification) => {
-    markAsRead(notification.id);
-    router.push(notification.link);
+  // Helper to format the display time
+  const formatTime = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+  const openNotification = (notification: AppNotification) => {
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+    
+    // Simple routing logic based on category (can be expanded based on your actual routes)
+    const category = notification.category?.toLowerCase() || "system";
+    if (category.includes("delivery") || category.includes("order")) {
+      router.push("/customer/drops");
+    } else if (category.includes("payment")) {
+      router.push("/customer/wallet");
+    }
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -126,14 +81,18 @@ export default function NotificationsPage() {
     tabRefs.current[nextIndex]?.focus();
   };
 
-  const filteredNotifications = notifications.filter(
-    (notification) => activeTab === "all" || notification.category === activeTab,
-  );
-  const todayNotifs = filteredNotifications.filter((notification) => notification.dateGroup === "today");
-  const earlierNotifs = filteredNotifications.filter(
-    (notification) => notification.dateGroup === "earlier",
-  );
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  // Filter notifications by active tab
+  const filteredNotifications = notifications.filter((notification) => {
+    if (activeTab === "all") return true;
+    const cat = notification.category?.toLowerCase() || "";
+    if (activeTab === "orders") return cat.includes("order");
+    if (activeTab === "deliveries") return cat.includes("delivery");
+    if (activeTab === "payments") return cat.includes("payment");
+    return cat.includes("system"); // fallback for system tab
+  });
+
+  const todayNotifs = filteredNotifications.filter((n) => getDateGroup(n.createdAt) === "today");
+  const earlierNotifs = filteredNotifications.filter((n) => getDateGroup(n.createdAt) === "earlier");
   const activeTabLabel = tabs.find((tab) => tab.id === activeTab)?.label ?? "All";
 
   return (
@@ -172,7 +131,7 @@ export default function NotificationsPage() {
           role="tablist"
           aria-label="Notification categories"
           onKeyDown={handleTabKeyDown}
-          className="flex w-full min-w-0 snap-x gap-2 overflow-x-auto pb-1 no-scrollbar"
+          className="flex w-full min-w-0 snap-x gap-2 overflow-x-auto pb-1 no-scrollbar pt-3"
         >
           <div className="w-1 shrink-0 snap-start" />
           {tabs.map((tab, index) => {
@@ -226,6 +185,7 @@ export default function NotificationsPage() {
                 <NotificationCard
                   key={notification.id}
                   data={notification}
+                  timeDisplay={formatTime(notification.createdAt)}
                   onRead={markAsRead}
                   onClick={() => openNotification(notification)}
                   config={getIconConfig(notification.category, notification.title)}
@@ -236,7 +196,7 @@ export default function NotificationsPage() {
         )}
 
         {earlierNotifs.length > 0 && (
-          <section className="space-y-3" aria-labelledby="earlier-notifications-heading">
+          <section className="space-y-3 pt-6" aria-labelledby="earlier-notifications-heading">
             <h2 id="earlier-notifications-heading" className="text-[14px] font-extrabold tracking-tight text-gray-900 dark:text-white">
               Earlier
             </h2>
@@ -245,6 +205,7 @@ export default function NotificationsPage() {
                 <NotificationCard
                   key={notification.id}
                   data={notification}
+                  timeDisplay={new Date(notification.createdAt).toLocaleDateString()}
                   onRead={markAsRead}
                   onClick={() => openNotification(notification)}
                   config={getIconConfig(notification.category, notification.title)}
@@ -283,14 +244,15 @@ export default function NotificationsPage() {
   );
 }
 
-function getIconConfig(category: NotificationCategory, title: string) {
-  if (category === "deliveries") {
+function getIconConfig(categoryStr: string, title: string) {
+  const category = categoryStr?.toLowerCase() || "";
+  if (category.includes("delivery")) {
     return { Icon: Truck, bg: "bg-blue-100 dark:bg-blue-900/40", text: "text-blue-600 dark:text-blue-400" };
   }
-  if (category === "orders") {
+  if (category.includes("order")) {
     return { Icon: Package, bg: "bg-orange-100 dark:bg-orange-900/40", text: "text-[#FC6B31]" };
   }
-  if (category === "payments") {
+  if (category.includes("payment")) {
     const isError = title.toLowerCase().includes("failed");
     return {
       Icon: CreditCard,
@@ -304,11 +266,13 @@ function getIconConfig(category: NotificationCategory, title: string) {
 function NotificationCard({
   data,
   config,
+  timeDisplay,
   onRead,
   onClick,
 }: {
-  data: InAppNotification;
+  data: AppNotification;
   config: { Icon: LucideIcon; bg: string; text: string };
+  timeDisplay: string;
   onRead: (id: string) => void;
   onClick: () => void;
 }) {
@@ -341,7 +305,7 @@ function NotificationCard({
             >
               {data.title}
             </h3>
-            <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-gray-400">{data.time}</span>
+            <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-gray-400">{timeDisplay}</span>
           </div>
           <p
             className={`line-clamp-2 text-[13px] leading-snug ${
@@ -350,7 +314,7 @@ function NotificationCard({
                 : "text-gray-500 dark:text-gray-400"
             }`}
           >
-            {data.body}
+            {data.message}
           </p>
           {!data.isRead && (
             <div className="mt-2.5">

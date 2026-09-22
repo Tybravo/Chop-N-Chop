@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Ticket, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Ticket, Check, Loader2, XCircle } from "lucide-react";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
 
 interface Coupon {
   id: string;
@@ -29,56 +31,123 @@ export default function PromosPage() {
   const [status, setStatus] = useState<PromoStatus>("idle");
   const [message, setMessage] = useState("");
   const [applyingCouponId, setApplyingCouponId] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const promoInputRef = useRef<HTMLInputElement>(null);
-  const promoTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (promoTimerRef.current) window.clearTimeout(promoTimerRef.current);
-    };
-  }, []);
+  // In production, retrieve the active cart ID from your cart state/context
+  const activeCartId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
+  
+  const getToken = () => typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
 
-  const applyCode = (event: FormEvent<HTMLFormElement>) => {
+  const applyCode = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const code = promoCode.trim().toUpperCase();
+    
     if (!code) {
       setStatus("error");
       setMessage("Enter a promo code before applying it.");
       return;
     }
 
+    // Check if it's already applied locally
+    const matchedCoupon = availableCoupons.find((c) => c.code === code);
+    if (matchedCoupon && appliedCoupons.includes(matchedCoupon.id)) {
+      setStatus("applied");
+      setMessage(`${matchedCoupon.title} is already ready for your next order.`);
+      return;
+    }
+
     setStatus("applying");
     setMessage("");
-    promoTimerRef.current = window.setTimeout(() => {
-      const coupon = availableCoupons.find((item) => item.code === code);
-      if (!coupon) {
-        setStatus("error");
-        setMessage("That promo code is not recognized. Check the code and try again.");
-        return;
-      }
-      if (appliedCoupons.includes(coupon.id)) {
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ promoCode: code })
+      });
+
+      if (res.ok) {
+        // If the code matches one of our known coupons, track its ID
+        if (matchedCoupon) {
+          setAppliedCoupons((current) => [...current, matchedCoupon.id]);
+          setMessage(`${matchedCoupon.title} is ready for your next order.`);
+        } else {
+          setMessage(`Promo code ${code} successfully applied.`);
+        }
         setStatus("applied");
-        setMessage(`${coupon.title} is already ready for your next order.`);
-        return;
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setStatus("error");
+        setMessage(errorData.message || "That promo code is invalid or expired.");
       }
-      setAppliedCoupons((current) => [...current, coupon.id]);
-      setStatus("applied");
-      setMessage(`${coupon.title} is ready for your next order.`);
-    }, 600);
+    } catch (error) {
+      setStatus("error");
+      setMessage("Network error. Please check your connection and try again.");
+    }
   };
 
-  const applyCoupon = (coupon: Coupon) => {
+  const applyCoupon = async (coupon: Coupon) => {
     if (appliedCoupons.includes(coupon.id) || applyingCouponId) return;
 
     setApplyingCouponId(coupon.id);
     setStatus("applying");
     setMessage("");
-    promoTimerRef.current = window.setTimeout(() => {
-      setAppliedCoupons((current) => [...current, coupon.id]);
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ promoCode: coupon.code })
+      });
+
+      if (res.ok) {
+        setAppliedCoupons((current) => [...current, coupon.id]);
+        setStatus("applied");
+        setMessage(`${coupon.title} is ready for your next order.`);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setStatus("error");
+        setMessage(errorData.message || "Failed to apply this coupon.");
+      }
+    } catch (error) {
+      setStatus("error");
+      setMessage("Network error. Please try again.");
+    } finally {
       setApplyingCouponId(null);
-      setStatus("applied");
-      setMessage(`${coupon.title} is ready for your next order.`);
-    }, 500);
+    }
+  };
+
+  const removeCoupon = async (couponId: string) => {
+    setIsRemoving(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
+        method: "DELETE",
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+
+      if (res.ok) {
+        setAppliedCoupons((current) => current.filter(id => id !== couponId));
+        setStatus("idle");
+        setMessage("");
+        setPromoCode("");
+      }
+    } catch (error) {
+      console.error("Failed to remove promo:", error);
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   return (
@@ -128,7 +197,7 @@ export default function PromosPage() {
                 disabled={status === "applying"}
                 className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-[18px] bg-gray-900 px-6 py-4 text-[14px] font-bold text-white shadow-md transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-gray-900 sm:w-auto"
               >
-                {status === "applying" ? (
+                {status === "applying" && !applyingCouponId ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Applying
                   </>
@@ -159,18 +228,28 @@ export default function PromosPage() {
         </section>
 
         {appliedCoupons.length > 0 && (
-          <div role="status" className="mb-6 flex items-start gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20">
-            <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <div className="min-w-0">
-              <h3 className="text-[14px] font-extrabold text-emerald-800 dark:text-emerald-200">Promo selected</h3>
-              <p className="mt-0.5 text-[13px] text-emerald-700 dark:text-emerald-300">
-                {availableCoupons
-                  .filter((coupon) => appliedCoupons.includes(coupon.id))
-                  .map((coupon) => coupon.title)
-                  .join(", ")}{" "}
-                will be available at checkout.
-              </p>
+          <div role="status" className="mb-6 flex items-start justify-between gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20">
+            <div className="flex items-start gap-3 min-w-0">
+              <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div className="min-w-0">
+                <h3 className="text-[14px] font-extrabold text-emerald-800 dark:text-emerald-200">Promo selected</h3>
+                <p className="mt-0.5 text-[13px] text-emerald-700 dark:text-emerald-300">
+                  {availableCoupons
+                    .filter((coupon) => appliedCoupons.includes(coupon.id))
+                    .map((coupon) => coupon.title)
+                    .join(", ")}{" "}
+                  will be available at checkout.
+                </p>
+              </div>
             </div>
+            <button 
+              onClick={() => removeCoupon(appliedCoupons[0])}
+              disabled={isRemoving}
+              className="shrink-0 p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-900/50 rounded-full transition-colors disabled:opacity-50"
+              aria-label="Remove applied promo code"
+            >
+              {isRemoving ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5" />}
+            </button>
           </div>
         )}
 

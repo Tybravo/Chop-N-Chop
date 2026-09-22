@@ -260,31 +260,147 @@ export default function CustomerWelcomePage() {
             sm:w-[430px]
           "
         >
-          {/* LAYERED STEAM / SMOKE EFFECT */}
-          <div className="absolute inset-x-0 top-16 sm:top-20 z-20 flex justify-center items-center pointer-events-none">
-            
-            {/* Base drifting haze layer */}
-            <div className="absolute w-[140px] h-[70px] bg-white/20 blur-[24px] rounded-[100%] animate-haze mix-blend-screen" />
-            
-            {/* 5 Animated Steam Columns */}
-            <div className="flex items-end space-x-1 sm:space-x-2 relative z-10 opacity-90">
-              <svg className="w-5 h-16 text-white/55 animate-steam-col-1" viewBox="0 0 24 64" fill="none">
-                <path d="M12 60C12 45 6 35 6 24C6 13 18 15 18 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-              <svg className="w-7 h-20 text-white/45 animate-steam-col-2" viewBox="0 0 24 64" fill="none">
-                <path d="M12 60C12 42 18 32 18 20C18 8 6 10 6 4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-              <svg className="w-6 h-18 text-white/50 animate-steam-col-3" viewBox="0 0 24 64" fill="none">
-                <path d="M12 60C12 44 6 34 6 24C6 14 16 12 16 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-              <svg className="w-5 h-14 text-white/40 animate-steam-col-4" viewBox="0 0 24 64" fill="none">
-                <path d="M12 60C12 42 16 32 16 20C16 10 8 8 8 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <svg className="w-7 h-24 text-white/40 animate-steam-col-5" viewBox="0 0 24 64" fill="none">
-                <path d="M12 60C12 40 18 30 18 18C18 6 6 8 6 2" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-            </div>
-          </div>
+         {/* =========================================================
+    HOT FOOD SMOKE / STEAM
+========================================================= */}
+<div
+  className="
+    absolute
+    inset-x-0
+    top-[4.5rem]
+    sm:top-[5rem]
+    z-30
+    flex
+    justify-center
+    pointer-events-none
+  "
+>
+  {/* Large atmospheric smoke cloud */}
+  <div
+    className="
+      absolute
+      top-6
+      h-[120px]
+      w-[210px]
+      rounded-full
+      bg-white/20
+      blur-[42px]
+      animate-smoke-cloud
+      mix-blend-screen
+    "
+  />
+
+  {/* Secondary warm vapor */}
+  <div
+    className="
+      absolute
+      top-10
+      -left-2
+      h-[100px]
+      w-[150px]
+      rounded-full
+      bg-[#FFF4E8]/20
+      blur-[38px]
+      animate-haze
+      mix-blend-screen
+    "
+  />
+
+  {/* Central hot-food haze */}
+  <div
+    className="
+      absolute
+      top-8
+      left-1/2
+      h-[100px]
+      w-[180px]
+      -translate-x-1/2
+      rounded-full
+      bg-white/25
+      blur-[35px]
+      animate-haze
+      mix-blend-screen
+    "
+  />
+
+  {/* Smoke wisps */}
+  <div
+    className="
+      relative
+      flex
+      items-end
+      justify-center
+      gap-0.5
+      sm:gap-2
+      opacity-95
+    "
+  >
+    <svg
+      className="h-20 w-6 text-white/60 animate-steam-col-1"
+      viewBox="0 0 24 80"
+      fill="none"
+    >
+      <path
+        d="M12 76C12 61 5 53 6 41C7 28 19 27 17 15C16 9 11 7 13 2"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+
+    <svg
+      className="h-24 w-8 text-white/50 animate-steam-col-2"
+      viewBox="0 0 24 90"
+      fill="none"
+    >
+      <path
+        d="M12 84C12 67 20 57 18 44C16 31 5 30 7 17C8 10 15 8 12 2"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+    </svg>
+
+    <svg
+      className="h-28 w-7 text-white/65 animate-steam-col-3"
+      viewBox="0 0 24 100"
+      fill="none"
+    >
+      <path
+        d="M12 94C12 76 5 65 7 52C9 38 19 35 17 22C16 13 9 10 12 3"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+    </svg>
+
+    <svg
+      className="h-20 w-6 text-white/45 animate-steam-col-4"
+      viewBox="0 0 24 80"
+      fill="none"
+    >
+      <path
+        d="M12 76C12 60 18 52 17 40C16 28 7 24 9 14C10 8 14 7 12 2"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+
+    <svg
+      className="h-28 w-8 text-white/55 animate-steam-col-5"
+      viewBox="0 0 24 100"
+      fill="none"
+    >
+      <path
+        d="M12 94C12 76 19 65 17 51C15 37 6 33 8 20C9 11 16 8 12 2"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  </div>
+</div>
 
           <Image
             src="/efo-riro.png"

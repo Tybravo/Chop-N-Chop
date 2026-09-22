@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Bell, X, Settings2, UserPlus, Lock } from "lucide-react";
+import { Sparkles, Bell, X, Settings2, UserPlus, Lock, Loader2 } from "lucide-react";
 
 // Store & Components
 import { useOrderContext } from "@/store/useOrderContext";
@@ -14,6 +14,9 @@ import MealCard from "@/components/customer/MealCard";
 import DeliveryDropBanner from "@/components/customer/DeliveryDropBanner";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
 import TodaysDealsSection from "@/components/customer/TodaysDealsSection";
+import { useNotifications } from "@/context/NotificationContext";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
 
 type MealModalData = {
   id: string;
@@ -24,29 +27,52 @@ type MealModalData = {
   image: string;
   stockRemaining: number;
   isSellingFast: boolean;
+  categoryId?: string;
+  categoryName?: string;
 };
 
-const categories = [
-  { name: "All", icon: "🍽️" },
-  { name: "Burger", icon: "🍔" },
-  { name: "Fruits", icon: "🍎" },
-  { name: "Pizza", icon: "🍕" },
-  { name: "Drinks", icon: "🥤" },
-];
+type Category = {
+  id: string;
+  name: string;
+  icon: string;
+};
+
+type ApiCategory = {
+  id: string;
+  name: string;
+};
+
+type ApiProduct = {
+  id: string;
+  name: string;
+  vendorName: string;
+  price: number;
+  soldOut: boolean;
+  remainingQuantity: number;
+};
+
+type ApiCategoryChunk = {
+  id: string;
+  name: string;
+  products: ApiProduct[];
+};
 
 export default function CustomerHome() {
   const [mounted, setMounted] = useState(false);
   const { location } = useOrderContext();
+  const { unreadCount, notifications, markAllAsRead } = useNotifications();
   
   // --- Guest vs Authenticated State Toggle ---
-  // In production, link this to your useAuth() context or session provider
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const [notificationCount, setNotificationCount] = useState(2);
   const [selectedMeal, setSelectedMeal] = useState<MealModalData | null>(null);
   const [toastNotif, setToastNotif] = useState<{ title: string; body: string } | null>(null);
-  const [activeCategory, setActiveCategory] = useState("All");
   
+  // --- Catalog State ---
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "All", icon: "🍽️" }]);
+  const [dailyMeals, setDailyMeals] = useState<MealModalData[]>([]);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(true);
+
   // Guest users see ₦0 or prompt, authenticated users see real balance
   const walletBalance = isAuthenticated ? 24500 : 0;
 
@@ -57,16 +83,7 @@ export default function CustomerHome() {
     if (hour < 16) return ["Party Jollof", "Chicken Suya", "Smoothies"];
     return ["Dinner Bowls", "Ofada Stew", "Pastries"];
   };
-
   const [suggestions] = useState<string[]>(getDynamicSuggestions());
-
-  // --- Dynamic Inventory Mock ---
-  const [bestSellers] = useState<MealModalData[]>([
-    { id: "meal-1", name: "Melting Cheese Pizza", vendor: "Pizza Italiano", originalPrice: 12990, discountedPrice: 10990, image: "/hero-food-illustration.png", stockRemaining: 12, isSellingFast: true },
-    { id: "meal-2", name: "Cheese Burger", vendor: "Burger Hunt", originalPrice: 5500, discountedPrice: 4990, image: "/hero-food-illustration.png", stockRemaining: 4, isSellingFast: false },
-    { id: "meal-3", name: "Smoky Jollof & Chicken", vendor: "Taste & See", originalPrice: 6500, discountedPrice: 5000, image: "/hero-food-illustration.png", stockRemaining: 0, isSellingFast: true },
-    { id: "meal-4", name: "Beef Stir Fry Pasta", vendor: "The Brunch Club", originalPrice: 5000, discountedPrice: 4200, image: "/hero-food-illustration.png", stockRemaining: 25, isSellingFast: false },
-  ]);
 
   // --- Active Hub Order State ---
   const [activeOrder, setActiveOrder] = useState({
@@ -91,6 +108,60 @@ export default function CustomerHome() {
     }
   };
 
+  // --- Fetch Catalog Data ---
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      setIsCatalogLoading(true);
+      try {
+        // Fetch Categories
+        const catRes = await fetch(`${API_BASE_URL}/api/v1/catalog/categories`);
+        if (catRes.ok) {
+          const catData: ApiCategory[] = await catRes.json();
+          const mappedCategories = catData.map((c: ApiCategory) => ({
+            id: c.id,
+            name: c.name,
+            icon: c.name.includes("Burger") ? "🍔" : c.name.includes("Pizza") ? "🍕" : c.name.includes("Drink") ? "🥤" : "🍲"
+          }));
+          setCategories([{ id: "all", name: "All", icon: "🍽️" }, ...mappedCategories]);
+        }
+
+        // Fetch Daily Menu (Using a default Hub ID if location doesn't map directly yet)
+        const mockHubId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
+        const menuRes = await fetch(`${API_BASE_URL}/api/v1/catalog/today?hubId=${mockHubId}`);
+        if (menuRes.ok) {
+          const menuData = await menuRes.json();
+          
+          // Flatten products from categories array in response
+          const flattenedMeals: MealModalData[] = [];
+          
+          menuData.categories?.forEach((categoryChunk: ApiCategoryChunk) => {
+            categoryChunk.products?.forEach((product: ApiProduct) => {
+              flattenedMeals.push({
+                id: product.id,
+                name: product.name,
+                vendor: product.vendorName,
+                originalPrice: product.price,
+                discountedPrice: product.price, // Apply discount logic here if needed
+                image: "/hero-food-illustration.png", // Fallback image if product.imageUrl is absent
+                stockRemaining: product.soldOut ? 0 : (product.remainingQuantity || 10),
+                isSellingFast: (product.remainingQuantity || 10) <= 5 && !product.soldOut,
+                categoryId: categoryChunk.id,
+                categoryName: categoryChunk.name
+              });
+            });
+          });
+          setDailyMeals(flattenedMeals);
+        }
+      } catch (error) {
+        console.error("Failed to fetch catalog:", error);
+      } finally {
+        setIsCatalogLoading(false);
+      }
+    };
+
+    fetchCatalog();
+  }, []);
+
   // --- Hydration & Lifecycle ---
   useEffect(() => {
     setMounted(true);
@@ -98,7 +169,7 @@ export default function CustomerHome() {
     let toastTimer: ReturnType<typeof setTimeout> | undefined;
     const timer = setTimeout(() => {
       if (isAuthenticated) {
-        setNotificationCount((count) => count + 1);
+        // Simulating a toast notification popping up
         setToastNotif({
           title: "Order Dispatched!",
           body: "Your drop is on its way to your doorstep in Yaba.",
@@ -114,6 +185,11 @@ export default function CustomerHome() {
   }, [isAuthenticated]);
 
   const openMeal = (meal: MealModalData) => setSelectedMeal(meal);
+
+  // Filter meals based on selected category
+  const displayedMeals = activeCategory === "All" 
+    ? dailyMeals 
+    : dailyMeals.filter(meal => meal.categoryName === activeCategory);
 
   if (!mounted) return <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950" />;
 
@@ -136,8 +212,8 @@ export default function CustomerHome() {
         </div>
       )}
 
-      {/* Header connected to Wallet Balance State */}
-      <CustomerHeader walletBalance={walletBalance} notificationCount={notificationCount} />
+      {/* Header connected to Wallet Balance and Live Unread Notifications */}
+      <CustomerHeader walletBalance={walletBalance} notificationCount={unreadCount} />
 
       <div className="md:hidden">
         <DeliveryDropBanner />
@@ -226,28 +302,37 @@ export default function CustomerHome() {
           <h2 id="categories-title" className="text-[18px] font-extrabold text-gray-900 dark:text-white tracking-tight">Categories</h2>
           <Link href="/customer/explore" className="text-[13px] font-bold text-gray-500 hover:text-[#FC6B31] transition-colors">See all</Link>
         </div>
-        <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-1 md:px-0">
-          {categories.map((category) => {
-            const isActive = activeCategory === category.name;
-            return (
-              <button
-                type="button"
-                key={category.name}
-                onClick={() => setActiveCategory(category.name)}
-                aria-pressed={isActive}
-                className={`flex min-h-[44px] items-center gap-2 rounded-full border px-5 text-[13px] font-bold shadow-sm transition-colors ${
-                  isActive ? "border-[#FC6B31] bg-[#FC6B31] text-white shadow-orange-500/20" : "border-gray-100 bg-white text-gray-700 hover:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300"
-                }`}
-              >
-                <span className="text-[14px]" aria-hidden="true">{category.icon}</span>
-                <span>{category.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        
+        {isCatalogLoading ? (
+          <div className="flex gap-3 px-1 overflow-x-hidden animate-pulse">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="min-w-[80px] h-[44px] rounded-full bg-gray-200 dark:bg-zinc-800" />
+            ))}
+          </div>
+        ) : (
+          <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-1 md:px-0">
+            {categories.map((category) => {
+              const isActive = activeCategory === category.name;
+              return (
+                <button
+                  type="button"
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.name)}
+                  aria-pressed={isActive}
+                  className={`flex min-h-[44px] items-center gap-2 rounded-full border px-5 text-[13px] font-bold shadow-sm transition-colors whitespace-nowrap ${
+                    isActive ? "border-[#FC6B31] bg-[#FC6B31] text-white shadow-orange-500/20" : "border-gray-100 bg-white text-gray-700 hover:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300"
+                  }`}
+                >
+                  <span className="text-[14px]" aria-hidden="true">{category.icon}</span>
+                  <span>{category.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* Best Sellers */}
+      {/* Daily Menu (Best Sellers) */}
       <section className="w-full space-y-4 md:mt-16" aria-labelledby="best-sellers-title">
         <div className="flex items-end justify-between px-1 md:px-0">
           <div className="min-w-0">
@@ -258,42 +343,52 @@ export default function CustomerHome() {
           <Link href="/customer/explore" className="text-[13px] font-medium text-[#FC6B31] hover:text-orange-600 transition-colors shrink-0 pl-4">See All</Link>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {bestSellers.map((meal) => (
-            <div key={meal.id} className="relative min-w-0">
-              {meal.stockRemaining <= 5 && meal.stockRemaining > 0 && (
-                <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-red-500/30">
-                  Only {meal.stockRemaining} left
-                </span>
-              )}
-              
-              {meal.isSellingFast && meal.stockRemaining > 5 && (
-                <span className="absolute left-2 top-2 z-10 rounded-full bg-[#FC6B31] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-orange-500/30">
-                  Selling fast
-                </span>
-              )}
-
-              {meal.stockRemaining === 0 && (
-                <div className="absolute inset-0 z-20 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center rounded-[24px]">
-                  <span className="bg-gray-900 text-white font-black text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
-                    SOLD OUT
+        {isCatalogLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 text-[#FC6B31] animate-spin" />
+          </div>
+        ) : displayedMeals.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 dark:bg-zinc-900 rounded-[24px]">
+            <p className="text-gray-500 font-medium">No meals available for this category today.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {displayedMeals.map((meal) => (
+              <div key={meal.id} className="relative min-w-0">
+                {meal.stockRemaining <= 5 && meal.stockRemaining > 0 && (
+                  <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-red-500/30">
+                    Only {meal.stockRemaining} left
                   </span>
-                </div>
-              )}
+                )}
+                
+                {meal.isSellingFast && meal.stockRemaining > 5 && (
+                  <span className="absolute left-2 top-2 z-10 rounded-full bg-[#FC6B31] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-orange-500/30">
+                    Selling fast
+                  </span>
+                )}
 
-              <MealCard 
-                id={meal.id} 
-                name={meal.name} 
-                vendor={meal.vendor} 
-                price={meal.discountedPrice} 
-                imageUrl={meal.image} 
-                onClick={() => {
-                  if (meal.stockRemaining > 0) openMeal(meal);
-                }} 
-              />
-            </div>
-          ))}
-        </div>
+                {meal.stockRemaining === 0 && (
+                  <div className="absolute inset-0 z-20 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center rounded-[24px]">
+                    <span className="bg-gray-900 text-white font-black text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                      SOLD OUT
+                    </span>
+                  </div>
+                )}
+
+                <MealCard 
+                  id={meal.id} 
+                  name={meal.name} 
+                  vendor={meal.vendor} 
+                  price={meal.discountedPrice} 
+                  imageUrl={meal.image} 
+                  onClick={() => {
+                    if (meal.stockRemaining > 0) openMeal(meal);
+                  }} 
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <TodaysDealsSection onSelectMeal={openMeal} />

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/app/context/ThemeContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 export const metadata: Metadata = {
   title: "Chopnchop - Scheduled Food Delivery",
@@ -43,7 +44,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AdminAuthProvider>
             <main className="flex-1 flex flex-col">
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </main>
           </AdminAuthProvider>
         </ThemeProvider>
