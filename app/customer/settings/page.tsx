@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/app/context/ThemeContext";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 import { 
   ArrowLeft, 
   Moon, 
@@ -17,7 +19,8 @@ import {
   Eye,
   EyeOff,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -32,14 +35,20 @@ export default function SettingsPage() {
   const [pushNotifications, setPushNotifications] = useState(false);
   const [biometrics, setBiometrics] = useState(false);
 
-  // Change Password Modal States
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  // --- Change PIN Modal States ---
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  
+  const [showCurrentPin, setShowCurrentPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
+  
+  const [pinError, setPinError] = useState("");
+  const [pinSuccess, setPinSuccess] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,29 +56,54 @@ export default function SettingsPage() {
 
   const isDark = isMounted && theme === "dark";
 
-  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+  // --- Handlers ---
+  const handleChangePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError("");
+    setPinError("");
 
-    if (newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters long.");
+    if (currentPin.length !== 4 || newPin.length !== 4) {
+      setPinError("All PINs must be exactly 4 digits long.");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match.");
+    if (newPin !== confirmPin) {
+      setPinError("New PINs do not match.");
       return;
     }
 
-    // Simulate successful password update
-    setPasswordSuccess(true);
-    setTimeout(() => {
-      setPasswordSuccess(false);
-      setIsPasswordModalOpen(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    }, 2000);
+    if (currentPin === newPin) {
+      setPinError("New PIN must be different from your current PIN.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await customerApiClient.patch("/api/v1/auth/changePin", {
+        oldPin: currentPin,
+        newPin: newPin
+      });
+
+      setPinSuccess(true);
+      setTimeout(() => {
+        setPinSuccess(false);
+        setIsPinModalOpen(false);
+        setCurrentPin("");
+        setNewPin("");
+        setConfirmPin("");
+      }, 2000);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setPinError(err.response.data?.message || err.response.data?.error || "Failed to update PIN. Please check your current PIN.");
+      } else {
+        setPinError("Network error. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNumericInput = (val: string, setter: (val: string) => void) => {
+    setter(val.replace(/\D/g, "").slice(0, 4));
   };
 
   return (
@@ -258,9 +292,9 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            {/* Change Password Button Trigger */}
+            {/* Change PIN Button Trigger */}
             <button 
-              onClick={() => setIsPasswordModalOpen(true)}
+              onClick={() => setIsPinModalOpen(true)}
               className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
             >
               <div className="flex items-center gap-3">
@@ -268,8 +302,8 @@ export default function SettingsPage() {
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <span className="text-sm font-bold text-gray-900 dark:text-white block">Change Password</span>
-                  <span className="text-[11px] text-gray-400">Update account access</span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white block">Change Security PIN</span>
+                  <span className="text-[11px] text-gray-400">Update account access PIN</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -280,8 +314,8 @@ export default function SettingsPage() {
 
       </div>
 
-      {/* CHANGE PASSWORD MODAL */}
-      {isPasswordModalOpen && (
+      {/* CHANGE PIN MODAL */}
+      {isPinModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[32px] p-6 shadow-2xl border border-orange-100 dark:border-zinc-800 space-y-5 relative">
             
@@ -290,89 +324,112 @@ export default function SettingsPage() {
                 <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-900/40 text-[#FC6B31] flex items-center justify-center">
                   <KeyRound className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Change Password</h3>
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Change Security PIN</h3>
               </div>
               <button 
-                onClick={() => setIsPasswordModalOpen(false)}
+                onClick={() => setIsPinModalOpen(false)}
                 className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {passwordSuccess ? (
+            {pinSuccess ? (
               <div className="py-8 text-center space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto animate-bounce" />
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">Password Updated!</h4>
-                <p className="text-xs text-gray-500">Your account security credentials have been successfully updated.</p>
+                <h4 className="text-base font-bold text-gray-900 dark:text-white">PIN Updated!</h4>
+                <p className="text-xs text-gray-500">Your security PIN has been successfully updated.</p>
               </div>
             ) : (
-              <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+              <form onSubmit={handleChangePinSubmit} className="space-y-4" autoComplete="off">
                 
-                {passwordError && (
-                  <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs rounded-xl font-medium">
-                    {passwordError}
+                {pinError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs rounded-xl font-medium text-center">
+                    {pinError}
                   </div>
                 )}
 
-                {/* Current Password */}
+                {/* Current PIN */}
                 <div className="space-y-1.5 text-left">
-                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Current Password</label>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Current PIN</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
-                      type={showPass ? "text" : "password"}
+                      type={showCurrentPin ? "text" : "password"}
+                      name="current-pin-disable-autofill"
+                      autoComplete="new-password"
+                      inputMode="numeric" pattern="\d{4}" maxLength={4}
                       required
-                      placeholder="••••••••"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
-                    />
-                  </div>
-                </div>
-
-                {/* New Password */}
-                <div className="space-y-1.5 text-left">
-                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">New Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      type={showPass ? "text" : "password"}
-                      required
-                      placeholder="At least 6 characters"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
+                      placeholder="••••"
+                      value={currentPin}
+                      onChange={(e) => handleNumericInput(e.target.value, setCurrentPin)}
+                      className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-sm font-mono tracking-widest text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPass(!showPass)}
+                      onClick={() => setShowCurrentPin(!showCurrentPin)}
                       className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
                     >
-                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showCurrentPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                {/* Confirm New Password */}
+                {/* New PIN */}
                 <div className="space-y-1.5 text-left">
-                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Confirm New Password</label>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">New PIN</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
-                      type={showPass ? "text" : "password"}
+                      type={showNewPin ? "text" : "password"}
+                      name="new-pin-disable-autofill"
+                      autoComplete="new-password"
+                      inputMode="numeric" pattern="\d{4}" maxLength={4}
                       required
-                      placeholder="Re-enter new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
+                      placeholder="••••"
+                      value={newPin}
+                      onChange={(e) => handleNumericInput(e.target.value, setNewPin)}
+                      className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-sm font-mono tracking-widest text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPin(!showNewPin)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm New PIN */}
+                <div className="space-y-1.5 text-left">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Confirm New PIN</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type={showConfirmPin ? "text" : "password"}
+                      name="confirm-pin-disable-autofill"
+                      autoComplete="new-password"
+                      inputMode="numeric" pattern="\d{4}" maxLength={4}
+                      required
+                      placeholder="••••"
+                      value={confirmPin}
+                      onChange={(e) => handleNumericInput(e.target.value, setConfirmPin)}
+                      className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-sm font-mono tracking-widest text-gray-900 dark:text-white outline-none focus:border-[#FC6B31]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPin(!showConfirmPin)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -380,16 +437,17 @@ export default function SettingsPage() {
                 <div className="pt-2 flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsPasswordModalOpen(false)}
+                    onClick={() => setIsPinModalOpen(false)}
                     className="flex-1 py-3 px-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 px-4 rounded-2xl bg-[#FC6B31] text-xs font-extrabold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors"
+                    disabled={isLoading}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#FC6B31] text-xs font-extrabold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors disabled:opacity-70"
                   >
-                    Update Password
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update PIN"}
                   </button>
                 </div>
 

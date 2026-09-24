@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Ticket, Check, Loader2, XCircle } from "lucide-react";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 
 interface Coupon {
   id: string;
@@ -36,8 +36,6 @@ export default function PromosPage() {
 
   // In production, retrieve the active cart ID from your cart state/context
   const activeCartId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
-  
-  const getToken = () => typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
 
   const applyCode = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,33 +59,25 @@ export default function PromosPage() {
     setMessage("");
 
     try {
-      const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
-        body: JSON.stringify({ promoCode: code })
+      await customerApiClient.post(`/api/v1/carts/${activeCartId}/promo`, {
+        promoCode: code
       });
 
-      if (res.ok) {
-        // If the code matches one of our known coupons, track its ID
-        if (matchedCoupon) {
-          setAppliedCoupons((current) => [...current, matchedCoupon.id]);
-          setMessage(`${matchedCoupon.title} is ready for your next order.`);
-        } else {
-          setMessage(`Promo code ${code} successfully applied.`);
-        }
-        setStatus("applied");
+      // If the code matches one of our known coupons, track its ID
+      if (matchedCoupon) {
+        setAppliedCoupons((current) => [...current, matchedCoupon.id]);
+        setMessage(`${matchedCoupon.title} is ready for your next order.`);
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        setStatus("error");
-        setMessage(errorData.message || "That promo code is invalid or expired.");
+        setMessage(`Promo code ${code} successfully applied.`);
       }
+      setStatus("applied");
     } catch (error) {
       setStatus("error");
-      setMessage("Network error. Please check your connection and try again.");
+      if (axios.isAxiosError(error) && error.response) {
+        setMessage(error.response.data?.message || error.response.data?.error || "That promo code is invalid or expired.");
+      } else {
+        setMessage("Network error. Please check your connection and try again.");
+      }
     }
   };
 
@@ -99,28 +89,20 @@ export default function PromosPage() {
     setMessage("");
 
     try {
-      const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
-        body: JSON.stringify({ promoCode: coupon.code })
+      await customerApiClient.post(`/api/v1/carts/${activeCartId}/promo`, {
+        promoCode: coupon.code
       });
 
-      if (res.ok) {
-        setAppliedCoupons((current) => [...current, coupon.id]);
-        setStatus("applied");
-        setMessage(`${coupon.title} is ready for your next order.`);
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        setStatus("error");
-        setMessage(errorData.message || "Failed to apply this coupon.");
-      }
+      setAppliedCoupons((current) => [...current, coupon.id]);
+      setStatus("applied");
+      setMessage(`${coupon.title} is ready for your next order.`);
     } catch (error) {
       setStatus("error");
-      setMessage("Network error. Please try again.");
+      if (axios.isAxiosError(error) && error.response) {
+        setMessage(error.response.data?.message || error.response.data?.error || "Failed to apply this coupon.");
+      } else {
+        setMessage("Network error. Please try again.");
+      }
     } finally {
       setApplyingCouponId(null);
     }
@@ -129,20 +111,12 @@ export default function PromosPage() {
   const removeCoupon = async (couponId: string) => {
     setIsRemoving(true);
     try {
-      const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/carts/${activeCartId}/promo`, {
-        method: "DELETE",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` })
-        }
-      });
+      await customerApiClient.delete(`/api/v1/carts/${activeCartId}/promo`);
 
-      if (res.ok) {
-        setAppliedCoupons((current) => current.filter(id => id !== couponId));
-        setStatus("idle");
-        setMessage("");
-        setPromoCode("");
-      }
+      setAppliedCoupons((current) => current.filter(id => id !== couponId));
+      setStatus("idle");
+      setMessage("");
+      setPromoCode("");
     } catch (error) {
       console.error("Failed to remove promo:", error);
     } finally {

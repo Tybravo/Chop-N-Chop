@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, KeyRound, Loader2, Sparkles } from "lucide-react";
-
-// Fallback to the provided render URL if env var is missing
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
+import { Mail, ArrowRight, ArrowLeft, Loader2, Sparkles, EyeOff, Eye, KeyRound, Lock } from "lucide-react";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
@@ -36,102 +35,86 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const checkRes = await fetch(`${API_BASE_URL}/api/v1/auth/check`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
+      const checkRes = await customerApiClient.post("/api/v1/auth/check", { email: email.trim() });
       
-      const checkData = await checkRes.json();
-
-      if (checkRes.ok && checkData.hasPin) {
-        // Returning user with a PIN setup
+      if (checkRes.data?.hasPin) {
         setStep("PIN");
       } else {
-        // New user OR existing user who hasn't set a PIN yet -> Send OTP
-        const startRes = await fetch(`${API_BASE_URL}/api/v1/auth/start`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-
-        if (startRes.ok) {
-          setStep("OTP");
-        } else {
-          // Parse the actual backend error to see why it's failing
-          const errorData = await startRes.json().catch(() => ({}));
-          console.error("Backend OTP Error:", errorData);
-          setError(errorData.message || "Failed to send verification code. Please try again.");
-        }
+        await customerApiClient.post("/api/v1/auth/start", { email: email.trim() });
+        setStep("OTP");
       }
     } catch (err) {
-      setError("Network error. Please check your connection.");
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Failed to process request. Please try again.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   // Step 2A: Login with PIN
-  const handlePinSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePinSubmit = async (e?: React.FormEvent, directPin?: string) => {
+    if (e) e.preventDefault();
     setError(null);
-    if (pin.length !== 4) return;
+    
+    const finalPin = directPin || pin;
+    if (finalPin.length !== 4) return;
 
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login/pin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), pin }),
+      const res = await customerApiClient.post("/api/v1/auth/login/pin", { 
+        email: email.trim(), 
+        pin: finalPin 
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        // Store JWT safely
-        localStorage.setItem("chopnchop_token", data.access_token);
-        if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
-        localStorage.setItem("chopnchop_session", "active");
-        
-        router.push("/customer/home");
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        setError(errorData.message || "Incorrect PIN. Please try again.");
-      }
+      const data = res.data;
+      localStorage.setItem("chopnchop_token", data.access_token);
+      if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
+      localStorage.setItem("chopnchop_session", "active");
+      
+      router.push("/customer/home");
     } catch (err) {
-      setError("Network error. Please check your connection.");
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Incorrect PIN. Please try again.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
+      setPin(""); // clear on fail
     } finally {
       setIsLoading(false);
     }
   };
 
   // Step 2B: Verify OTP (New Users / No PIN users)
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOtpSubmit = async (e?: React.FormEvent, directOtp?: string) => {
+    if (e) e.preventDefault();
     setError(null);
-    if (otp.length < 6) return; // Assuming 6-digit OTP
+    
+    const finalOtp = directOtp || otp;
+    if (finalOtp.length !== 6) return;
 
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), otp }),
+      const res = await customerApiClient.post("/api/v1/auth/verify", { 
+        email: email.trim(), 
+        otp: finalOtp 
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem("chopnchop_token", data.access_token);
-        if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
-        localStorage.setItem("chopnchop_session", "active");
-        
-        // Push to home (System will prompt for PIN setup later as requested)
-        router.push("/customer/home");
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        setError(errorData.message || "Invalid verification code. Please check and try again.");
-      }
+      const data = res.data;
+      localStorage.setItem("chopnchop_token", data.access_token);
+      if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
+      localStorage.setItem("chopnchop_session", "active");
+      
+      router.push("/customer/home");
     } catch (err) {
-      setError("Network error. Please check your connection.");
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Invalid verification code. Please check and try again.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
+      setOtp(""); // clear on fail
     } finally {
       setIsLoading(false);
     }
@@ -140,19 +123,15 @@ export default function LoginPage() {
   const resendOtp = async () => {
     setIsLoading(true);
     setError(null);
+    setOtp("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/resend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      
-      if (!res.ok) {
-         const errorData = await res.json().catch(() => ({}));
-         setError(errorData.message || "Failed to resend code.");
-      }
+      await customerApiClient.post("/api/v1/auth/resend", { email: email.trim() });
     } catch (err) {
-      setError("Network error. Failed to resend code.");
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Failed to resend code.");
+      } else {
+        setError("Network error. Failed to resend code.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +148,7 @@ export default function LoginPage() {
           {step !== "EMAIL" && (
             <button 
               onClick={() => { setStep("EMAIL"); setError(null); setPin(""); setOtp(""); }}
-              className="absolute top-6 left-6 lg:top-8 lg:left-8 p-2 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors"
+              className="absolute top-6 left-6 lg:top-8 lg:left-8 p-2 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors z-20"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -226,7 +205,7 @@ export default function LoginPage() {
                     type="email" required placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-[48px] pr-4 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
+                    className="w-full pl-[48px] pr-4 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[15px] font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
                   />
                 </div>
 
@@ -234,7 +213,6 @@ export default function LoginPage() {
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continue <ArrowRight className="w-4 h-4" /></>}
                 </button>
 
-                {/* Google OAuth Stub */}
                 <div className="pt-4 flex flex-col gap-3">
                   <div className="relative flex items-center py-2">
                     <div className="flex-grow border-t border-gray-100"></div>
@@ -256,37 +234,51 @@ export default function LoginPage() {
               </form>
             )}
 
-            {/* STEP 2A: PIN */}
+            {/* STEP 2A: PIN (4 Boxes) */}
             {step === "PIN" && (
-              <form onSubmit={handlePinSubmit} className="space-y-4 w-full animate-in slide-in-from-right-4 duration-300">
-                
-                {/* DUMMY INPUTS TO ABSORB BROWSER AUTOFILL */}
-                <input type="text" name="fakeusernameremembered" style={{ display: 'none' }} aria-hidden="true" />
-                <input type="password" name="fakepasswordremembered" style={{ display: 'none' }} aria-hidden="true" />
-                
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <Lock className="w-5 h-5" />
+              <form onSubmit={handlePinSubmit} className="space-y-6 w-full animate-in slide-in-from-right-4 duration-300">
+                <div className="relative w-full h-14">
+                  {/* Visually rendered boxes */}
+                  <div className="absolute inset-0 flex gap-3 justify-center items-center pointer-events-none">
+                    {[...Array(4)].map((_, i) => {
+                      const isActive = pin.length === i;
+                      const hasValue = pin.length > i;
+                      return (
+                        <div key={i} className={`w-14 h-14 rounded-[16px] border-2 flex items-center justify-center text-2xl font-black transition-all duration-200 ${isActive ? 'bg-white border-[#FC6B31] shadow-[0_0_0_4px_rgba(252,107,49,0.1)] text-gray-900' : hasValue ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50/50 border-gray-200 text-gray-400'}`}>
+                          {showPin ? pin[i] || "" : (pin[i] ? "•" : "")}
+                        </div>
+                      );
+                    })}
                   </div>
+                  {/* Invisible real input overlay */}
                   <input
-                    type={showPin ? "text" : "password"} 
+                    type="text" 
                     inputMode="numeric" 
-                    pattern="\d{4}" 
+                    pattern="\d*" 
                     maxLength={4} 
                     required
-                    placeholder="4-Digit PIN" 
                     autoFocus
-                    autoComplete="one-time-code" // Tricks password managers into ignoring this field
+                    autoComplete="one-time-code"
                     value={pin}
-                    onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    className="w-full pl-[48px] pr-12 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[18px] font-mono tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setPin(val);
+                      if (val.length === 4) handlePinSubmit(undefined, val);
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
                   />
-                  <button type="button" onClick={() => setShowPin(!showPin)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
+                  
+                  {/* Eye Toggle placed absolutely outside the boxes */}
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPin(!showPin)} 
+                    className="absolute -right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 z-20"
+                  >
                     {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
-                <div className="flex justify-end px-1">
+                <div className="flex justify-center">
                   <button type="button" onClick={() => {/* Trigger Forgot PIN Flow */}} className="text-[13px] font-extrabold text-[#FC6B31] hover:underline">
                     Forgot PIN?
                   </button>
@@ -298,20 +290,37 @@ export default function LoginPage() {
               </form>
             )}
 
-            {/* STEP 2B: OTP */}
+            {/* STEP 2B: OTP (6 Boxes) */}
             {step === "OTP" && (
-              <form onSubmit={handleOtpSubmit} className="space-y-4 w-full animate-in slide-in-from-right-4 duration-300">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <KeyRound className="w-5 h-5" />
+              <form onSubmit={handleOtpSubmit} className="space-y-6 w-full animate-in slide-in-from-right-4 duration-300">
+                <div className="relative w-full h-14">
+                  {/* Visually rendered boxes */}
+                  <div className="absolute inset-0 flex gap-2 sm:gap-2.5 justify-center items-center pointer-events-none px-1">
+                    {[...Array(6)].map((_, i) => {
+                      const isActive = otp.length === i;
+                      const hasValue = otp.length > i;
+                      return (
+                        <div key={i} className={`flex-1 max-w-[48px] h-14 rounded-[16px] border-2 flex items-center justify-center text-xl sm:text-2xl font-black transition-all duration-200 ${isActive ? 'bg-white border-[#FC6B31] shadow-[0_0_0_4px_rgba(252,107,49,0.1)] text-gray-900' : hasValue ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50/50 border-gray-200 text-gray-400'}`}>
+                          {otp[i] || ""}
+                        </div>
+                      );
+                    })}
                   </div>
+                  {/* Invisible real input overlay */}
                   <input
-                    type="text" inputMode="numeric" maxLength={6} required
-                    placeholder="6-Digit Code" autoFocus
+                    type="text" 
+                    inputMode="numeric" 
+                    maxLength={6} 
+                    required
+                    autoFocus
                     autoComplete="one-time-code"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    className="w-full pl-[48px] pr-4 py-3.5 bg-white border border-gray-200 rounded-[18px] lg:rounded-[20px] text-[18px] font-mono tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm text-center"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setOtp(val);
+                      if (val.length === 6) handleOtpSubmit(undefined, val);
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
                   />
                 </div>
 

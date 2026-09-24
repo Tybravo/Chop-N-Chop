@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { 
   MapPin, 
   Wallet, 
@@ -13,15 +14,32 @@ import {
   Settings,
   ShieldAlert
 } from "lucide-react";
+import { UserProfile } from "./page";
 
-export default function DesktopProfileDashboard() {
+interface DesktopProfileProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+  avatarUrl: string;
+}
+
+export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl }: DesktopProfileProps) {
   const [activeTab, setActiveTab] = useState("orders");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // FIX 1: Lazily initialize state to prevent synchronous setState warning on mount
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
 
   useEffect(() => {
+    // Only update if it somehow changes externally to prevent cascading renders
     const isDark = document.documentElement.classList.contains("dark");
-    setIsDarkMode(isDark);
-  }, []);
+    if (isDarkMode !== isDark) {
+      setIsDarkMode(isDark);
+    }
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -45,14 +63,35 @@ export default function DesktopProfileDashboard() {
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-zinc-800 pb-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Account & Ledger</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage security credentials, vehicle profiles, corporate invoices, and saved hubs.</p>
+        <div className="flex items-center gap-5">
+          {/* FIX 2: Replaced <img> with Next.js <Image> for performance. Added 'relative' to the parent div. */}
+          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#FC6B31]/20 shrink-0 shadow-sm bg-orange-50 relative">
+            <Image 
+              src={avatarUrl || "/avatar-placeholder.svg"} 
+              alt="Profile Avatar" 
+              fill
+              unoptimized // Added since external Cloudinary URLs might not be configured in next.config.js yet
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              {isLoading 
+                ? "Loading Profile..." 
+                : profile ? `Welcome back, ${profile.firstName}` : "Account & Ledger"
+              }
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Manage security credentials, vehicle profiles, corporate invoices, and saved hubs.
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900">
-            Corporate Account Active
-          </span>
+          {profile?.role === "CORPORATE" && (
+             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900">
+               Corporate Account Active
+             </span>
+          )}
         </div>
       </div>
 
@@ -93,7 +132,7 @@ export default function DesktopProfileDashboard() {
           {activeTab === "orders" && (
             <div className="bg-white dark:bg-zinc-900 p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Corporate Order Ledger</h2>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Order Ledger</h2>
                 <button className="flex items-center gap-2 text-xs font-bold text-[#FC6B31] border border-[#FC6B31]/30 px-3.5 py-2 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors">
                   <Download className="w-4 h-4" /> Download All PDF Receipts
                 </button>

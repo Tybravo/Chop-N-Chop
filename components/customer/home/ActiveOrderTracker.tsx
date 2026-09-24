@@ -1,16 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bike, CheckCircle2, Clock, Package, ChevronRight, ShieldCheck, Layers, ChefHat } from "lucide-react";
+import { Bike, CheckCircle2, Clock, Layers, ChefHat, ShieldCheck, ChevronRight } from "lucide-react";
+import { customerApiClient } from "@/lib/api/customerApiClient";
 
-interface ActiveOrderTrackerProps {
-  activeOrder?: {
-    status: string;
-    eta: string;
-    zone: string;
-    step: number;
-    pickupCode?: string; 
-  } | null;
+// --- API Type ---
+interface ApiActiveOrder {
+  id: string;
+  status: "CONFIRMED" | "PREPARING" | "CONSOLIDATING" | "OUT_FOR_DELIVERY" | "DELIVERED";
+  eta: string;
+  zone: string;
+  pickupCode?: string; 
 }
 
 const steps = [
@@ -20,12 +21,57 @@ const steps = [
   { label: "On the way", icon: Bike },
 ];
 
-export default function ActiveOrderTracker({ activeOrder }: ActiveOrderTrackerProps) {
+export default function ActiveOrderTracker() {
   const router = useRouter();
+  const [activeOrder, setActiveOrder] = useState<ApiActiveOrder | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!activeOrder || activeOrder.status === "DELIVERED") return null;
+  // Fetch the active order on mount and set up polling for live updates
+  useEffect(() => {
+    const fetchActiveOrder = async () => {
+      try {
+        // NOTE: Adjust this endpoint if your backend uses a different path (e.g., /api/v1/orders/current)
+        const res = await customerApiClient.get("/api/v1/orders/active");
+        
+        // Assuming the API returns the order object directly, or null/404 if no active orders exist
+        if (res.data) {
+          setActiveOrder(res.data);
+        } else {
+          setActiveOrder(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch active order:", error);
+        // If 404 Not Found, it just means no active orders
+        setActiveOrder(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const currentStep = Math.max(1, Math.min(activeOrder.step, steps.length));
+    fetchActiveOrder();
+
+    // Poll every 30 seconds for live tracking updates
+    const intervalId = setInterval(fetchActiveOrder, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Hide the tracker if loading, if there's no active order, or if it's already delivered
+  if (isLoading || !activeOrder || activeOrder.status === "DELIVERED") {
+    return null; 
+  }
+
+  // Map backend string status to UI progress steps
+  const getStepNumber = (status: string) => {
+    switch (status) {
+      case "CONFIRMED": return 1;
+      case "PREPARING": return 2;
+      case "CONSOLIDATING": return 3;
+      case "OUT_FOR_DELIVERY": return 4;
+      default: return 1;
+    }
+  };
+
+  const currentStep = getStepNumber(activeOrder.status);
 
   // Dynamic messaging based on the hub logistics state
   const getStatusMessage = () => {
@@ -58,7 +104,7 @@ export default function ActiveOrderTracker({ activeOrder }: ActiveOrderTrackerPr
   return (
     <button
       type="button"
-      onClick={() => router.push("/customer/tracking")}
+      onClick={() => router.push(`/customer/tracking/${activeOrder.id}`)}
       aria-label={`View live tracking for order in ${activeOrder.zone}, estimated arrival ${activeOrder.eta}`}
       className="group md:hidden flex w-full flex-col rounded-[24px] border border-gray-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-[#18181B] dark:shadow-none p-5 text-left transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] relative overflow-hidden"
     >

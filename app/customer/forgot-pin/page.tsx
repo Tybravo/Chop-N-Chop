@@ -2,14 +2,18 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Mail, ArrowLeft, CheckCircle2, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 
 export default function ForgotPinPage() {
   const router = useRouter();
   
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [email, setEmail] = useState("");
   const [newPin, setNewPin] = useState("");
@@ -21,52 +25,83 @@ export default function ForgotPinPage() {
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
 
-  const handleRequestReset = (e: React.FormEvent) => {
+  const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert("Please enter a valid email address.");
+      setError("Please enter a valid email address.");
       return;
     }
     
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await customerApiClient.post("/api/v1/auth/recovery/initiate", { email: email.trim() });
       setStep(2);
-    }, 1200);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Failed to initiate recovery. Please try again.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     const otpString = otpValues.join("");
     if (otpString.length !== 6) {
-      alert("Please enter the complete 6-digit verification code.");
+      setError("Please enter the complete 6-digit verification code.");
       return;
     }
-
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(3);
-    }, 1200);
+    // Proceed to Step 3 to collect the PIN before submitting to the backend
+    setStep(3);
   };
 
-  const handleSetNewPin = (e: React.FormEvent) => {
+  const handleSetNewPin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    
     if (newPin.length !== 4) {
-      alert("Your new PIN must be exactly 4 digits.");
+      setError("Your new PIN must be exactly 4 digits.");
       return;
     }
     if (newPin !== confirmPin) {
-      alert("PINs do not match. Please try again.");
+      setError("PINs do not match. Please try again.");
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const otpString = otpValues.join("");
+      const res = await customerApiClient.post("/api/v1/auth/recovery/reset", {
+        email: email.trim(),
+        otp: otpString,
+        newPin: newPin,
+        confirmPin: confirmPin
+      });
+
+      // Auto-login using the returned tokens
+      const data = res.data;
+      if (data.access_token) {
+        localStorage.setItem("chopnchop_token", data.access_token);
+        if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
+        localStorage.setItem("chopnchop_session", "active");
+      }
+      
       setStep(4);
-    }, 1200);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Failed to reset PIN. The code might be expired.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNewPinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +155,7 @@ export default function ForgotPinPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             ) : (
-              <button onClick={() => { setStep(1); setOtpValues(Array(6).fill("")); }} className="inline-flex p-2 -ml-2 text-gray-500 hover:text-[#FC6B31] transition-colors" aria-label="Start Over">
+              <button onClick={() => { setStep(1); setOtpValues(Array(6).fill("")); setError(null); }} className="inline-flex p-2 -ml-2 text-gray-500 hover:text-[#FC6B31] transition-colors" aria-label="Start Over">
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
@@ -128,6 +163,12 @@ export default function ForgotPinPage() {
 
           {/* Centered Content Wrapper */}
           <div className="w-full flex-1 flex flex-col justify-center max-w-sm mx-auto shrink-0 animate-in fade-in slide-in-from-right-4 duration-300 py-1 space-y-2">
+
+            {error && (
+              <div className="p-3 bg-red-50 text-red-600 text-[13px] font-medium rounded-xl text-center animate-in fade-in zoom-in-95 w-full shrink-0">
+                {error}
+              </div>
+            )}
 
             {/* ==========================================
                 STEP 1: INITIATION (Email Request)
@@ -139,8 +180,14 @@ export default function ForgotPinPage() {
                   <h2 className="font-black text-gray-900 tracking-tight text-[35px] leading-tight">Forgot PIN?</h2>
                 </div>
 
-                <div className="flex min-h-[130px] max-h-[170px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
-                  <img src="/woman_eating.png" alt="Enjoying ChopnChop" className="max-h-full w-auto max-w-[280px] object-contain drop-shadow-md" />
+                <div className="relative flex min-h-[130px] max-h-[170px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
+                  <Image 
+                    src="/woman_eating.png" 
+                    alt="Enjoying ChopnChop" 
+                    fill
+                    unoptimized
+                    className="object-contain drop-shadow-md" 
+                  />
                 </div>
 
                 {/* Subtitle (16px) */}
@@ -182,8 +229,14 @@ export default function ForgotPinPage() {
                   <h2 className="font-black text-gray-900 tracking-tight text-[35px] leading-tight">Check your email</h2>
                 </div>
 
-                <div className="flex min-h-[120px] max-h-[160px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
-                  <img src="/woman_eating.png" alt="Enjoying ChopnChop" className="max-h-full w-auto max-w-[260px] object-contain drop-shadow-md" />
+                <div className="relative flex min-h-[120px] max-h-[160px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
+                  <Image 
+                    src="/woman_eating.png" 
+                    alt="Enjoying ChopnChop" 
+                    fill
+                    unoptimized
+                    className="object-contain drop-shadow-md" 
+                  />
                 </div>
 
                 {/* Subtitle (16px) */}
@@ -204,7 +257,7 @@ export default function ForgotPinPage() {
                         onChange={(e) => handleOtpBoxChange(index, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
                         onPaste={handleOtpPaste}
-                        className="w-[42px] h-[52px] sm:w-[48px] sm:h-[56px] flex-shrink-0 bg-white border border-gray-200 rounded-[14px] lg:rounded-[16px] text-center text-lg sm:text-xl font-bold text-gray-900 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
+                        className="w-[42px] h-[52px] sm:w-[48px] h-[56px] flex-shrink-0 bg-white border border-gray-200 rounded-[14px] lg:rounded-[16px] text-center text-lg sm:text-xl font-bold text-gray-900 focus:outline-none focus:border-[#FC6B31] focus:ring-1 focus:ring-[#FC6B31] transition-all shadow-sm"
                       />
                     ))}
                   </div>
@@ -213,11 +266,11 @@ export default function ForgotPinPage() {
                     type="submit" disabled={isLoading}
                     className="w-full flex items-center justify-center gap-2 bg-[#FC6B31] text-white py-3.5 rounded-[18px] lg:rounded-[20px] font-extrabold text-[15px] shadow-lg shadow-orange-500/30 hover:bg-orange-600 active:scale-[0.98] transition-all disabled:opacity-70 shrink-0"
                   >
-                    {isLoading ? <><Loader2 className="w-4 h-4 animate-spin"/> Verifying...</> : "Verify Code"}
+                    Continue to New PIN
                   </button>
                 </form>
                 <div className="text-center shrink-0 w-full pt-1">
-                  <button onClick={() => setStep(1)} className="text-[13px] font-bold text-[#FC6B31] hover:underline">
+                  <button onClick={handleRequestReset} disabled={isLoading} className="text-[13px] font-bold text-[#FC6B31] hover:underline disabled:opacity-50">
                     Didn&apos;t receive the email? Resend code
                   </button>
                 </div>
@@ -234,8 +287,14 @@ export default function ForgotPinPage() {
                   <h2 className="font-black text-gray-900 tracking-tight text-[35px] leading-tight">Create New PIN</h2>
                 </div>
 
-                <div className="flex min-h-[110px] max-h-[150px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
-                  <img src="/woman_eating.png" alt="Enjoying ChopnChop" className="max-h-full w-auto max-w-[250px] object-contain drop-shadow-md" />
+                <div className="relative flex min-h-[110px] max-h-[150px] w-full justify-center items-center overflow-hidden shrink-0 my-1">
+                  <Image 
+                    src="/woman_eating.png" 
+                    alt="Enjoying ChopnChop" 
+                    fill
+                    unoptimized
+                    className="object-contain drop-shadow-md" 
+                  />
                 </div>
 
                 {/* Subtitle (16px) */}
@@ -296,18 +355,16 @@ export default function ForgotPinPage() {
                 <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50/50 mb-4">
                   <CheckCircle2 className="w-10 h-10" strokeWidth={2.5} />
                 </div>
-                {/* Header Title (35px) */}
                 <h2 className="font-black text-gray-900 tracking-tight text-[35px] leading-tight">PIN Reset Successful!</h2>
-                {/* Subtitle (16px) */}
                 <p className="text-gray-500 font-medium leading-relaxed px-4 text-[16px]">
-                  Your security PIN has been updated successfully. You can now use your new PIN to log in.
+                  Your security PIN has been updated successfully and you have been logged in.
                 </p>
                 <div className="pt-4">
                   <button 
-                    onClick={() => router.push('/customer/login')}
+                    onClick={() => router.push('/customer/home')}
                     className="w-full bg-[#FC6B31] text-white py-4 rounded-[18px] lg:rounded-[20px] font-extrabold text-[15px] shadow-lg shadow-orange-500/30 hover:bg-orange-600 active:scale-[0.98] transition-all"
                   >
-                    Back to Log in
+                    Continue to Home
                   </button>
                 </div>
               </div>
@@ -321,7 +378,15 @@ export default function ForgotPinPage() {
         {/* RIGHT PANEL: Desktop Ambient Illustration */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#FDF7F2] p-8 items-center justify-center relative overflow-hidden border-l border-orange-100/50">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-amber-50/30 pointer-events-none" />
-          <img src="/woman_eating.png" alt="Enjoying ChopnChop" className="w-full h-full max-h-[500px] object-contain relative z-10 drop-shadow-xl transform hover:scale-105 transition-transform duration-700" />
+          <div className="relative w-full h-full max-h-[500px]">
+            <Image 
+              src="/woman_eating.png" 
+              alt="Enjoying ChopnChop" 
+              fill
+              unoptimized
+              className="object-contain relative z-10 drop-shadow-xl transform hover:scale-105 transition-transform duration-700" 
+            />
+          </div>
         </div>
 
       </div>

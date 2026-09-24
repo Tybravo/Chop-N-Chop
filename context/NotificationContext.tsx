@@ -63,25 +63,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     fetchNotifications();
   }, []);
 
-  // --- Real-Time SSE Subscription ---
+// --- Real-Time SSE Subscription ---
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
-    // Connect to the Server-Sent Events stream
-    // Note: Standard EventSource does not support passing Authorization headers easily. 
-    // Sending the token as a query parameter is the standard workaround for SSE.
-    const eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}`);
+    // Added the brand query parameter required by your backend multi-tenancy
+    const eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}&brand=CHOP_N_CHOP`);
 
     eventSource.onmessage = (event) => {
       try {
         const newNotification: AppNotification = JSON.parse(event.data);
-        
-        // Prepend new notification and increment unread count
         setNotifications((prev) => [newNotification, ...prev]);
         setUnreadCount((prev) => prev + 1);
-        
-        // Optional: Trigger a browser/system notification here if permitted
       } catch (err) {
         console.error("Error parsing real-time notification:", err);
       }

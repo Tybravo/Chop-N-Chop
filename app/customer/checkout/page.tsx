@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Search, Wallet, CreditCard, ShieldCheck, Loader2, Tag, ChevronRight, Building2, Smartphone, Copy, Check, Mail, Lock, X, Eye, EyeOff } from "lucide-react";
 import DynamicCreditCardDetector, { getCardInfo } from "@/components/customer/DynamicCreditCardDetector";
 import { useCartStore } from "@/store/useCartStore";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 
 interface SavedCard {
   id: string;
@@ -41,15 +41,13 @@ export default function CheckoutPage() {
   const [isGuest, setIsGuest] = useState(false);
   const [userHasPin, setUserHasPin] = useState(false);
 
- // --- CARD MANAGEMENT ---
+  // --- CARD MANAGEMENT ---
   const [savedCards, setSavedCards] = useState<SavedCard[]>([
     { id: "card-1", name: "John-Daniel Ikechukwu", last4: "8047", brand: "VISA" },
     { id: "card-2", name: "John-Daniel Ikechukwu", last4: "1234", brand: "MasterCard" }
   ]);
   
-  // Holds a temporary card for guest users so it isn't persisted to savedCards
   const [sessionCard, setSessionCard] = useState<SavedCard | null>(null);
-
   const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -59,8 +57,6 @@ export default function CheckoutPage() {
   const [paymentPin, setPaymentPin] = useState("");
   const [showPaymentPin, setShowPaymentPin] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
-
-  const getToken = () => typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
 
   // ==========================================
   // 2. PAYMENT VERIFICATION (Post-Paystack Redirect)
@@ -72,23 +68,12 @@ export default function CheckoutPage() {
     const verifyPayment = async () => {
       setIsVerifying(true);
       try {
-        const token = getToken();
-        // Call the verify endpoint when user returns from Paystack
-        const res = await fetch(`${API_BASE_URL}/api/v1/payments/verify/${reference}`, {
-          method: "GET",
-          headers: { ...(token && { Authorization: `Bearer ${token}` }) }
-        });
-
-        if (res.ok) {
-          router.push('/customer/success');
-        } else {
-          alert("Payment verification failed. Please contact support.");
-          router.replace('/customer/checkout'); // Strip the reference param from URL
-        }
+        await customerApiClient.get(`/api/v1/payments/verify/${reference}`);
+        router.push('/customer/success');
       } catch (error) {
         console.error("Verification error:", error);
-        alert("Network error during payment verification.");
-        router.replace('/customer/checkout');
+        alert("Payment verification failed or network error. Please contact support.");
+        router.replace('/customer/checkout'); 
       } finally {
         setIsVerifying(false);
       }
@@ -174,41 +159,29 @@ export default function CheckoutPage() {
     setView("payment-details");
   };
 
-  // --- PAYMENT PROCESSING & SECURITY GUARDRAILS ---
   const processPaymentTransaction = async () => {
     setPinModal({ show: false, mode: "ENTER" });
     setIsProcessing(true);
     
     try {
-      // In production, your cart-to-order logic happens here first to get an orderId.
       const mockOrderId = "ORD-" + Math.random().toString(36).substring(7);
-      const token = getToken();
 
-      // Initialize Paystack Checkout Session
-      const res = await fetch(`${API_BASE_URL}/api/v1/payments/initialize/${mockOrderId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        }
-      });
+      const res = await customerApiClient.post(`/api/v1/payments/initialize/${mockOrderId}`);
+      const data = res.data;
 
-      if (res.ok) {
-        const data = await res.json();
-        // Redirect to the Paystack checkout URL returned by the backend
-        const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;
-        if (checkoutUrl) {
-          window.location.href = checkoutUrl;
-        } else {
-          throw new Error("No checkout link provided by the server.");
-        }
+      const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       } else {
-        alert("Failed to initialize payment. Please try again.");
-        setIsProcessing(false);
+        throw new Error("No checkout link provided by the server.");
       }
     } catch (error) {
       console.error("Payment initialization failed", error);
-      alert("Network error starting payment.");
+      if (axios.isAxiosError(error) && error.response) {
+        alert(error.response.data?.message || "Failed to initialize payment. Please try again.");
+      } else {
+        alert("Network error starting payment.");
+      }
       setIsProcessing(false);
     }
   };
@@ -259,7 +232,6 @@ export default function CheckoutPage() {
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
   };
-
 
   // ==========================================
   // VIEW: FULL SCREEN VERIFICATION LOADER
