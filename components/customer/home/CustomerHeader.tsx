@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MapPin, ChevronDown, Wallet, Bell, Clock } from "lucide-react";
 import { useOrderContext } from "@/store/useOrderContext";
@@ -9,6 +8,9 @@ import { useNotifications } from "@/context/NotificationContext";
 
 interface CustomerHeaderProps {
   walletBalance: number;
+  notificationCount?: number;
+  isAuthenticated?: boolean;
+  avatarUrl?: string | null;
 }
 
 const WINDOW_LABELS: Record<string, string> = {
@@ -17,7 +19,11 @@ const WINDOW_LABELS: Record<string, string> = {
   'tomorrow-lunch': 'Tmrw • 12-2 PM',
 };
 
-export default function CustomerHeader({ walletBalance }: CustomerHeaderProps) {
+export default function CustomerHeader({ 
+  walletBalance, 
+  isAuthenticated, 
+  avatarUrl 
+}: CustomerHeaderProps) {
   const router = useRouter();
   const { location, deliveryWindow, resetContext } = useOrderContext();
   const { unreadCount } = useNotifications();
@@ -38,20 +44,23 @@ export default function CustomerHeader({ walletBalance }: CustomerHeaderProps) {
 
   return (
     <header className="md:hidden flex items-center justify-between gap-2 pt-2 relative z-10">
-      <button
-        type="button"
-        onClick={() => router.push("/customer/profile")}
-        aria-label="Open profile"
-        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-100 bg-white dark:border-zinc-700 dark:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
-      >
-        <Image
-          src="/avatar-placeholder.svg"
-          alt="Customer profile"
-          width={44}
-          height={44}
-          className="h-full w-full object-cover"
-        />
-      </button>
+      
+      {/* Conditionally render the profile picture only if authenticated */}
+      {isAuthenticated && (
+        <button
+          type="button"
+          onClick={() => router.push("/customer/profile")}
+          aria-label="Open profile"
+          className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-100 bg-white dark:border-zinc-700 dark:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
+        >
+          {/* Using standard img instead of Next Image to prevent external domain errors with Cloudinary URLs */}
+          <img
+            src={avatarUrl || "/avatar-placeholder.svg"}
+            alt="Customer profile"
+            className="h-full w-full object-cover"
+          />
+        </button>
+      )}
 
       {/* Dynamic Context Gateway Trigger */}
       <button

@@ -100,6 +100,7 @@ export default function CustomerHome() {
   
   // --- Guest vs Authenticated State ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<MealModalData | null>(null);
   
   // --- Gateway Modal State ---
@@ -201,6 +202,36 @@ export default function CustomerHome() {
     const session = localStorage.getItem("chopnchop_session");
     if (session === "active") {
       setIsAuthenticated(true);
+
+      // 1. Fast load: Check LocalStorage cache first, fallback to JWT
+      const cachedAvatar = localStorage.getItem("chopnchop_avatar");
+      if (cachedAvatar) {
+        setAvatarUrl(cachedAvatar);
+      } else {
+        const token = localStorage.getItem("chopnchop_token");
+        if (token) {
+          try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+            const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
+            if (jwtPic) setAvatarUrl(jwtPic);
+          } catch (e) {
+            // silent fail
+          }
+        }
+      }
+
+      // 2. Fresh load: Quietly fetch the latest profile and check all possible image keys
+      customerApiClient.get("/api/v1/user/profile")
+        .then(res => {
+          const pic = res.data?.profilePictureUrl || res.data?.profileImageUrl || res.data?.pictureUrl || res.data?.imageUrl;
+          if (pic) {
+            setAvatarUrl(pic);
+            localStorage.setItem("chopnchop_avatar", pic); // Keep cache updated
+          }
+        })
+        .catch(err => console.error("Failed background profile sync", err));
     }
     
     // Trigger the gateway modal if the user hasn't set their location and time yet
@@ -224,7 +255,13 @@ export default function CustomerHome() {
       {/* Mount the Gateway Modal conditionally */}
       {showGateway && <GatewayModal onClose={() => setShowGateway(false)} />}
       
-      <CustomerHeader walletBalance={walletBalance} notificationCount={unreadCount} />
+      {/* Pass the auth state and avatar down to the header */}
+      <CustomerHeader 
+        walletBalance={walletBalance} 
+        notificationCount={unreadCount} 
+        isAuthenticated={isAuthenticated}
+        avatarUrl={avatarUrl}
+      />
 
       <div className="md:hidden">
         <DeliveryDropBanner />

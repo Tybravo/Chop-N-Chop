@@ -85,13 +85,18 @@ export default function ProfilePage() {
   const [isUploadingPic, setIsUploadingPic] = useState(false);
 
   useEffect(() => {
-    // 1. Instantly read picture from JWT token
-    const token = localStorage.getItem("chopnchop_token");
-    if (token) {
-      const payload = decodeJwtPayload(token);
-      const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
-      if (jwtPic) {
-        setLiveAvatar(jwtPic);
+    // 1. Instantly read picture from Cache first, then JWT
+    const cachedAvatar = localStorage.getItem("chopnchop_avatar");
+    if (cachedAvatar) {
+      setLiveAvatar(cachedAvatar);
+    } else {
+      const token = localStorage.getItem("chopnchop_token");
+      if (token) {
+        const payload = decodeJwtPayload(token);
+        const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
+        if (jwtPic) {
+          setLiveAvatar(jwtPic);
+        }
       }
     }
 
@@ -105,8 +110,12 @@ export default function ProfilePage() {
 
         if (profileRes.status === "fulfilled" && profileRes.value.data) {
           setProfile(profileRes.value.data);
-          if (profileRes.value.data.profilePictureUrl && liveAvatar === "/avatar-placeholder.svg") {
-            setLiveAvatar(profileRes.value.data.profilePictureUrl);
+          
+          // Pull from multiple possible backend keys and cache it immediately
+          const pic = profileRes.value.data.profilePictureUrl || profileRes.value.data.profileImageUrl || profileRes.value.data.pictureUrl || profileRes.value.data.imageUrl;
+          if (pic) {
+            setLiveAvatar(pic);
+            localStorage.setItem("chopnchop_avatar", pic);
           }
         }
 
@@ -122,7 +131,7 @@ export default function ProfilePage() {
     };
 
     fetchDashboardData();
-  }, [liveAvatar]);
+  }, []);
 
   // --- Profile Text Update ---
   const openEditModal = () => {
@@ -183,9 +192,10 @@ export default function ProfilePage() {
         },
       });
 
-      // Update local state immediately with the new URL from response
-      if (uploadRes.data?.profilePictureUrl) {
-        setLiveAvatar(uploadRes.data.profilePictureUrl);
+      // Update local state AND update the global LocalStorage cache instantly
+      if (uploadRes.data?.url) {
+        setLiveAvatar(uploadRes.data.url);
+        localStorage.setItem("chopnchop_avatar", uploadRes.data.url);
       }
       
       // Also refetch full profile to keep in sync
@@ -487,6 +497,7 @@ export default function ProfilePage() {
                   localStorage.removeItem("chopnchop_session");
                   localStorage.removeItem("chopnchop-session");
                   localStorage.removeItem("chopnchop_token");
+                  localStorage.removeItem("chopnchop_avatar"); // Clear cache on logout
                   router.push("/customer/login");
                 }}
                 className="min-h-12 w-full flex items-center justify-center gap-2 py-4 rounded-[20px] text-[15px] font-extrabold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
