@@ -23,6 +23,7 @@ import {
   Camera
 } from "lucide-react";
 import DesktopProfileDashboard from "./desktop-profile";
+import axios from "axios";
 
 // --- API Types ---
 export interface UserProfile {
@@ -53,7 +54,7 @@ const decodeJwtPayload = (token: string) => {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(jsonPayload);
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };
@@ -154,8 +155,12 @@ export default function ProfilePage() {
       const res = await customerApiClient.put("/api/v1/user/profile", payload);
       setProfile(res.data);
       setIsEditModalOpen(false);
-    } catch (err: any) {
-      setUpdateError(err.response?.data?.message || err.response?.data?.error || "Failed to update profile details.");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setUpdateError(err.response.data?.message || err.response.data?.error || "Failed to update profile details.");
+      } else {
+        setUpdateError("Failed to update profile details.");
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -169,23 +174,33 @@ export default function ProfilePage() {
     setIsUploadingPic(true);
     try {
       const formData = new FormData();
-      // Must match @RequestParam("file") in your UserProfileController
       formData.append("file", file);
 
-      // DO NOT pass manual headers. Let Axios handle multipart boundary headers automatically.
-      await customerApiClient.post("/api/v1/user/profile/picture", formData);
+      // Use the same axios client for consistent auth/base URL
+      const uploadRes = await customerApiClient.post("/api/v1/user/profile/picture", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // Refetch the user profile to get the new Cloudinary URL
+      // Update local state immediately with the new URL from response
+      if (uploadRes.data?.profilePictureUrl) {
+        setLiveAvatar(uploadRes.data.profilePictureUrl);
+      }
+      
+      // Also refetch full profile to keep in sync
       const profileRes = await customerApiClient.get("/api/v1/user/profile");
       setProfile(profileRes.data);
-      if (profileRes.data.profilePictureUrl) {
-        setLiveAvatar(profileRes.data.profilePictureUrl);
-      }
+      
     } catch (error) {
       console.error("Failed to upload profile picture", error);
       alert("Failed to upload image. Please check your connection.");
     } finally {
       setIsUploadingPic(false);
+      // Reset file input so same file can be re-uploaded if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 

@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Mail, ArrowRight, ArrowLeft, Loader2, Sparkles, EyeOff, Eye, KeyRound, Lock } from "lucide-react";
+import { Mail, ArrowRight, ArrowLeft, Loader2, Sparkles, EyeOff, Eye } from "lucide-react";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import axios from "axios";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   
   // --- State ---
@@ -54,6 +55,35 @@ export default function LoginPage() {
     }
   };
 
+  // Step 1B: Google OAuth Submission
+  const handleGoogleLoginSuccess = async (idToken: string) => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      const res = await customerApiClient.post("/api/v1/auth/google", { 
+        idToken: idToken 
+      });
+
+      const data = res.data;
+      if (data.access_token) {
+        localStorage.setItem("chopnchop_token", data.access_token);
+        if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
+        localStorage.setItem("chopnchop_session", "active");
+        
+        router.push("/customer/home");
+      }
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || err.response.data?.error || "Google authentication failed.");
+      } else {
+        setError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Step 2A: Login with PIN
   const handlePinSubmit = async (e?: React.FormEvent, directPin?: string) => {
     if (e) e.preventDefault();
@@ -81,13 +111,13 @@ export default function LoginPage() {
       } else {
         setError("Network error. Please check your connection.");
       }
-      setPin(""); // clear on fail
+      setPin(""); 
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Step 2B: Verify OTP (New Users / No PIN users)
+  // Step 2B: Verify OTP
   const handleOtpSubmit = async (e?: React.FormEvent, directOtp?: string) => {
     if (e) e.preventDefault();
     setError(null);
@@ -110,11 +140,11 @@ export default function LoginPage() {
       router.push("/customer/home");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data?.message || err.response.data?.error || "Invalid verification code. Please check and try again.");
+        setError(err.response.data?.message || err.response.data?.error || "Invalid verification code.");
       } else {
         setError("Network error. Please check your connection.");
       }
-      setOtp(""); // clear on fail
+      setOtp(""); 
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +174,6 @@ export default function LoginPage() {
         {/* LEFT PANEL */}
         <div className="w-full lg:w-1/2 px-6 py-5 lg:p-12 flex flex-col h-full justify-between overflow-hidden relative">
           
-          {/* Back Button for multi-step */}
           {step !== "EMAIL" && (
             <button 
               onClick={() => { setStep("EMAIL"); setError(null); setPin(""); setOtp(""); }}
@@ -154,14 +183,12 @@ export default function LoginPage() {
             </button>
           )}
 
-          {/* Header Title */}
           <div className="text-center shrink-0 pt-8 lg:pt-4">
             <h2 className="font-black text-gray-900 tracking-tight text-[32px] lg:text-[35px] leading-tight">
               {step === "EMAIL" ? "Welcome" : step === "PIN" ? "Enter PIN" : "Verify Email"}
             </h2>
           </div>
 
-          {/* Mobile Illustration (Dynamic based on step) */}
           <div className="w-full flex flex-col items-center lg:hidden shrink-0 my-2">
             <div className="flex min-h-[140px] max-h-[190px] w-full justify-center items-center overflow-hidden mb-2">
               <Image 
@@ -175,7 +202,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Subtext */}
           <div className="text-center shrink-0 mb-6 lg:mb-8">
             <p className="text-gray-500 font-medium text-[15px] lg:text-[16px] px-4">
               {step === "EMAIL" && "Enter your email to log in or create a new account."}
@@ -184,17 +210,15 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Form Area */}
           <div className="w-full max-w-sm mx-auto shrink-0 space-y-4">
             
-            {/* Error Message */}
             {error && (
               <div className="p-3 bg-red-50 text-red-600 text-[13px] font-medium rounded-xl text-center animate-in fade-in zoom-in-95">
                 {error}
               </div>
             )}
 
-            {/* STEP 1: EMAIL */}
+            {/* STEP 1: EMAIL & GOOGLE */}
             {step === "EMAIL" && (
               <form onSubmit={handleEmailSubmit} className="space-y-4 w-full animate-in slide-in-from-right-4 duration-300">
                 <div className="relative">
@@ -219,67 +243,79 @@ export default function LoginPage() {
                     <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-wider">Or</span>
                     <div className="flex-grow border-t border-gray-100"></div>
                   </div>
-                  <button type="button" className="w-full py-3.5 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-[18px] lg:rounded-[20px] transition-all text-[14px] flex items-center justify-center gap-3 shadow-sm active:scale-[0.98]">
-                    <Image 
-                      src="https://www.svgrepo.com/show/475656/google-color.svg" 
-                      alt="Google" 
-                      width={20} 
-                      height={20} 
-                      unoptimized
-                      className="w-5 h-5" 
+                  
+                  {/* Official Google Login Button Wrapper */}
+                  <div className="w-full flex justify-center hover:opacity-90 transition-opacity">
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        if (credentialResponse.credential) {
+                          handleGoogleLoginSuccess(credentialResponse.credential);
+                        }
+                      }}
+                      onError={() => setError("Google login failed. Please try again.")}
+                      shape="pill"
+                      size="large"
+                      width="100%"
+                      logo_alignment="center"
+                      text="continue_with"
                     />
-                    Continue with Google
-                  </button>
+                  </div>
                 </div>
               </form>
             )}
 
-            {/* STEP 2A: PIN (4 Boxes) */}
+           {/* STEP 2A: PIN */}
             {step === "PIN" && (
               <form onSubmit={handlePinSubmit} className="space-y-6 w-full animate-in slide-in-from-right-4 duration-300">
-                <div className="relative w-full h-14">
-                  {/* Visually rendered boxes */}
-                  <div className="absolute inset-0 flex gap-3 justify-center items-center pointer-events-none">
+                <div className="space-y-4">
+                  <div className="flex gap-3 justify-center items-center relative">
                     {[...Array(4)].map((_, i) => {
                       const isActive = pin.length === i;
                       const hasValue = pin.length > i;
                       return (
-                        <div key={i} className={`w-14 h-14 rounded-[16px] border-2 flex items-center justify-center text-2xl font-black transition-all duration-200 ${isActive ? 'bg-white border-[#FC6B31] shadow-[0_0_0_4px_rgba(252,107,49,0.1)] text-gray-900' : hasValue ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50/50 border-gray-200 text-gray-400'}`}>
+                        <div key={i} className={`w-14 h-14 rounded-[16px] border-2 flex items-center justify-center text-2xl font-black transition-all duration-200 ${
+                          isActive 
+                            ? 'bg-white border-[#FC6B31] shadow-[0_0_0_4px_rgba(252,107,49,0.1)] text-gray-900' 
+                            : hasValue 
+                              ? 'bg-white dark:bg-zinc-900 border-gray-900 dark:border-white text-gray-900 dark:text-white shadow-sm' 
+                              : 'bg-gray-50/50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-700 text-gray-400'
+                        }`}>
                           {showPin ? pin[i] || "" : (pin[i] ? "•" : "")}
                         </div>
                       );
                     })}
+                    <input
+                      type="text" 
+                      inputMode="numeric" 
+                      pattern="\d*" 
+                      maxLength={4} 
+                      required
+                      autoFocus
+                      autoComplete="one-time-code"
+                      value={pin}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        setPin(val);
+                        if (val.length === 4) handlePinSubmit(undefined, val);
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
+                    />
                   </div>
-                  {/* Invisible real input overlay */}
-                  <input
-                    type="text" 
-                    inputMode="numeric" 
-                    pattern="\d*" 
-                    maxLength={4} 
-                    required
-                    autoFocus
-                    autoComplete="one-time-code"
-                    value={pin}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      setPin(val);
-                      if (val.length === 4) handlePinSubmit(undefined, val);
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
-                  />
-                  
-                  {/* Eye Toggle placed absolutely outside the boxes */}
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPin(!showPin)} 
-                    className="absolute -right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 z-20"
-                  >
-                    {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+
+                  <div className="flex justify-center">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPin(!showPin)} 
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors py-1 px-3 rounded-full bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700"
+                    >
+                      {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{showPin ? "Hide PIN" : "Show PIN"}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex justify-center">
-                  <button type="button" onClick={() => {/* Trigger Forgot PIN Flow */}} className="text-[13px] font-extrabold text-[#FC6B31] hover:underline">
+                <div className="flex justify-center pt-1">
+                  <button type="button" onClick={() => router.push("/customer/forgot-pin")} className="text-[13px] font-extrabold text-[#FC6B31] hover:underline">
                     Forgot PIN?
                   </button>
                 </div>
@@ -289,12 +325,11 @@ export default function LoginPage() {
                 </button>
               </form>
             )}
-
-            {/* STEP 2B: OTP (6 Boxes) */}
+            
+            {/* STEP 2B: OTP */}
             {step === "OTP" && (
               <form onSubmit={handleOtpSubmit} className="space-y-6 w-full animate-in slide-in-from-right-4 duration-300">
                 <div className="relative w-full h-14">
-                  {/* Visually rendered boxes */}
                   <div className="absolute inset-0 flex gap-2 sm:gap-2.5 justify-center items-center pointer-events-none px-1">
                     {[...Array(6)].map((_, i) => {
                       const isActive = otp.length === i;
@@ -306,7 +341,6 @@ export default function LoginPage() {
                       );
                     })}
                   </div>
-                  {/* Invisible real input overlay */}
                   <input
                     type="text" 
                     inputMode="numeric" 
@@ -364,5 +398,13 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID_HERE"}>
+      <LoginContent />
+    </GoogleOAuthProvider>
   );
 }
