@@ -111,11 +111,17 @@ export default function ProfilePage() {
         if (profileRes.status === "fulfilled" && profileRes.value.data) {
           setProfile(profileRes.value.data);
           
-          // Pull from multiple possible backend keys and cache it immediately
-          const pic = profileRes.value.data.profilePictureUrl || profileRes.value.data.profileImageUrl || profileRes.value.data.pictureUrl || profileRes.value.data.imageUrl;
+          // Pull from multiple possible backend keys safely
+          const pic = profileRes.value.data.profilePictureUrl || profileRes.value.data.profileImageUrl || profileRes.value.data.pictureUrl || profileRes.value.data.imageUrl || profileRes.value.data.picture || profileRes.value.data.avatar;
           if (pic) {
-            setLiveAvatar(pic);
-            localStorage.setItem("chopnchop_avatar", pic);
+            const cached = localStorage.getItem("chopnchop_avatar");
+            // If the cache contains our manual cache-buster and matches the base URL, KEEP the cache so the browser shows the fresh image
+            if (cached && cached.startsWith(pic) && cached.includes("t=")) {
+              setLiveAvatar(cached);
+            } else {
+              setLiveAvatar(pic);
+              localStorage.setItem("chopnchop_avatar", pic);
+            }
           }
         }
 
@@ -185,20 +191,23 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Use the same axios client for consistent auth/base URL
       const uploadRes = await customerApiClient.post("/api/v1/user/profile/picture", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // Update local state AND update the global LocalStorage cache instantly
       if (uploadRes.data?.url) {
-        setLiveAvatar(uploadRes.data.url);
-        localStorage.setItem("chopnchop_avatar", uploadRes.data.url);
+        // FORCE the browser to pull the new pixels by appending a timestamp to the URL
+        const freshUrl = uploadRes.data.url.includes("?") 
+          ? `${uploadRes.data.url}&t=${Date.now()}` 
+          : `${uploadRes.data.url}?t=${Date.now()}`;
+          
+        setLiveAvatar(freshUrl);
+        localStorage.setItem("chopnchop_avatar", freshUrl); // Cache the fresh timestamped version globally!
       }
       
-      // Also refetch full profile to keep in sync
+      // Also refetch full profile to keep text details in sync
       const profileRes = await customerApiClient.get("/api/v1/user/profile");
       setProfile(profileRes.data);
       
@@ -207,7 +216,6 @@ export default function ProfilePage() {
       alert("Failed to upload image. Please check your connection.");
     } finally {
       setIsUploadingPic(false);
-      // Reset file input so same file can be re-uploaded if needed
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

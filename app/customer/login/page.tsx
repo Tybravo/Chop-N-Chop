@@ -70,6 +70,12 @@ function LoginContent() {
         localStorage.setItem("chopnchop_token", data.access_token);
         if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
         localStorage.setItem("chopnchop_session", "active");
+
+        // FIX: Cache the profile picture instantly on login
+        const pic = data.profilePictureUrl || data.pictureUrl || data.avatar || data.imageUrl;
+        if (pic) {
+          localStorage.setItem("chopnchop_avatar", pic);
+        }
         
         router.push("/customer/home");
       }
@@ -103,6 +109,12 @@ function LoginContent() {
       localStorage.setItem("chopnchop_token", data.access_token);
       if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
       localStorage.setItem("chopnchop_session", "active");
+
+      // FIX: Cache the profile picture instantly on login
+        const pic = data.profilePictureUrl || data.pictureUrl || data.avatar || data.imageUrl;
+        if (pic) {
+          localStorage.setItem("chopnchop_avatar", pic);
+        }
       
       router.push("/customer/home");
     } catch (err) {

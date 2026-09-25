@@ -198,37 +198,43 @@ export default function CustomerHome() {
   useEffect(() => {
     setMounted(true);
     
-    // Check if user is actually logged in based on the session token
+    // Fallback safely to tokens if session flag was missed
     const session = localStorage.getItem("chopnchop_session");
-    if (session === "active") {
+    const token = localStorage.getItem("chopnchop_token");
+    
+    if (session === "active" || token) {
       setIsAuthenticated(true);
 
       // 1. Fast load: Check LocalStorage cache first, fallback to JWT
       const cachedAvatar = localStorage.getItem("chopnchop_avatar");
       if (cachedAvatar) {
         setAvatarUrl(cachedAvatar);
-      } else {
-        const token = localStorage.getItem("chopnchop_token");
-        if (token) {
-          try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-            const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
-            if (jwtPic) setAvatarUrl(jwtPic);
-          } catch (e) {
-            // silent fail
-          }
+      } else if (token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+          const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
+          if (jwtPic) setAvatarUrl(jwtPic);
+        } catch (e) {
+          // silent fail
         }
       }
 
-      // 2. Fresh load: Quietly fetch the latest profile and check all possible image keys
+      // 2. Fresh load: Sync background profile with cache-busting check
       customerApiClient.get("/api/v1/user/profile")
         .then(res => {
-          const pic = res.data?.profilePictureUrl || res.data?.profileImageUrl || res.data?.pictureUrl || res.data?.imageUrl;
+          // Catch all possible backend DTO keys
+          const pic = res.data?.profilePictureUrl || res.data?.profileImageUrl || res.data?.pictureUrl || res.data?.imageUrl || res.data?.picture || res.data?.avatar;
           if (pic) {
-            setAvatarUrl(pic);
-            localStorage.setItem("chopnchop_avatar", pic); // Keep cache updated
+            const cached = localStorage.getItem("chopnchop_avatar");
+            // If the cached version is just the backend URL with our timestamp cache-buster, prefer the cached one!
+            if (cached && cached.startsWith(pic) && cached.includes("t=")) {
+              setAvatarUrl(cached);
+            } else {
+              setAvatarUrl(pic);
+              localStorage.setItem("chopnchop_avatar", pic);
+            }
           }
         })
         .catch(err => console.error("Failed background profile sync", err));
@@ -269,7 +275,6 @@ export default function CustomerHome() {
 
       {isAuthenticated ? (
         <div className="md:hidden">
-          {/* Tracker manages its own live data fetching now */}
           <ActiveOrderTracker />
         </div>
       ) : (

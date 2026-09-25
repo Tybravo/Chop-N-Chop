@@ -78,7 +78,7 @@ export default function SettingsPage() {
 
     setIsLoading(true);
     try {
-      await customerApiClient.patch("/api/v1/auth/changePin", {
+await customerApiClient.put("/api/v1/auth/change-pin", {
         oldPin: currentPin,
         newPin: newPin
       });
