@@ -1,159 +1,453 @@
-@import "tailwindcss";
+ @import "tailwindcss";
+
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-light: var(--primary-light);
-  --color-primary-dark: var(--primary-dark);
-  
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary-light: var(--secondary-light);
 
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent-light: var(--accent-light);
-  --color-accent-dark: var(--accent-dark);
+--color-background: var(--background);
 
-  --shadow-glow-orange: 0 0 20px rgba(252, 107, 49, 0.4);
-  --shadow-glow-blue: 0 0 20px rgba(37, 99, 235, 0.4);
-  --shadow-header: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-navbar-orange: var(--navbar-shadow-orange);
-  --shadow-card: var(--card-shadow);
-  --shadow-card-hover: var(--card-shadow-hover);
+--color-foreground: var(--foreground);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+--color-primary: var(--primary);
+
+--color-primary-foreground: var(--primary-foreground);
+
+--color-primary-light: var(--primary-light);
+
+--color-primary-dark: var(--primary-dark);
+
+--color-secondary: var(--secondary);
+
+--color-secondary-foreground: var(--secondary-foreground);
+
+--color-secondary-light: var(--secondary-light);
+
+
+--color-accent: var(--accent);
+
+--color-accent-foreground: var(--accent-foreground);
+
+--color-accent-light: var(--accent-light);
+
+--color-accent-dark: var(--accent-dark);
+
+
+--shadow-glow-orange: 0 0 20px rgba(252, 107, 49, 0.4);
+
+--shadow-glow-blue: 0 0 20px rgba(37, 99, 235, 0.4);
+
+--shadow-header: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+--shadow-navbar-orange: var(--navbar-shadow-orange);
+
+--shadow-card: var(--card-shadow);
+
+--shadow-card-hover: var(--card-shadow-hover);
+
+
+--font-sans: var(--font-geist-sans);
+
+--font-mono: var(--font-geist-mono);
+
 }
+
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* Orange - Primary */
-  --primary: #FC6B31;
-  --primary-foreground: #ffffff;
-  --primary-light: #fd8b5d;
-  --primary-dark: #e35014;
-  
-  /* Black - Secondary */
-  --secondary: #000000;
-  --secondary-foreground: #ffffff;
-  --secondary-light: #262626;
 
-  /* Blue - Accent */
-  --accent: #2563eb;
-  --accent-foreground: #ffffff;
-  --accent-light: #3b82f6;
-  --accent-dark: #1d4ed8;
+--background: #ffffff;
 
-  --navbar-shadow-orange: 0 10px 28px -14px rgba(252, 107, 49, 0.85);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
-  --card-shadow-hover: 0 18px 38px -18px rgba(252, 107, 49, 0.55), 0 10px 22px -14px rgba(0, 0, 0, 0.18);
+--foreground: #171717;
+
+/* Orange - Primary */
+
+--primary: #FC6B31;
+
+--primary-foreground: #ffffff;
+
+--primary-light: #fd8b5d;
+
+--primary-dark: #e35014;
+
+/* Black - Secondary */
+
+--secondary: #000000;
+
+--secondary-foreground: #ffffff;
+
+--secondary-light: #262626;
+
+
+/* Blue - Accent */
+
+--accent: #2563eb;
+
+--accent-foreground: #ffffff;
+
+--accent-light: #3b82f6;
+
+--accent-dark: #1d4ed8;
+
+
+--navbar-shadow-orange: 0 10px 28px -14px rgba(252, 107, 49, 0.85);
+
+--card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
+
+--card-shadow-hover: 0 18px 38px -18px rgba(252, 107, 49, 0.55), 0 10px 22px -14px rgba(0, 0, 0, 0.18);
+
 }
+
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  
-  /* Orange - Primary */
-  --primary: #FC6B31;
-  --primary-foreground: #000000;
-  --primary-light: #fd8b5d;
-  --primary-dark: #e35014;
-  
-  /* Black/Dark Gray - Secondary */
-  --secondary: #171717;
-  --secondary-foreground: #ffffff;
-  --secondary-light: #404040;
 
-  /* Blue - Accent */
-  --accent: #3b82f6;
-  --accent-foreground: #ffffff;
-  --accent-light: #60a5fa;
-  --accent-dark: #2563eb;
+--background: #0a0a0a;
 
-  --navbar-shadow-orange: 0 10px 28px -14px rgba(252, 107, 49, 0.9);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 1px 1px rgba(0, 0, 0, 0.35);
-  --card-shadow-hover: 0 20px 42px -18px rgba(252, 107, 49, 0.6), 0 12px 26px -14px rgba(0, 0, 0, 0.55);
+--foreground: #ededed;
+
+/* Orange - Primary */
+
+--primary: #FC6B31;
+
+--primary-foreground: #000000;
+
+--primary-light: #fd8b5d;
+
+--primary-dark: #e35014;
+
+/* Black/Dark Gray - Secondary */
+
+--secondary: #171717;
+
+--secondary-foreground: #ffffff;
+
+--secondary-light: #404040;
+
+
+/* Blue - Accent */
+
+--accent: #3b82f6;
+
+--accent-foreground: #ffffff;
+
+--accent-light: #60a5fa;
+
+--accent-dark: #2563eb;
+
+
+--navbar-shadow-orange: 0 10px 28px -14px rgba(252, 107, 49, 0.9);
+
+--card-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 1px 1px rgba(0, 0, 0, 0.35);
+
+--card-shadow-hover: 0 20px 42px -18px rgba(252, 107, 49, 0.6), 0 12px 26px -14px rgba(0, 0, 0, 0.55);
+
 }
+
+
+html {
+
+overscroll-behavior-y: auto;
+
+scroll-behavior: smooth;
+
+}
+
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+background: var(--background);
+
+color: var(--foreground);
+
+font-family: Arial, Helvetica, sans-serif;
+
+/* Enables native elastic scroll physics on mobile devices */
+
+overscroll-behavior-y: auto;
+
+-webkit-overflow-scrolling: touch;
+
 }
+
 
 @keyframes cnc-breath-card {
-  0% {
-    transform: translateZ(0) scale(1);
-    box-shadow: var(--card-shadow);
-  }
-  60% {
-    transform: translateZ(0) scale(1.03);
-    box-shadow: var(--card-shadow-hover);
-  }
-  100% {
-    transform: translateZ(0) scale(1.02);
-    box-shadow: var(--card-shadow-hover);
-  }
+
+0% {
+
+transform: translateZ(0) scale(1);
+
+box-shadow: var(--card-shadow);
+
 }
+
+60% {
+
+transform: translateZ(0) scale(1.03);
+
+box-shadow: var(--card-shadow-hover);
+
+}
+
+100% {
+
+transform: translateZ(0) scale(1.02);
+
+box-shadow: var(--card-shadow-hover);
+
+}
+
+}
+
 
 @keyframes cnc-breath-btn {
-  0% {
-    transform: translateZ(0) scale(1);
-    box-shadow: none;
-  }
-  55% {
-    transform: translateZ(0) scale(1.03);
-    box-shadow: var(--shadow-glow-orange);
-  }
-  100% {
-    transform: translateZ(0) scale(1);
-    box-shadow: none;
-  }
+
+0% {
+
+transform: translateZ(0) scale(1);
+
+box-shadow: none;
+
 }
+
+55% {
+
+transform: translateZ(0) scale(1.03);
+
+box-shadow: var(--shadow-glow-orange);
+
+}
+
+100% {
+
+transform: translateZ(0) scale(1);
+
+box-shadow: none;
+
+}
+
+}
+
 
 @layer components {
-  .admin-card {
-    @apply bg-white dark:bg-gray-900 rounded-2xl border border-[#FC6B31]/30 dark:border-[#FC6B31]/30;
-    will-change: transform, box-shadow;
-    transition: transform 180ms ease, box-shadow 180ms ease;
+
+.admin-card {
+
+@apply bg-white dark:bg-gray-900 rounded-2xl border border-[#FC6B31]/30 dark:border-[#FC6B31]/30;
+
+will-change: transform, box-shadow;
+
+transition: transform 180ms ease, box-shadow 180ms ease;
+
+}
+
+.admin-card:hover {
+
+@apply border-[#FC6B31];
+
+animation: cnc-breath-card 720ms ease-in-out 1 forwards;
+
+}
+
+.hide-scrollbar,
+
+.no-scrollbar {
+
+-ms-overflow-style: none;
+
+scrollbar-width: none;
+
+}
+
+.hide-scrollbar::-webkit-scrollbar,
+
+.no-scrollbar::-webkit-scrollbar {
+
+display: none;
+
+}
+
+}
+
+
+@utility cnc-navbar-shadow {
+
+box-shadow: var(--navbar-shadow-orange);
+
+}
+
+@utility cnc-card-shadow {
+
+box-shadow: var(--card-shadow);
+
+}
+
+@utility cnc-breath-card {
+
+will-change: transform, box-shadow;
+
+transition: transform 180ms ease, box-shadow 180ms ease;
+
+&:hover {
+
+animation: cnc-breath-card 720ms ease-in-out 1 forwards;
+
+}
+
+}
+
+@utility cnc-breath-btn {
+
+will-change: transform, box-shadow;
+
+&:hover {
+
+animation: cnc-breath-btn 650ms ease-in-out 1;
+
+}
+
+}
+
+/* =========================================================
+   RICH HOT-FOOD SMOKE / STEAM
+   ========================================================= */
+
+@keyframes riseAndFadeSteam {
+  0% {
+    transform:
+      translate3d(0, 28px, 0)
+      scale(0.72)
+      rotate(-2deg);
+    opacity: 0;
+    filter: blur(5px);
   }
-  .admin-card:hover {
-    @apply border-[#FC6B31];
-    animation: cnc-breath-card 720ms ease-in-out 1 forwards;
+
+  15% {
+    opacity: 0.72;
   }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+
+  40% {
+    transform:
+      translate3d(-8px, -5px, 0)
+      scale(0.95)
+      rotate(2deg);
+    opacity: 0.58;
+    filter: blur(4px);
   }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
+
+  70% {
+    transform:
+      translate3d(10px, -45px, 0)
+      scale(1.18)
+      rotate(-3deg);
+    opacity: 0.32;
+    filter: blur(6px);
+  }
+
+  100% {
+    transform:
+      translate3d(-14px, -95px, 0)
+      scale(1.55)
+      rotate(4deg);
+    opacity: 0;
+    filter: blur(12px);
   }
 }
 
-@utility cnc-navbar-shadow {
-  box-shadow: var(--navbar-shadow-orange);
-}
-@utility cnc-card-shadow {
-  box-shadow: var(--card-shadow);
-}
-@utility cnc-breath-card {
-  will-change: transform, box-shadow;
-  transition: transform 180ms ease, box-shadow 180ms ease;
-  &:hover {
-    animation: cnc-breath-card 720ms ease-in-out 1 forwards;
+@keyframes driftHaze {
+  0% {
+    transform:
+      translate3d(-25px, 12px, 0)
+      scale(0.85);
+    opacity: 0.12;
+  }
+
+  25% {
+    transform:
+      translate3d(8px, -5px, 0)
+      scale(1.05);
+    opacity: 0.32;
+  }
+
+  50% {
+    transform:
+      translate3d(25px, -22px, 0)
+      scale(1.18);
+    opacity: 0.24;
+  }
+
+  75% {
+    transform:
+      translate3d(-5px, -38px, 0)
+      scale(1.3);
+    opacity: 0.18;
+  }
+
+  100% {
+    transform:
+      translate3d(-28px, -55px, 0)
+      scale(1.42);
+    opacity: 0.08;
   }
 }
-@utility cnc-breath-btn {
-  will-change: transform, box-shadow;
-  &:hover {
-    animation: cnc-breath-btn 650ms ease-in-out 1;
+
+@keyframes smokeCloud {
+  0% {
+    transform:
+      translate3d(-12px, 18px, 0)
+      scale(0.75);
+    opacity: 0;
   }
+
+  20% {
+    opacity: 0.28;
+  }
+
+  50% {
+    transform:
+      translate3d(12px, -25px, 0)
+      scale(1.08);
+    opacity: 0.22;
+  }
+
+  80% {
+    transform:
+      translate3d(-8px, -65px, 0)
+      scale(1.35);
+    opacity: 0.12;
+  }
+
+  100% {
+    transform:
+      translate3d(15px, -100px, 0)
+      scale(1.65);
+    opacity: 0;
+  }
+}
+
+@utility animate-steam-col-1 {
+  animation: riseAndFadeSteam 3.4s ease-in-out infinite;
+}
+
+@utility animate-steam-col-2 {
+  animation: riseAndFadeSteam 2.9s ease-in-out infinite 0.55s;
+}
+
+@utility animate-steam-col-3 {
+  animation: riseAndFadeSteam 3.8s ease-in-out infinite 0.2s;
+}
+
+@utility animate-steam-col-4 {
+  animation: riseAndFadeSteam 3.1s ease-in-out infinite 1s;
+}
+
+@utility animate-steam-col-5 {
+  animation: riseAndFadeSteam 4.1s ease-in-out infinite 1.5s;
+}
+
+@utility animate-haze {
+  animation: driftHaze 7s ease-in-out infinite alternate;
+}
+
+@utility animate-smoke-cloud {
+  animation: smokeCloud 5.5s ease-in-out infinite;
 }

@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, Menu as MenuIcon } from 'lucide-react';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/uiStore';
 import { Button } from './Button';
 import { ThemeToggle } from './ThemeToggle';

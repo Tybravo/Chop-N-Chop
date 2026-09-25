@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { dashboardService } from "@/services/admin/dashboard.service";
 import { DispatchRider } from "@/types/admin";
 import { Loader2, Bike } from "lucide-react";
-import Image from "next/image";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 export default function RidersPage() {
   const [riders, setRiders] = useState<DispatchRider[]>([]);
@@ -61,7 +61,7 @@ export default function RidersPage() {
                 <tr key={rider.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
                     <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                      <Image src={rider.avatarUrl} alt={rider.name} fill sizes="32px" className="object-cover" />
+                      <SafeAvatar src={rider.avatarUrl} alt={rider.name} fill sizes="32px" className="object-cover" />
                     </div>
                     <span className="font-semibold">{rider.name}</span>
                   </td>

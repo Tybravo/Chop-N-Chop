@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { dashboardService } from "@/services/admin/dashboard.service";
 import { DashboardData } from "@/types/admin";
 import { Loader2, ArrowRight, CheckCircle2, User, WalletCards, XCircle, Truck } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
               {dispatchStatus.map((rider) => (
                 <div key={rider.id} className="flex items-start gap-4">
                   <div className="relative w-10 h-10">
-                    <Image 
+                    <SafeAvatar 
                       src={rider.avatarUrl} 
                       alt={rider.name} 
                       fill
