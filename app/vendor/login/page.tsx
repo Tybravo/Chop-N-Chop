@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
+import { useVendorAuth } from "@/context/VendorAuthContext";
 import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
 
 export default function VendorLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "error", message: "" });
+
+  const { login } = useVendorAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +26,8 @@ export default function VendorLoginPage() {
 
     try {
       setLoading(true);
-      await authService.login({ email, pin });
-      router.push(`/vendor/verify-otp?email=${encodeURIComponent(email)}`);
+      const res = await authService.login({ email, pin });
+      login(res.user, res.token);
     } catch (err: unknown) {
       setToast({
         show: true,
@@ -95,9 +96,17 @@ export default function VendorLoginPage() {
                 <input
                   type={showPin ? "text" : "password"}
                   value={pin}
-                  onChange={(e) => setPin(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (/^\d+$/.test(value) && value.length <= 4)) {
+                      setPin(value);
+                    }
+                  }}
                   className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
                   placeholder="••••"
+                  maxLength={4}
+                  inputMode="numeric"
+                  pattern="\d*"
                   required
                 />
                 <button

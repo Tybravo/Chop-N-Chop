@@ -12,6 +12,11 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading } = useAdminAuth();
 
+  // No local router.replace here: the AdminAuthProvider owns the single
+  // authoritative redirect for unauthenticated users on /admin/dashboard routes.
+  // Having a second component run its own redirect raced against the provider's
+  // and caused the login<->dashboard ping-pong.
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
@@ -21,7 +26,11 @@ export default function DashboardLayout({
   }
 
   if (!user) {
-    return null; // The context handles the redirect
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-[#FC6B31]" />
+      </div>
+    );
   }
 
   return (

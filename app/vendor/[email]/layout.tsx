@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { VendorSidebar } from "@/components/vendor/sidebar/VendorSidebar";
 import { VendorHeader } from "@/components/vendor/header/VendorHeader";
 import { BottomNavigation } from "@/components/vendor/navigation/BottomNavigation";
+import { VendorBanner } from "@/components/vendor/header/VendorBanner";
 
 export default function VendorDashboardLayout({
   children,
@@ -27,13 +28,13 @@ export default function VendorDashboardLayout({
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 dark:bg-black overflow-hidden font-sans">
-      <VendorSidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
+      <div className="hidden lg:block">
+        <VendorSidebar isOpen={false} onClose={() => setIsSidebarOpen(false)} />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <VendorHeader onMenuClick={() => setIsSidebarOpen(true)} />
+        <VendorBanner />
         
         <main className="flex-1 overflow-y-auto pb-16 lg:pb-0 overscroll-y-contain">
           <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full">
@@ -42,6 +43,10 @@ export default function VendorDashboardLayout({
         </main>
 
         <BottomNavigation />
+      </div>
+
+      <div className="lg:hidden absolute z-[100] left-0 top-0 h-[100dvh]">
+        <VendorSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       </div>
     </div>
   );

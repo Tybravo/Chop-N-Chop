@@ -5,7 +5,7 @@ import { User, Shield, Camera, Upload, Loader2, Eye, EyeOff, X } from "lucide-re
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { profileService } from "@/services/admin/profile.service";
 import { UserProfileResponse } from "@/types/admin";
-import Image from "next/image";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAdminAuth();
@@ -68,7 +68,7 @@ export default function ProfilePage() {
   }
 
   // Helper to handle Google Avatar sizing per backend instructions
-  let avatarUrl = "https://i.pravatar.cc/150?img=47"; // Default fallback
+  let avatarUrl = "/avatar-placeholder.svg"; // Default fallback
   if (liveProfile?.profilePictureUrl && liveProfile.profilePictureUrl.trim() !== "") {
     avatarUrl = liveProfile.profilePictureUrl;
   } else if (user?.avatarUrl && user.avatarUrl.trim() !== "") {
@@ -118,9 +118,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional: Add some client-side validation for size (e.g. 800KB = 819200 bytes)
-    if (file.size > 819200) {
-      setPictureError("Image must be smaller than 800KB");
+    // Optional: Add some client-side validation for size (e.g. 1500KB = 1536000 bytes)
+    if (file.size > 1536000) {
+      setPictureError("Image must be smaller than 1500KB");
       return;
     }
 
@@ -245,7 +245,7 @@ export default function ProfilePage() {
 
           <div className="flex items-center gap-6">
             <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-gray-100 dark:border-gray-800 shadow-sm">
-              <Image
+              <SafeAvatar
                 src={avatarUrl}
                 alt="Profile Picture"
                 fill

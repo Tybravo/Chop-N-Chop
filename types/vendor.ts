@@ -7,9 +7,20 @@ export interface VendorProfile {
   businessAddress?: string;
   businessCategory?: string;
   logoUrl?: string;
-  status: "APPROVED" | "PENDING" | "REJECTED";
+  status: "APPROVED" | "PENDING" | "REJECTED" | "SUSPENDED" | "UNVERIFIED";
   isOpen: boolean;
   joinedAt: string;
+}
+
+export interface PendingVendorApplication {
+  vendorProfileId: string;
+  businessName: string;
+  email: string;
+  contactPhone: string;
+  hubId?: string;
+  cacRegistrationNumber?: string;
+  brand?: string;
+  status: "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED" | "UNVERIFIED";
 }
 
 export interface MealComponent {

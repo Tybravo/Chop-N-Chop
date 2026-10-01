@@ -136,7 +136,13 @@ adminApiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    // Some backends return 403 (instead of 401) for an expired/stale access token.
+    // Treat both as a signal to attempt a single silent token refresh + retry.
+    // This does NOT force a logout on a genuine permission 403: if the retried
+    // request still fails, the _retry guard stops the loop and the error surfaces
+    // to the page while the user stays logged in.
+    const status = error.response?.status;
+    if ((status === 401 || status === 403) && originalRequest && !originalRequest._retry) {
       if (error.response.data?.message?.includes('revoked')) {
         localStorage.clear();
         window.location.href = '/';
@@ -187,8 +193,14 @@ adminApiClient.interceptors.response.use(
         return adminApiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.clear();
-        window.location.href = '/';
+        // Session can no longer be refreshed (expired/revoked). Only clear the
+        // admin tokens so the auth layer / dashboard layout can route the user
+        // to the login page naturally. Do NOT hard-redirect to '/' here: doing
+        // so forces repeated full-page reloads that re-trigger the refresh
+        // endpoint and cause the login<->dashboard loop.
+        localStorage.removeItem('adminUser');
+        localStorage.removeItem('admin_access_token');
+        localStorage.removeItem('admin_refresh_token');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

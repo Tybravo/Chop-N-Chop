@@ -66,13 +66,35 @@ interface RegisterPayload {
 }
 
 export const authService = {
-  login: async (_payload: LoginPayload): Promise<{ success: boolean; message: string }> => {
-    // TODO: Replace with live backend endpoint: await vendorApiClient.post("/api/v1/vendors/auth/login-init", _payload)
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, message: "OTP sent successfully" });
-      }, 500);
-    });
+  login: async (payload: LoginPayload): Promise<{ success: boolean; token: string; user: VendorProfile }> => {
+    try {
+      const response = await vendorApiClient.post("/api/v1/vendors/auth/login", payload);
+      
+      const token = response.data?.data?.access_token || response.data?.access_token;
+      
+      const userData: VendorProfile = {
+        id: response.data?.data?.user_id || "mock_id",
+        email: payload.email,
+        businessName: "Vendor Business", // Needs to be fetched from profile if not in token, but we satisfy type here
+        ownerName: "Vendor Owner",
+        phone: "",
+        status: response.data?.data?.status || "APPROVED",
+        logoUrl: response.data?.data?.profilePictureUrl,
+        isOpen: true,
+        joinedAt: new Date().toISOString(),
+      };
+
+      return {
+        success: true,
+        token,
+        user: userData,
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data?.message || error.response.data?.error || "Invalid credentials");
+      }
+      throw new Error("An unexpected error occurred during login.");
+    }
   },
 
   verifyOtp: async (email: string, otp: string): Promise<{ success: boolean; token: string; user: VendorProfile }> => {
@@ -158,9 +180,11 @@ export const authService = {
     try {
       const response = await vendorApiClient.post("/api/v1/vendors/auth/logout");
       return response.data;
-    } catch (error: unknown) {
-      console.error("Backend logout failed:", error);
+    } catch (_error: unknown) {
+      // Suppress console.error to avoid triggering the Next.js error overlay for known backend issues (e.g., Redis timeouts)
+      console.warn("Backend logout failed silently due to server error.");
       return { success: false, message: "Backend logout failed" };
     }
   }
+
 };

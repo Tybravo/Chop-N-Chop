@@ -56,7 +56,7 @@ export default function VendorRegisterPage() {
         businessCategory: formData.businessCategory,
         businessDescription: formData.businessDescription,
       });
-      router.push(`/vendor/verify-otp?email=${encodeURIComponent(formData.email)}`);
+      router.push(`/vendor/verify-otp?email=${encodeURIComponent(formData.email)}&businessName=${encodeURIComponent(formData.businessName)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -203,6 +203,7 @@ export default function VendorRegisterPage() {
                       <option value="">Select Category...</option>
                       <option value="restaurant">Restaurant</option>
                       <option value="fast_food">Fast Food</option>
+                      <option value="private_chef">Private Chef</option>
                       <option value="bakery">Bakery / Cafe</option>
                       <option value="beverages">Beverages</option>
                     </select>
@@ -221,7 +222,7 @@ export default function VendorRegisterPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#FC6B31] hover:bg-[#e35014] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FC6B31] disabled:opacity-70 mt-6">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register Vendor"}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Apply as Vendor"}
             </button>
           </form>
 

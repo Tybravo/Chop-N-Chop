@@ -6,8 +6,6 @@ import { useTheme } from "@/app/context/ThemeContext";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  
-  // To avoid hydration mismatch, don't render the icon until mounted
   const [mounted, setMounted] = React.useState(false);
   
   React.useEffect(() => {
@@ -15,14 +13,18 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    // Placeholder to prevent layout shift
-    return <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />;
+    return <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 animate-pulse shrink-0" />;
   }
 
   return (
     <button
-      onClick={toggleTheme}
-      className="flex items-center justify-center w-9 h-9 rounded-full transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleTheme();
+      }}
+      className="flex items-center justify-center w-9 h-9 rounded-full transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700 shrink-0 cursor-pointer shadow-sm"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >

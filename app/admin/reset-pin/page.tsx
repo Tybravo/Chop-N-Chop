@@ -136,7 +136,7 @@ function ResetPinContent() {
         role: (res.role as AdminRole) || "ADMIN",
         status: "ACTIVE" as const,
         createdAt: new Date().toISOString(),
-        avatarUrl: res.profilePictureUrl || "https://i.pravatar.cc/150?img=47"
+        avatarUrl: res.profilePictureUrl || "/avatar-placeholder.svg"
       };
 
       login(userData);
