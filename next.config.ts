@@ -1,7 +1,26 @@
 import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  swcMinify: true,
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    disableDevLogs: true,
+    // Prevents the service worker from caching admin and vendor routes
+    exclude: [
+      /\/admin\/.*$/i,
+      /\/vendor\/.*$/i
+    ],
+  },
+});
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  turbopack: {},
   images: {
     remotePatterns: [
       {
@@ -39,4 +58,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap your existing config with the PWA configuration
+export default withPWA(nextConfig);
