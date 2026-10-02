@@ -20,7 +20,8 @@ import {
   Edit3,
   X,
   Loader2,
-  Camera
+  Camera,
+  Lock
 } from "lucide-react";
 import DesktopProfileDashboard from "./desktop-profile";
 import axios from "axios";
@@ -356,19 +357,24 @@ export default function ProfilePage() {
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
               <button
                 type="button"
-                onClick={() => router.push("/customer/wallet")}
-                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
+                disabled
+                className="min-h-12 w-full cursor-not-allowed items-center justify-between p-3 rounded-2xl opacity-60"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FC6B31] flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-400 flex items-center justify-center">
                     <Wallet className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Wallet & Quick Pay</span>
-                    <span className="text-[11px] text-gray-400">Balance: ₦24,500</span>
+                    <span className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                      Wallet &amp; Quick Pay
+                      <span className="bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                        Coming Soon
+                      </span>
+                    </span>
+                    <span className="text-[11px] text-gray-400">Temporarily unavailable</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <Lock className="w-4 h-4 text-gray-300 dark:text-zinc-600" />
               </button>
 
               <button

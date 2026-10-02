@@ -60,7 +60,8 @@ export default function NotificationsPage() {
     if (category.includes("delivery") || category.includes("order")) {
       router.push("/customer/drops");
     } else if (category.includes("payment")) {
-      router.push("/customer/wallet");
+      // Wallet is pending, so send payment notices to the order ledger for now
+      router.push("/customer/drops");
     }
   };
 

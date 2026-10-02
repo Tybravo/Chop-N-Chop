@@ -86,9 +86,10 @@ export default function CustomerHeader({
         {walletBalance > 0 && (
           <button
             type="button"
-            onClick={() => router.push("/customer/wallet")}
-            aria-label={`Open wallet, balance ${(walletBalance / 1000).toFixed(1)}k naira`}
-            className="flex h-11 min-w-[44px] items-center justify-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
+            disabled
+            aria-label="Wallet coming soon"
+            title="Wallet is coming soon"
+            className="flex h-11 min-w-[44px] cursor-not-allowed items-center justify-center gap-1 rounded-full border border-gray-100 bg-gray-50 px-2 text-gray-400 opacity-60 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500"
           >
             <Wallet className="h-4 w-4" aria-hidden="true" />
             <span className="hidden text-[11px] font-extrabold sm:inline">₦{(walletBalance / 1000).toFixed(1)}k</span>
