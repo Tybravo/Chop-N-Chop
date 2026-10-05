@@ -202,14 +202,14 @@ function LoginContent() {
           </div>
 
           <div className="w-full flex flex-col items-center lg:hidden shrink-0 my-2">
-            <div className="flex min-h-[140px] max-h-[190px] w-full justify-center items-center overflow-hidden mb-2">
+            <div className="relative h-[190px] w-full overflow-hidden mb-2">
               <Image 
                 src={step === "EMAIL" ? "/CNC-bowl%20of%20jolof%20rice%20chicken%20plantain.png" : "/food_pack.png"} 
                 alt="ChopnChop Illustration" 
-                width={340}
-                height={190}
+                fill
                 priority
-                className="max-h-full w-auto max-w-[340px] object-contain drop-shadow-md transition-all duration-300" 
+                sizes="(max-width: 1024px) 340px, 100vw"
+                className="object-contain drop-shadow-md transition-all duration-300" 
               />
             </div>
           </div>
@@ -267,7 +267,7 @@ function LoginContent() {
                       onError={() => setError("Google login failed. Please try again.")}
                       shape="pill"
                       size="large"
-                      width="100%"
+                      width="384"
                       logo_alignment="center"
                       text="continue_with"
                     />

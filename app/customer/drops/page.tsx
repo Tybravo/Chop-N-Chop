@@ -2,8 +2,47 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Truck, CheckCircle2, Clock, MapPin, ChevronRight, RotateCcw, PhoneCall, X, MessageSquare, ArrowLeft } from "lucide-react";
+import { Package, CheckCircle2, MapPin, RotateCcw, PhoneCall, X, MessageSquare, ArrowLeft } from "lucide-react";
 import OrderReceiptModal from "@/components/customer/OrderReceiptModal";
+
+interface ReceiptItem {
+  id: string | number;
+  name: string;
+  desc?: string;
+  qty: number;
+  price: number;
+}
+
+/** Mirrors the `order` prop contract of OrderReceiptModal. */
+interface ReceiptOrder {
+  id: string;
+  date: string;
+  items: ReceiptItem[];
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  vendorName?: string;
+  vendor?: string;
+  deliveryAddress?: string;
+  address?: string;
+  paymentMethod: string;
+  status: string;
+}
+
+/** Row shape for the past-drops list, where the total is pre-formatted for display. */
+interface PastDrop {
+  id: string;
+  date: string;
+  meal: string;
+  vendor: string;
+  totalLabel: string;
+  status: string;
+  subtotal: number;
+  deliveryFee: number;
+  paymentMethod: string;
+  address: string;
+  items: ReceiptItem[];
+}
 
 export default function DropsPage() {
   const router = useRouter();
@@ -11,7 +50,7 @@ export default function DropsPage() {
   
   // State for controlling the receipt modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
-  const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<any>(null);
+  const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<ReceiptOrder | null>(null);
 
   // State for Contact Driver Support Modal
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
@@ -25,7 +64,7 @@ export default function DropsPage() {
   };
 
   // Mock active order details data structure matching the receipt schema
-  const activeOrderReceiptData = {
+  const activeOrderReceiptData: ReceiptOrder = {
     id: "ORD-8492",
     date: "April 17, 2026 | 12:15 PM",
     vendorName: "Taste & See Kitchen",
@@ -40,18 +79,35 @@ export default function DropsPage() {
     total: 5500
   };
 
-  const handleOpenReceipt = (orderData: any) => {
+  const handleOpenReceipt = (orderData: ReceiptOrder) => {
     setSelectedOrderForReceipt(orderData);
     setIsReceiptOpen(true);
   };
 
-  const pastDrops = [
-    { 
-      id: "ORD-9281", 
-      date: "Sep 16", 
-      meal: "Smoky Jollof & Chicken (2x)", 
-      vendor: "Taste & See", 
-      total: "₦11,000", 
+  /**
+   * Past drops keep a pre-formatted string total for the list, but the receipt
+   * modal needs a numeric total - passing the string through renders "₦₦11,000".
+   */
+  const toReceiptOrder = (drop: PastDrop): ReceiptOrder => ({
+    id: drop.id,
+    date: drop.date,
+    vendor: drop.vendor,
+    address: drop.address,
+    paymentMethod: drop.paymentMethod,
+    status: drop.status,
+    items: drop.items,
+    subtotal: drop.subtotal,
+    deliveryFee: drop.deliveryFee,
+    total: drop.subtotal + drop.deliveryFee,
+  });
+
+  const pastDrops: PastDrop[] = [
+    {
+      id: "ORD-9281",
+      date: "Sep 16",
+      meal: "Smoky Jollof & Chicken (2x)",
+      vendor: "Taste & See",
+      totalLabel: "₦11,000",
       status: "Delivered",
       subtotal: 10000,
       deliveryFee: 1000,
@@ -59,12 +115,12 @@ export default function DropsPage() {
       address: "14 Allen Avenue, Ikeja, Lagos",
       items: [{ id: 1, name: "Smoky Jollof & Chicken", desc: "Double portion", qty: 2, price: 5000 }]
     },
-    { 
-      id: "ORD-9104", 
-      date: "Sep 14", 
-      meal: "Fluffy Yam & Eggs", 
-      vendor: "Lagos Mainland Kitchen", 
-      total: "₦3,500", 
+    {
+      id: "ORD-9104",
+      date: "Sep 14",
+      meal: "Fluffy Yam & Eggs",
+      vendor: "Lagos Mainland Kitchen",
+      totalLabel: "₦3,500",
       status: "Delivered",
       subtotal: 2800,
       deliveryFee: 700,
@@ -208,15 +264,15 @@ export default function DropsPage() {
                     <p className="text-xs text-gray-500 mt-0.5">{drop.vendor} • {drop.date}</p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-sm font-extrabold text-gray-900 dark:text-white">{drop.total}</span>
+                    <span className="block text-sm font-extrabold text-gray-900 dark:text-white">{drop.totalLabel}</span>
                     <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full mt-1">
                       {drop.status}
                     </span>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleOpenReceipt(drop)}
+                  <button
+                    onClick={() => handleOpenReceipt(toReceiptOrder(drop))}
                     className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                   >
                     View Receipt
