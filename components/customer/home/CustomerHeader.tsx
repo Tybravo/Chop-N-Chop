@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, ChevronDown, Wallet, Bell, Clock } from "lucide-react";
 import { useOrderContext } from "@/store/useOrderContext";
@@ -27,18 +26,13 @@ export default function CustomerHeader({
   const router = useRouter();
   const { location, deliveryWindow, resetContext } = useOrderContext();
   const { unreadCount } = useNotifications();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const displayLocation = location || "Select Zone";
   const displayWindow = deliveryWindow && WINDOW_LABELS[deliveryWindow]
     ? WINDOW_LABELS[deliveryWindow]
     : "Select Drop Window";
 
-  if (!mounted) {
+  if (typeof window === "undefined") {
     return <div className="h-[52px] w-full animate-pulse bg-gray-50 dark:bg-zinc-900 rounded-full md:hidden mt-2" />;
   }
 

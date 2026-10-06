@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Search, Star, Share2, Heart, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Search, Star, Share2, Clock } from 'lucide-react';
 import MealCard from "@/components/customer/MealCard";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
 
@@ -11,7 +11,13 @@ export default function VendorStorefrontPage() {
   const params = useParams();
   
   const [activeCategory, setActiveCategory] = useState("All Items");
-  const [selectedMeal, setSelectedMeal] = useState<any>(null);
+  const [selectedMeal, setSelectedMeal] = useState<{
+    name: string;
+    vendor: string;
+    originalPrice: number;
+    discountedPrice: number;
+    image: string;
+  } | null>(null);
 
   // --- Mock Vendor Data based on ID ---
   // In a real app, you'd fetch this using the params.id

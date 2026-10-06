@@ -7,7 +7,15 @@ import { customerApiClient } from "@/lib/api/customerApiClient";
 import CategoryPills from "@/components/customer/CategoryPills"; // <-- Updated Import
 
 interface TodaysDealsSectionProps {
-  onSelectMeal: (meal: any) => void;
+  onSelectMeal: (meal: {
+    name: string;
+    vendor: string;
+    originalPrice: number;
+    discountedPrice: number;
+    image: string;
+    availabilityWindow?: string;
+    deliveryWindow?: string;
+  }) => void;
 }
 
 // --- API Types aligned with Swagger Documentation ---

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Clock, MapPin, ChefHat, Package, Truck, CheckCircle, ArrowLeft } from 'lucide-react';
+import { MapPin, ChefHat, Package, Truck, CheckCircle } from 'lucide-react';
 
 const MOCK_ORDERS = [
   {
@@ -87,7 +87,7 @@ export default function OrdersPage() {
           <Package size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No orders found</h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
-            You haven't placed any orders yet.
+            You haven&apos;t placed any orders yet.
           </p>
           <Link href="/customer/explore">
             <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors">

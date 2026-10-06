@@ -2,7 +2,7 @@
   "name": "Chop-n-Chop",
   "short_name": "ChopnChop",
   "description": "Scheduled food delivery and drive-thru pickups.",
-  "start_url": "/customer/home",
+  "start_url": "/customer",
   "scope": "/customer/", 
   "display": "standalone",
   "background_color": "#FFFBF7",

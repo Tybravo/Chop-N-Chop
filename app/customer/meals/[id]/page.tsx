@@ -106,7 +106,7 @@ export default function FoodDetailsPage() {
         <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-[20px] p-5 border border-gray-100 dark:border-zinc-800">
           <h3 className="text-[15px] font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Package className="w-4 h-4 text-[#FC6B31]" />
-            What's inside this pack
+            What&apos;s inside this pack
           </h3>
           <ul className="space-y-3">
             {meal.packContents.map((item, index) => (

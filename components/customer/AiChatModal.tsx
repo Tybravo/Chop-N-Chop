@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Send, Sparkles, Plus, Check } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 // import { useOrderContext } from "@/store/useOrderContext";
@@ -40,21 +40,10 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
   const [addedItemIds, setAddedItemIds] = useState<Record<string, boolean>>({});
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialQuerySentRef = useRef(false);
   
   // Cart store hook
   const addToCart = useCartStore((state) => state.addToCart);
-
-  useEffect(() => {
-    if (initialQuery) {
-      handleSendMessage(initialQuery);
-    }
-  }, [initialQuery]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
-
-  if (!isOpen) return null;
 
   const handleSendMessage = (textToSend: string) => {
     if (!textToSend.trim()) return;
@@ -85,7 +74,6 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
   };
 
   const handleAddToCart = (card: NonNullable<Message["suggestionCard"]>) => {
-    // 1. Trigger actual cart addition logic here
     addToCart({
       id: card.id,
       name: card.title,
@@ -94,17 +82,28 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
       image: card.image
     });
 
-    // 2. Mark this specific card item as added to show confirmation state
     setAddedItemIds((prev) => ({ ...prev, [card.id]: true }));
 
-    // 3. Have the AI respond naturally to keep the conversation flowing
     const confirmationMsg: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       sender: "ai",
       text: `Added **${card.title}** to your single consolidated cart! Anything else you'd like to add before checkout?`
     };
     setMessages((prev) => [...prev, confirmationMsg]);
   };
+
+  useEffect(() => {
+    if (initialQuery && !initialQuerySentRef.current) {
+      initialQuerySentRef.current = true;
+      setTimeout(() => handleSendMessage(initialQuery), 0);
+    }
+  }, [initialQuery]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">

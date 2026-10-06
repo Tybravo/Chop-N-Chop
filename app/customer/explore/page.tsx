@@ -21,7 +21,13 @@ export default function ExplorePage() {
   // --- States ---
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selectedMeal, setSelectedMeal] = useState<any>(null);
+  const [selectedMeal, setSelectedMeal] = useState<{
+    name: string;
+    vendor: string;
+    originalPrice: number;
+    discountedPrice: number;
+    image: string;
+  } | null>(null);
   
   // Modal & Filter States
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
