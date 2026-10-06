@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Lock, Eye, EyeOff } from "lucide-react";
@@ -46,7 +47,7 @@ export default function SignupPage() {
           {/* Mobile Illustration & Subtext (16px) */}
           <div className="w-full flex flex-col items-center lg:hidden shrink-0 my-1">
             <div className="flex min-h-[150px] max-h-[210px] w-full justify-center items-center overflow-hidden mb-2">
-              <img src="/food_pack.png" alt="ChopnChop Food Pack" className="max-h-full w-auto max-w-[340px] object-contain drop-shadow-lg transform scale-115" />
+              <Image src="/food_pack.png" alt="ChopnChop Food Pack" className="max-h-full w-auto max-w-[340px] object-contain drop-shadow-lg transform scale-115" width={340} height={210} />
             </div>
             <p className="text-gray-500 font-medium text-center text-[16px]">Join ChopnChop and get your favorite meals fast.</p>
           </div>
@@ -131,7 +132,7 @@ export default function SignupPage() {
         {/* RIGHT PANEL: Desktop Ambient Illustration */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#FDF7F2] p-8 items-center justify-center relative overflow-hidden border-l border-orange-100/50">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-amber-50/30 pointer-events-none" />
-          <img src="/food_pack.png" alt="ChopnChop Food Pack" className="w-full h-full max-h-[500px] object-contain relative z-10 drop-shadow-xl transform hover:scale-105 transition-transform duration-700" />
+          <Image src="/food_pack.png" alt="ChopnChop Food Pack" className="w-full h-full max-h-[500px] object-contain relative z-10 drop-shadow-xl transform hover:scale-105 transition-transform duration-700" width={500} height={500} />
         </div>
 
       </div>

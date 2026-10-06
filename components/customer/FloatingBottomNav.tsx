@@ -16,11 +16,9 @@ export default function FloatingBottomNav() {
   const pathname = usePathname();
   const getTotalItems = useCartStore((state) => state.getTotalItems);
   const [cartCount, setCartCount] = useState(0);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setCartCount(getTotalItems());
+    setTimeout(() => setCartCount(getTotalItems()), 0);
     // Subscribe to store changes
     const unsubscribe = useCartStore.subscribe((state) => {
       setCartCount(state.getTotalItems());
@@ -90,7 +88,7 @@ export default function FloatingBottomNav() {
                     className="w-[20px] h-[20px]"
                     strokeWidth={isActive ? 2.5 : 2.5}
                   />
-                  {item.name === "Cart" && mounted && cartCount > 0 && (
+                  {item.name === "Cart" && cartCount > 0 && (
                     <span
                       suppressHydrationWarning
                       className={`

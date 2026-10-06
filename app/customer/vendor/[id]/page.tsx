@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Search, Star, Share2, Clock } from 'lucide-react';
 import MealCard from "@/components/customer/MealCard";
@@ -50,12 +51,13 @@ export default function VendorStorefrontPage() {
       
       {/* --- TOP COVER IMAGE & HEADER --- */}
       <div className="relative h-64 w-full bg-gray-900">
-        <img 
-          src={vendor.coverImage} 
-          alt="Vendor Cover" 
-          className="w-full h-full object-cover opacity-80"
-          onError={(e) => { e.currentTarget.src = "https://placehold.co/800x400/orange/white?text=Store+Cover"; }}
-        />
+<Image
+  src={vendor.coverImage}
+  alt="Vendor Cover"
+  className="w-full h-full object-cover opacity-80"
+  width={800}
+  height={400}
+/>
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70" />
         
         {/* Floating Nav */}

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { X, Download, CheckCircle2, Share2, Loader2, MessageCircle, Send, Mail } from "lucide-react";
+import Image from "next/image";
 
 interface ReceiptItem {
   id: string | number;
@@ -172,7 +173,7 @@ export default function OrderReceiptModal({ isOpen, onClose, order }: OrderRecei
               <div className="flex justify-between py-1.5 border-b border-gray-50 dark:border-zinc-800/60">
                 <span className="text-gray-400 font-medium">Merchant</span>
                 <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <img src="/logo_icon.png" alt="CNC" className="w-4 h-4 object-contain" /> ChopnChop Global
+                  <Image src="/logo_icon.png" alt="CNC" width={16} height={16} className="w-4 h-4 object-contain" /> ChopnChop Global
                 </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-gray-50 dark:border-zinc-800/60">

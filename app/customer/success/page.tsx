@@ -75,7 +75,7 @@ export default function OrderSuccessPage() {
       } else {
         setError("Failed to secure account. Please try again.");
       }
-    } catch (err) {
+    } catch {
       setError("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);

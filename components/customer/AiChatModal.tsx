@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Send, Sparkles, Plus, Check } from "lucide-react";
+import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
 // import { useOrderContext } from "@/store/useOrderContext";
 
@@ -145,7 +146,7 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
                 <div className="mt-2.5 w-full max-w-[280px] bg-white dark:bg-zinc-800 rounded-2xl p-3 border border-orange-100 dark:border-zinc-700 shadow-md space-y-2.5 animate-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-zinc-700 flex items-center justify-center shrink-0 overflow-hidden">
-                      <img src={msg.suggestionCard.image} alt="Meal" className="w-full h-full object-cover" />
+                      <Image src={msg.suggestionCard.image} alt="Meal" width={48} height={48} className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-gray-900 dark:text-white">{msg.suggestionCard.title}</h4>

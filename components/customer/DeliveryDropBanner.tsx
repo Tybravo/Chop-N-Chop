@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 
@@ -106,14 +107,15 @@ export default function DeliveryDropBanner() {
 
       {/* Right Image Container */}
       <div className="absolute right-0 inset-y-0 my-auto translate-x-3 sm:translate-x-4 w-[110px] h-[110px] sm:w-[120px] sm:h-[120px] z-10 flex items-center shrink-0">
-        <img 
-          src="/hero-food-illustration.png" 
-          alt="Fresh Meal Drop" 
+        <Image
+          src="/hero-food-illustration.png"
+          alt="Fresh Meal Drop"
+          width={120}
+          height={120}
           className="w-full h-full object-cover rounded-full"
           style={{
             boxShadow: '-6px 9px 22.8px 0px rgba(0, 0, 0, 0.25)'
           }}
-          onError={(e) => { e.currentTarget.src = "https://placehold.co/400x400/orange/white?text=Food"; }}
         />
       </div>
       

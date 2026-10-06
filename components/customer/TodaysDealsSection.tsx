@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Clock, Truck, Calendar, Plus, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import CategoryPills from "@/components/customer/CategoryPills"; // <-- Updated Import
@@ -210,10 +211,12 @@ export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionP
             >
               {/* Image Container */}
               <div className="w-full h-28 rounded-[14px] bg-gray-50 dark:bg-zinc-800 relative overflow-hidden mb-3 shrink-0">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover p-0 group-hover:scale-105 transition-transform duration-300" 
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  width={400}
+                  height={112}
+                  className="w-full h-full object-cover p-0 group-hover:scale-105 transition-transform duration-300"
                 />
                 
                 {item.isNextDay ? (

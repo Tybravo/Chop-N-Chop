@@ -227,7 +227,7 @@ export default function CustomerHome() {
           const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
           const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
           if (jwtPic) setAvatarUrl(jwtPic);
-        } catch (e) {
+        } catch {
           // silent fail
         }
       }
@@ -328,7 +328,7 @@ export default function CustomerHome() {
                 </div>
                 <Link href="/customer/profile" className="w-10 h-10 rounded-full overflow-hidden border-2 border-orange-100 hover:border-[#FC6B31] transition-colors bg-gray-50 flex items-center justify-center">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    <Image src={avatarUrl} alt="Profile" className="w-full h-full object-cover" width={40} height={40} />
                   ) : (
                     <UserRound size={20} className="text-gray-400" />
                   )}

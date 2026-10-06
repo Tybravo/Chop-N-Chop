@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Heart, Share2, Star, Minus, Plus, Package } from "lucide-react";
 
@@ -66,12 +67,13 @@ export default function FoodDetailsPage() {
       <div className="w-full flex justify-center py-6 px-4">
         <div className="relative w-[280px] h-[280px] md:w-[350px] md:h-[350px]">
           <div className="absolute inset-0 bg-[#FC6B31]/10 rounded-full blur-3xl scale-90" />
-          <img 
-            src={meal.image} 
-            alt={meal.name} 
-            className="w-full h-full object-cover rounded-full drop-shadow-2xl relative z-10"
-            onError={(e) => { e.currentTarget.src = "https://placehold.co/400x400/orange/white?text=Food"; }}
-          />
+<Image
+  src={meal.image}
+  alt={meal.name}
+  className="w-full h-full object-cover rounded-full drop-shadow-2xl relative z-10"
+  width={350}
+  height={350}
+/>
         </div>
       </div>
 

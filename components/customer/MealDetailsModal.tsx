@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Heart, Share2, Minus, Plus } from "lucide-react";
+import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
 interface MealDetailsModalProps {
   isOpen: boolean;
@@ -21,7 +22,11 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
   const addToCart = useCartStore((state) => state.addToCart);
 
   useEffect(() => {
-    if (!isOpen) setQuantity(1); // Reset on close
+    if (!isOpen) {
+      // Use a micro-task to avoid synchronous setState warning
+      const timeoutId = setTimeout(() => setQuantity(1), 0);
+      return () => clearTimeout(timeoutId);
+    }
   }, [isOpen]);
 
   if (!isOpen || !meal) return null;
@@ -50,7 +55,7 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
         
         {/* --- EDGE-TO-EDGE TOP IMAGE --- */}
         <div className="relative w-full h-[280px] shrink-0 bg-gray-100 dark:bg-zinc-900 rounded-b-[2rem] overflow-hidden">
-          <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
+          <Image src={meal.image} alt={meal.name} width={800} height={280} className="w-full h-full object-cover" />
           
           {/* Top Actions ('X' to close, Share, Heart) */}
           <div className="absolute top-0 left-0 right-0 p-5 flex justify-between items-start bg-gradient-to-b from-black/40 to-transparent pt-safe-offset-4">

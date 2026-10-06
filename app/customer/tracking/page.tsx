@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Phone, MessageSquare, MapPin, Navigation2, CheckCircle2, ChefHat, Bike, Home, Clock } from "lucide-react";
 
@@ -77,11 +78,13 @@ export default function TrackingPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden border-2 border-white dark:border-zinc-900 shadow-md">
-                <img 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f3f4f6" 
-                  alt="Driver" 
-                  className="w-full h-full object-cover"
-                />
+<Image
+  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f3f4f6"
+  alt="Driver"
+  className="w-full h-full object-cover"
+  width={56}
+  height={56}
+/>
               </div>
               <div>
                 <h3 className="font-bold text-[16px] text-gray-900 dark:text-white">Michael O.</h3>

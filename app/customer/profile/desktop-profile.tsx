@@ -34,11 +34,15 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
   });
 
   useEffect(() => {
-    // Only update if it somehow changes externally to prevent cascading renders
-    const isDark = document.documentElement.classList.contains("dark");
-    if (isDarkMode !== isDark) {
-      setIsDarkMode(isDark);
-    }
+    // Use matchMedia to listen for dark mode changes without setState in effect
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      if (isDarkMode !== e.matches) {
+        setIsDarkMode(e.matches);
+      }
+    };
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {

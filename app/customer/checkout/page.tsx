@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Plus, Search, Wallet, CreditCard, ShieldCheck, Loader2, Tag, ChevronRight, Building2, Smartphone, Copy, Check, Mail, Lock, X, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Plus, Wallet, CreditCard, ShieldCheck, Loader2, Tag, ChevronRight, Building2, Smartphone, Copy, Check, Mail, Lock, X, Eye, EyeOff } from "lucide-react";
 import DynamicCreditCardDetector, { getCardInfo } from "@/components/customer/DynamicCreditCardDetector";
 import { useCartStore } from "@/store/useCartStore";
 import { customerApiClient } from "@/lib/api/customerApiClient";
@@ -221,7 +222,7 @@ export default function CheckoutPage() {
         setUserHasPin(true);
         processPaymentTransaction();
       }
-    } catch (err) {
+    } catch {
       setPinError("Network error verifying PIN.");
       setIsProcessing(false);
     }
@@ -480,7 +481,7 @@ export default function CheckoutPage() {
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-start mb-2 pb-2 border-b border-gray-100 dark:border-zinc-800/50">
                   <div className="flex items-start gap-3">
-                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
+                    <Image src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" width={40} height={40} />
                     <div>
                       <p className="font-semibold text-[13px] text-gray-900 dark:text-white">{item.name}</p>
                       <p className="text-[11px] text-gray-500">Qty: {item.quantity}</p>

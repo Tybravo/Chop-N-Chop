@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, SlidersHorizontal, Star, MapPin, ChefHat, X } from "lucide-react";
@@ -152,12 +153,13 @@ export default function ExplorePage() {
                 className="flex flex-col w-[260px] min-w-[260px] shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] p-3 border border-gray-100 dark:border-zinc-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-black/20 text-left group hover:border-gray-200 transition-all cursor-pointer snap-start"
               >
                 <div className="w-full h-[130px] shrink-0 rounded-[14px] bg-gray-100 dark:bg-zinc-800 mb-3 overflow-hidden relative">
-                  <img 
-                    src="/hero-food-illustration.png" 
-                    alt={vendor.name} 
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => { e.currentTarget.src = "https://placehold.co/400x200/orange/white?text=Store"; }}
-                  />
+<Image
+  src="/hero-food-illustration.png"
+  alt={vendor.name}
+  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+  width={260}
+  height={130}
+/>
                   <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                     <span className="text-[11px] font-bold text-gray-900">{vendor.rating}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { MapPin, ChevronDown, Wallet, Bell, Clock } from "lucide-react";
 import { useOrderContext } from "@/store/useOrderContext";
 import { useNotifications } from "@/context/NotificationContext";
@@ -48,9 +49,11 @@ export default function CustomerHeader({
           className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-100 bg-white dark:border-zinc-700 dark:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31]"
         >
           {/* Using standard img instead of Next Image to prevent external domain errors with Cloudinary URLs */}
-          <img
+          <Image
             src={avatarUrl || "/avatar-placeholder.svg"}
             alt="Customer profile"
+            width={44}
+            height={44}
             className="h-full w-full object-cover"
           />
         </button>

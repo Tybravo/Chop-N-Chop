@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore"; // Import your global cart store
 
 interface MealCardProps {
@@ -32,7 +33,7 @@ export default function MealCard({ id, name, vendor, price, imageUrl, onClick }:
         
         <div className="w-full aspect-square bg-gray-50 dark:bg-zinc-800 rounded-2xl mb-3 flex items-center justify-center overflow-hidden shrink-0">
           {imageUrl ? (
-            <img src={imageUrl} alt={name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Image src={imageUrl} alt={name} width={400} height={400} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
           ) : (
             <span className="text-2xl font-bold text-gray-300 dark:text-zinc-700">Food</span>
           )}
