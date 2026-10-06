@@ -25,7 +25,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 pb-[112px] pt-4 dark:bg-zinc-950 md:pb-16">
-      <header className="mx-auto flex w-full max-w-3xl items-center justify-between pt-2">
+      <header className="mx-auto flex w-full max-w-7xl items-center justify-between pt-2 px-4">
         <button
           type="button"
           onClick={() => router.back()}
@@ -38,7 +38,7 @@ export default function FavoritesPage() {
         <div className="h-10 w-10" aria-hidden="true" />
       </header>
 
-      <main className="mx-auto w-full max-w-3xl">
+      <main className="mx-auto w-full max-w-7xl px-4">
         {favoriteMeals.length === 0 ? (
           <div role="status" className="mt-8 flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-500 dark:bg-red-950/20">
@@ -55,7 +55,7 @@ export default function FavoritesPage() {
             </button>
           </div>
         ) : (
-          <div role="list" aria-label="Favorite meals" className="mt-8 grid grid-cols-2 gap-3 sm:gap-4">
+          <div role="list" aria-label="Favorite meals" className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
             {favoriteMeals.map((meal) => (
               <div key={meal.id} role="listitem" className="min-w-0">
                 <MealCard

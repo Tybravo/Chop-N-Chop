@@ -357,24 +357,21 @@ export default function ProfilePage() {
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
               <button
                 type="button"
-                disabled
-                className="min-h-12 w-full cursor-not-allowed items-center justify-between p-3 rounded-2xl opacity-60"
+                onClick={() => router.push("/customer/wallet")}
+                className="min-h-12 w-full flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-400 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
                     <Wallet className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <span className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
                       Wallet &amp; Quick Pay
-                      <span className="bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
-                        Coming Soon
-                      </span>
                     </span>
-                    <span className="text-[11px] text-gray-400">Temporarily unavailable</span>
+                    <span className="text-[11px] text-gray-400">Manage your Chop Wallet</span>
                   </div>
                 </div>
-                <Lock className="w-4 h-4 text-gray-300 dark:text-zinc-600" />
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-zinc-600" />
               </button>
 
               <button

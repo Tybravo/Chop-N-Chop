@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Mail, ArrowRight, ArrowLeft, Loader2, Sparkles, EyeOff, Eye } from "lucide-react";
@@ -22,6 +22,9 @@ function LoginContent() {
   const [pin, setPin] = useState("");
   const [otp, setOtp] = useState("");
   const [showPin, setShowPin] = useState(false);
+
+  const googleWrapperRef = useRef<HTMLDivElement>(null);
+  const [googleBtnWidth, setGoogleBtnWidth] = useState<number>(384);
 
   // --- Handlers ---
   
@@ -179,6 +182,18 @@ function LoginContent() {
     }
   };
 
+  useLayoutEffect(() => {
+    const updateWidth = () => {
+      if (googleWrapperRef.current) {
+        const measured = googleWrapperRef.current.offsetWidth;
+        setGoogleBtnWidth(measured > 0 ? measured : 384);
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   return (
     <div className="h-[100dvh] w-full bg-[#FFFBF7] flex items-center justify-center p-4 lg:p-8 overflow-hidden selection:bg-[#FC6B31] selection:text-white animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <div className="w-full max-w-5xl h-full lg:h-auto lg:max-h-[720px] bg-white rounded-[28px] lg:rounded-[40px] shadow-sm lg:shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row border border-orange-100/60 overflow-hidden relative">
@@ -256,22 +271,22 @@ function LoginContent() {
                     <div className="flex-grow border-t border-gray-100"></div>
                   </div>
                   
-                  {/* Official Google Login Button Wrapper */}
-                  <div className="w-full flex justify-center hover:opacity-90 transition-opacity">
-                    <GoogleLogin
-                      onSuccess={(credentialResponse) => {
-                        if (credentialResponse.credential) {
-                          handleGoogleLoginSuccess(credentialResponse.credential);
-                        }
-                      }}
-                      onError={() => setError("Google login failed. Please try again.")}
-                      shape="pill"
-                      size="large"
-                      width="384"
-                      logo_alignment="center"
-                      text="continue_with"
-                    />
-                  </div>
+                   {/* Official Google Login Button Wrapper */}
+                   <div ref={googleWrapperRef} className="w-full flex justify-center hover:opacity-90 transition-opacity">
+                     <GoogleLogin
+                       onSuccess={(credentialResponse) => {
+                         if (credentialResponse.credential) {
+                           handleGoogleLoginSuccess(credentialResponse.credential);
+                         }
+                       }}
+                       onError={() => setError("Google login failed. Please try again.")}
+                       shape="pill"
+                       size="large"
+                       width={googleBtnWidth}
+                       logo_alignment="center"
+                       text="continue_with"
+                     />
+                   </div>
                 </div>
               </form>
             )}

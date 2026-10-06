@@ -77,7 +77,7 @@ export default function ExplorePage() {
       
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-4 flex flex-col gap-4 border-b border-gray-100 dark:border-zinc-800">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
           <button onClick={() => handleBackNavigation(router)} className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -86,7 +86,7 @@ export default function ExplorePage() {
         </div>
 
         {/* --- SEARCH BAR --- */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 w-full max-w-7xl mx-auto">
           <div className="flex-1 flex items-center gap-2.5 px-4 py-3.5 bg-gray-100 dark:bg-zinc-900 rounded-[16px] text-gray-500 border border-transparent focus-within:border-gray-200 dark:focus-within:border-zinc-700 transition-colors">
             <Search className="w-4 h-4 shrink-0 text-gray-400" />
             <input 
@@ -106,7 +106,7 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      <div className="pt-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 pt-6 space-y-8">
         
         {/* --- CATEGORIES (Bleed Carousel) --- */}
         <section>
@@ -134,9 +134,7 @@ export default function ExplorePage() {
 
         {/* --- FEATURED VENDORS (Bleed Carousel) --- */}
         <section className="space-y-3">
-          <div className="px-4 flex justify-between items-center">
-            <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">Featured Stores</h2>
-          </div>
+          <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">Featured Stores</h2>
           
           <div className="flex overflow-x-auto no-scrollbar gap-4 pb-3 items-start snap-x snap-mandatory">
             <div className="w-0.5 shrink-0 snap-start" />
@@ -175,13 +173,13 @@ export default function ExplorePage() {
         </section>
 
         {/* --- AVAILABLE PRODUCTS GRID --- */}
-        <section className="px-4">
+        <section>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">
               {activeCategory === "All" ? "Popular Meals" : `${activeCategory} Meals`}
             </h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
             {filteredMeals.map((meal) => (
               <MealCard 
                 key={meal.id}

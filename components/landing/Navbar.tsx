@@ -32,7 +32,7 @@ export default function Navbar() {
             alt="Chop n Chop Icon"
             width={44}
             height={44}
-            className="w-auto h-7 md:h-9 object-contain transition-transform group-hover:scale-105"
+            className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
             priority
           />
           <Image

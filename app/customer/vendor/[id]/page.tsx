@@ -126,8 +126,9 @@ export default function VendorStorefrontPage() {
       </div>
 
       {/* --- MENU GRID --- */}
-      <div className="mt-5 px-4 grid grid-cols-2 gap-4">
-        {filteredMeals.map((meal) => (
+      <div className="mt-5 px-4 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          {filteredMeals.map((meal) => (
           <MealCard 
             key={meal.id}
             id={meal.id} 
@@ -142,11 +143,12 @@ export default function VendorStorefrontPage() {
               image: "/hero-food-illustration.png"
             })}
           />
-        ))}
+          ))}
+        </div>
       </div>
 
       {filteredMeals.length === 0 && (
-        <div className="px-4 mt-8 text-center">
+        <div className="px-4 mt-8 text-center max-w-7xl mx-auto">
           <p className="text-gray-500 text-[14px]">No items found in this category.</p>
         </div>
       )}
