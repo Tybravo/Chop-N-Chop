@@ -8,7 +8,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/uiStore';
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
-import { PreOrderIcon } from './PreOrderIcon'; 
+import { PreOrderIcon } from './PreOrderIcon';
+import InstallPwaButton from './InstallPwaButton'; 
 
 export default function Navbar() {
   const getTotalItems = useCartStore((state) => state.getTotalItems());
@@ -57,6 +58,8 @@ export default function Navbar() {
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-3 md:gap-6 z-50">
+        <InstallPwaButton />
+        
         <ThemeToggle />
         
         <button
