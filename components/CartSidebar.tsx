@@ -101,7 +101,8 @@ export function CartSidebar() {
                         <button 
                           className="px-2 py-1 text-foreground/60 hover:text-foreground hover:bg-secondary-light/10 transition-colors rounded-r-lg disabled:opacity-50"
                           onClick={() => updateQuantity(String(item.id), item.quantity + 1)}
-                          disabled={item.quantity >= item.stock}
+                          // To this:
+                          disabled={item.quantity >= (item.stock ?? Infinity)}
                         >
                           <Plus size={14} />
                         </button>
