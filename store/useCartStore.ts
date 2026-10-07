@@ -6,9 +6,28 @@ export interface CartItem extends MenuItem {
   quantity: number;
 }
 
+interface SimpleCartItem {
+  id: string | number;
+  name: string;
+  desc: string;
+  price: number;
+  image: string;
+  quantity: number;
+  imageUrl: string;
+  description?: string;
+  stock?: number;
+  maxStock?: number;
+  isSoldOut?: boolean;
+  category?: 'meal' | 'drink' | 'extra';
+  dietary?: string[];
+}
+
+type CartItemLike = CartItem | SimpleCartItem;
+
 interface CartState {
-  items: CartItem[];
+  items: CartItemLike[];
   addItem: (item: MenuItem) => void;
+  addToCart: (item: SimpleCartItem) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -31,6 +50,16 @@ export const useCartStore = create<CartState>()(
           };
         }
         return { items: [...state.items, { ...item, quantity: 1 }] };
+      }),
+      
+      addToCart: (newItem) => set((state) => {
+        const existingIndex = state.items.findIndex(item => item.id === newItem.id);
+        if (existingIndex > -1) {
+          const updated = [...state.items];
+          updated[existingIndex].quantity += 1;
+          return { items: updated };
+        }
+        return { items: [...state.items, { ...newItem, quantity: 1 }] };
       }),
       
       removeItem: (itemId) => set((state) => ({

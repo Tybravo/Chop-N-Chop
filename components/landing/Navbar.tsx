@@ -4,11 +4,12 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/uiStore';
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
-import { PreOrderIcon } from './PreOrderIcon'; 
+import { PreOrderIcon } from './PreOrderIcon';
+import InstallPwaButton from './InstallPwaButton'; 
 
 export default function Navbar() {
   const getTotalItems = useCartStore((state) => state.getTotalItems());
@@ -32,7 +33,7 @@ export default function Navbar() {
             alt="Chop n Chop Icon"
             width={44}
             height={44}
-            className="w-auto h-7 md:h-9 object-contain transition-transform group-hover:scale-105"
+            className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
             priority
           />
           <Image
@@ -57,6 +58,8 @@ export default function Navbar() {
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-3 md:gap-6 z-50">
+        <InstallPwaButton />
+        
         <ThemeToggle />
         
         <button

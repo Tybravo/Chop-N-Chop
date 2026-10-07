@@ -73,7 +73,7 @@ export default function Hero() {
           <div className="hidden md:block w-px h-12 bg-gray-200 dark:bg-gray-700" />
           <StatusItem icon={Package} title="Delivery Window" text="1:00 PM - 3:00 PM" />
           <div className="hidden md:block w-px h-12 bg-gray-200 dark:bg-gray-700" />
-          <StatusItem icon={Flame} title="Limited slots" text="Slots are filling up fast!" />
+          <StatusItem icon={Flame} title="Limited Slots" text="Slots are filling up fast!" />
         </div>
 
       </div>
