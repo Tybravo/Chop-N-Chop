@@ -16,14 +16,17 @@ interface MealCardProps {
 export default function MealCard({ id, name, vendor, price, imageUrl, onClick }: MealCardProps) {
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const handleQuickAdd = (e: React.MouseEvent) => {
+ const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevents the card from opening the modal when clicking the '+' button
     addToCart({
       id: String(id),
       name: name,
       desc: `${vendor} • Standard`,
+      description: `${vendor} • Standard`, 
       price: price,
       image: imageUrl || "/hero-food-illustration.png",
+      imageUrl: imageUrl || "/hero-food-illustration.png", // Added required field
+      quantity: 1, 
     });
   };
 

@@ -38,8 +38,11 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
         id: String(meal.id || meal.name),
         name: meal.name,
         desc: `${meal.vendor} • Custom Drop`,
+        description: `${meal.vendor} • Custom Drop`, 
         price: meal.discountedPrice,
         image: meal.image,
+        imageUrl: meal.image, // Added required field
+        quantity: 1,          // Added required field
       });
     }
     onClose(); // Close modal after adding

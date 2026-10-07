@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { X, Send, Sparkles, Plus, Check } from "lucide-react";
 import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
-// import { useOrderContext } from "@/store/useOrderContext";
 
 interface Message {
   id: string;
@@ -79,8 +78,11 @@ export default function AIChatModal({ isOpen, onClose, initialQuery = "" }: AICh
       id: card.id,
       name: card.title,
       desc: `${card.vendor} • Standard`,
+      description: `${card.vendor} • Standard`, 
       price: card.price,
-      image: card.image
+      image: card.image,
+      imageUrl: card.image,
+      quantity: 1,
     });
 
     setAddedItemIds((prev) => ({ ...prev, [card.id]: true }));

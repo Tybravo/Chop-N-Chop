@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Wallet, CreditCard, ShieldCheck, Loader2, Tag, ChevronRight, Building2, Smartphone, Copy, Check, Mail, Lock, X, Eye, EyeOff } from "lucide-react";
@@ -16,7 +16,8 @@ interface SavedCard {
   brand: string;
 }
 
-export default function CheckoutPage() {
+// 1. Rename your original component from "export default function CheckoutPage" to "function CheckoutContent"
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { items: cartItems } = useCartStore();
@@ -718,5 +719,28 @@ export default function CheckoutPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// 2. Create a fallback UI for the Suspense boundary
+function CheckoutFallback() {
+  return (
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-zinc-950 flex flex-col items-center justify-center p-6 space-y-6">
+      <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-2xl flex items-center justify-center shadow-xl shadow-orange-500/10">
+        <Loader2 className="w-8 h-8 text-[#FC6B31] animate-spin" />
+      </div>
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Loading Checkout</h2>
+      </div>
+    </div>
+  );
+}
+
+// 3. Create the new default export wrapped in Suspense
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<CheckoutFallback />}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

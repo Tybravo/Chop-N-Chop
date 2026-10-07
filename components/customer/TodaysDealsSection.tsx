@@ -160,8 +160,11 @@ export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionP
       id: item.id,
       name: item.name,
       desc: `${item.vendor} • Deal Drop`,
+      description: `${item.vendor} • Deal Drop`, // Keep standard convention
       price: item.price,
       image: item.image,
+      imageUrl: item.image, // Added required field
+      quantity: 1,          // Added required field
     });
   };
 
