@@ -21,6 +21,12 @@ export default function ProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
+  // Refs to the success/error banners so we can scroll them into view when they appear.
+  const updateSuccessRef = useRef<HTMLDivElement>(null);
+  const pinSuccessRef = useRef<HTMLDivElement>(null);
+  const updateErrorRef = useRef<HTMLDivElement>(null);
+  const pinErrorRef = useRef<HTMLDivElement>(null);
+  const pictureErrorRef = useRef<HTMLDivElement>(null);
 
   // Picture Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +64,20 @@ export default function ProfilePage() {
     }
     fetchProfile();
   }, []);
+
+  // When a notification banner appears, bring it into view so the user sees
+  // the feedback immediately (banners render above the form/actions).
+  useEffect(() => {
+    const banner =
+      updateSuccessRef.current ||
+      updateErrorRef.current ||
+      pinSuccessRef.current ||
+      pinErrorRef.current ||
+      pictureErrorRef.current;
+    if (banner) {
+      banner.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [updateSuccess, updateError, pinSuccess, pinError, pictureError]);
 
   if (loading) {
     return (
@@ -235,7 +255,7 @@ export default function ProfilePage() {
           </h2>
 
           {pictureError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+            <div ref={pictureErrorRef} className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
               <span>{pictureError}</span>
               <button type="button" onClick={() => setPictureError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
                 <X className="w-4 h-4" />
@@ -286,7 +306,7 @@ export default function ProfilePage() {
           </h2>
           
           {updateError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+            <div ref={updateErrorRef} className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
               <span>{updateError}</span>
               <button type="button" onClick={() => setUpdateError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
                 <X className="w-4 h-4" />
@@ -294,7 +314,7 @@ export default function ProfilePage() {
             </div>
           )}
           {updateSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+            <div ref={updateSuccessRef} className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
               <span>{updateSuccess}</span>
               <button type="button" onClick={() => setUpdateSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
                 <X className="w-4 h-4" />
@@ -384,7 +404,7 @@ export default function ProfilePage() {
           </h2>
 
           {pinError && (
-            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
+            <div ref={pinErrorRef} className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm flex justify-between items-center">
               <span>{pinError}</span>
               <button type="button" onClick={() => setPinError("")} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 focus:outline-none">
                 <X className="w-4 h-4" />
@@ -392,7 +412,7 @@ export default function ProfilePage() {
             </div>
           )}
           {pinSuccess && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
+            <div ref={pinSuccessRef} className="mb-6 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm flex justify-between items-center">
               <span>{pinSuccess}</span>
               <button type="button" onClick={() => setPinSuccess("")} className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none">
                 <X className="w-4 h-4" />

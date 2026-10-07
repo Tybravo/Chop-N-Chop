@@ -79,30 +79,33 @@ export function AdminSidebar() {
     <aside
       className={`bg-[#26292C] text-white transition-all duration-300 flex flex-col relative z-30 ${
         collapsed ? "w-20" : "w-64"
-      } h-screen shrink-0 font-sans`}
+      } h-screen top-0 shrink-0 font-sans`}
     >
-      {/* Header */}
-      <div className={`flex items-center h-16 px-4 bg-white ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        {!collapsed && (
-          <span className="text-xl font-extrabold text-[#FC6B31] tracking-tight">
-            Chop n&apos; Chop
-          </span>
-        )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-500 hover:text-[#FC6B31] transition-colors p-1"
-        >
-          {collapsed ? (
-            <ArrowRightToLine className="w-5 h-5" />
-          ) : (
-            <ArrowLeftToLine className="w-5 h-5" />
-          )}
-        </button>
-      </div>
-
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-6">
         <ul className="space-y-1">
+          {/* Collapse/expand toggle as the first menu item. It never routes -
+              it only toggles the sidebar width. When expanded it shows the
+              arrow icon plus the "Collapse" label; when collapsed, only the
+              icon is shown. */}
+          <li>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className={`flex w-full items-center px-6 py-3 text-gray-300 hover:bg-[#34393d] transition-colors cursor-pointer ${
+                collapsed ? "justify-center" : ""
+              }`}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? (
+                <ArrowRightToLine className="w-5 h-5 shrink-0" />
+              ) : (
+                <>
+                  <ArrowLeftToLine className="w-5 h-5 shrink-0 mr-4" />
+                  <span className="font-medium">Collapse</span>
+                </>
+              )}
+            </button>
+          </li>
           {MENU_ITEMS.filter((item) => !item.role || item.role === user?.role).map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
