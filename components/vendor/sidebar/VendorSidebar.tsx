@@ -86,7 +86,7 @@ export function VendorSidebar({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 bg-[#26292C] text-white transition-all duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        } ${isCollapsed ? "w-20" : "w-64"} h-[100dvh] pb-safe shrink-0 font-sans`}
+        } ${isCollapsed ? "w-20" : "w-64"} h-dvh pb-safe shrink-0 font-sans`}
       >
         <div
           className={`flex items-center h-16 px-4 bg-white border-b border-gray-200 ${
@@ -184,7 +184,7 @@ export function VendorSidebar({
       </aside>
 
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6 text-center animate-in zoom-in-95 duration-200">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <LogOut className="w-8 h-8" />
