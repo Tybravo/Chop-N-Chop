@@ -481,7 +481,7 @@ export default function CheckoutPage() {
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-start mb-2 pb-2 border-b border-gray-100 dark:border-zinc-800/50">
                   <div className="flex items-start gap-3">
-                    <Image src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" width={40} height={40} />
+                    <Image src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" width={40} height={40} />
                     <div>
                       <p className="font-semibold text-[13px] text-gray-900 dark:text-white">{item.name}</p>
                       <p className="text-[11px] text-gray-500">Qty: {item.quantity}</p>

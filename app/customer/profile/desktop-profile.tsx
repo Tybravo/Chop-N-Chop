@@ -20,6 +20,8 @@ interface DesktopProfileProps {
   profile: UserProfile | null;
   isLoading: boolean;
   avatarUrl: string;
+  isUploadingPic?: boolean;
+  onUploadClick?: () => void;
 }
 
 export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl }: DesktopProfileProps) {

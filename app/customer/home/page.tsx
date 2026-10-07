@@ -255,7 +255,13 @@ export default function CustomerHome() {
     return unsubscribe;
   }, [location, deliveryWindow, getTotalItems]);
 
-  const openMeal = (meal: MealModalData) => setSelectedMeal(meal);
+  const openMeal = (meal: MealModalData | { name: string; vendor: string; originalPrice: number; discountedPrice: number; image: string; availabilityWindow?: string; deliveryWindow?: string }) => {
+    if ("id" in meal) {
+      setSelectedMeal(meal as MealModalData);
+    } else {
+      setSelectedMeal({ ...meal, id: "deal-" + meal.name, stockRemaining: 0, isSellingFast: false } as MealModalData);
+    }
+  };
 
   const displayedMeals = activeCategory === "All" 
     ? dailyMeals 

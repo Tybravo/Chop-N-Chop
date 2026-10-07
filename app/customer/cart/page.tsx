@@ -10,7 +10,7 @@ export default function CartPage() {
   const router = useRouter();
 
   // --- Global Store State ---
-  const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
+  const { items: cartItems, updateQuantity, removeItem } = useCartStore();
 
   // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
@@ -42,20 +42,20 @@ const [addressForm, setAddressForm] = useState({ type: "", location: "" });
     if (delta === -1 && item.quantity === 1) {
       if (deleteConfirmId === id) {
         // Step 2: Confirm Delete (Bin was tapped) -> completely removes item
-        if (typeof removeFromCart === "function") {
-          removeFromCart(id);
+        if (typeof removeItem === "function") {
+          removeItem(String(id));
         } else {
-          updateQuantity(id, 0); // Fallback if store uses updateQuantity for removal
+          updateQuantity(String(id), 0); // Fallback if store uses updateQuantity for removal
         }
         setDeleteConfirmId(null);
       } else {
         // Step 1: Intend to Delete (Minus tapped at qty 1, show bin icon)
-        setDeleteConfirmId(id);
+        setDeleteConfirmId(Number(id));
       }
     } else {
       // Normal increment/decrement - ALWAYS clear delete confirmation on any other action
       setDeleteConfirmId(null);
-      updateQuantity(id, newQty);
+      updateQuantity(String(id), newQty);
     }
   };
 
@@ -140,17 +140,17 @@ const [addressForm, setAddressForm] = useState({ type: "", location: "" });
             </div>
           ) : (
             cartItems.map((item) => {
-              const isConfirmingDelete = deleteConfirmId === item.id;
+              const isConfirmingDelete = deleteConfirmId !== null && deleteConfirmId === Number(item.id);
 
               return (
                 <div key={item.id} className="flex gap-4 items-center bg-white dark:bg-zinc-900 p-3.5 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] dark:shadow-black/20 border border-gray-50 dark:border-zinc-800 transition-all">
                   <div className="w-[85px] h-[85px] bg-gray-100 dark:bg-zinc-800 rounded-[18px] overflow-hidden shrink-0">
-                    <Image src={item.image} alt={item.name} className="w-full h-full object-cover" width={85} height={85} />
+                    <Image src={(item as { imageUrl: string }).imageUrl} alt={item.name} className="w-full h-full object-cover" width={85} height={85} />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0 py-1">
                     <h3 className="font-bold text-[15px] text-gray-900 dark:text-white truncate">{item.name}</h3>
-                    <p className="text-[12px] text-gray-500 mb-2 truncate">{item.desc}</p>
+                    <p className="text-[12px] text-gray-500 mb-2 truncate">{item.description}</p>
                     <span className="font-extrabold text-[15px] text-gray-900 dark:text-white">
                       ₦{item.price.toLocaleString()}
                     </span>

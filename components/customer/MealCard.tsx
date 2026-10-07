@@ -19,7 +19,7 @@ export default function MealCard({ id, name, vendor, price, imageUrl, onClick }:
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevents the card from opening the modal when clicking the '+' button
     addToCart({
-      id: id,
+      id: String(id),
       name: name,
       desc: `${vendor} • Standard`,
       price: price,

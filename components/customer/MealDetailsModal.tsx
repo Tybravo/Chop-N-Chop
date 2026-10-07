@@ -35,7 +35,7 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
     // Add item the specified number of times (or you can adjust your store to accept quantity increments)
     for (let i = 0; i < quantity; i++) {
       addToCart({
-        id: meal.id || meal.name,
+        id: String(meal.id || meal.name),
         name: meal.name,
         desc: `${meal.vendor} • Custom Drop`,
         price: meal.discountedPrice,

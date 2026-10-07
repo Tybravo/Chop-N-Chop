@@ -12,10 +12,20 @@ interface SimpleCartItem {
   desc: string;
   price: number;
   image: string;
+  quantity: number;
+  imageUrl: string;
+  description?: string;
+  stock?: number;
+  maxStock?: number;
+  isSoldOut?: boolean;
+  category?: 'meal' | 'drink' | 'extra';
+  dietary?: string[];
 }
 
+type CartItemLike = CartItem | SimpleCartItem;
+
 interface CartState {
-  items: CartItem[];
+  items: CartItemLike[];
   addItem: (item: MenuItem) => void;
   addToCart: (item: SimpleCartItem) => void;
   removeItem: (itemId: string) => void;
