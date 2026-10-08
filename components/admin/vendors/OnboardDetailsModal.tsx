@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Loader2, X, Store, AlertCircle, RefreshCw } from "lucide-react";
 import { vendorService } from "@/services/admin/vendor.service";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 interface OnboardDetailsModalProps {
   vendorId: string;
@@ -10,11 +11,44 @@ interface OnboardDetailsModalProps {
   onClose: () => void;
 }
 
-// Format a value for display, showing null/undefined/empty as "Not provided"
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") {
-    return "Not provided";
-  }
+// Recursively search the payload (any depth) for the first non-empty value
+// whose key matches one of the given aliases (case-insensitive).
+function deepFind(root: unknown, keys: string[]): unknown {
+  const aliases = new Set(keys.map((k) => k.toLowerCase()));
+  const found: unknown[] = [];
+
+  const walk = (node: unknown) => {
+    if (found.length > 0) return;
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+      return;
+    }
+    if (node && typeof node === "object") {
+      const obj = node as Record<string, unknown>;
+      for (const key of Object.keys(obj)) {
+        if (aliases.has(key.toLowerCase())) {
+          const v = obj[key];
+          if (v !== null && v !== undefined && v !== "") {
+            found.push(v);
+            return;
+          }
+        }
+      }
+      for (const key of Object.keys(obj)) {
+        walk(obj[key]);
+        if (found.length > 0) return;
+      }
+    }
+  };
+
+  walk(root);
+  return found.length > 0 ? found[0] : undefined;
+}
+
+// Format a raw value for display: booleans -> Yes/No, dates -> readable, others as-is.
+function formatDisplayValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "Not provided";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "object") {
     try {
       return JSON.stringify(value);
@@ -22,68 +56,88 @@ function formatValue(value: unknown): string {
       return String(value);
     }
   }
-  return String(value);
+  const str = String(value);
+  if (/^\d{4}-\d{2}-\d{2}(T| )/.test(str) || /^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const date = new Date(str);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    }
+  }
+  return str;
 }
 
-// Humanize a snake_case / camelCase key for display
-function humanizeKey(key: string): string {
-  return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
+interface FieldDef {
+  label: string;
+  aliases: string[];
 }
 
-// Check if a value is effectively empty (null/undefined/empty string/empty object)
-function isEmptyValue(value: unknown): boolean {
-  if (value === null || value === undefined || value === "") return true;
-  if (typeof value === "object" && Object.keys(value as object).length === 0) return true;
-  return false;
-}
+const ACCOUNT_FIELDS: FieldDef[] = [
+  { label: "Email", aliases: ["email"] },
+  { label: "Phone", aliases: ["phone", "contactPhone", "contact_phone"] },
+  { label: "Status", aliases: ["status"] },
+  {
+    label: "Created At",
+    aliases: ["createdAt", "created_at", "joinedAt", "joined_at", "registrationDate"],
+  },
+];
 
-// Render a single field value
-function FieldValue({ value }: { value: unknown }) {
-  const isNull = isEmptyValue(value);
+const ONBOARDING_FIELDS: FieldDef[] = [
+  { label: "Owner Name", aliases: ["ownerName", "owner_name"] },
+  { label: "Business Name", aliases: ["businessName", "business_name"] },
+  { label: "Contact Phone", aliases: ["contactPhone", "contact_phone", "phone"] },
+  {
+    label: "Profile Picture Url",
+    aliases: ["profilePictureUrl", "profile_picture_url", "logoUrl", "logo_url", "avatar", "image"],
+  },
+  {
+    label: "Business Description",
+    aliases: ["businessDescription", "business_description", "description"],
+  },
+  { label: "Business Category", aliases: ["businessCategory", "business_category", "category"] },
+  { label: "Kitchen Location", aliases: ["kitchenLocation", "kitchen_location", "location", "address"] },
+  {
+    label: "Kitchen Coordinates",
+    aliases: ["kitchenCoordinates", "kitchen_coordinates", "coordinates", "coordinate"],
+  },
+];
+
+// Render one field as a labelled card, mirroring the modal's existing card styling.
+function FieldCard({ label, value }: { label: string; value: unknown }) {
+  const display = formatDisplayValue(value);
+  const isMissing = display === "Not provided";
   return (
-    <p
-      className={`text-sm font-semibold break-words ${
-        isNull ? "text-gray-400 dark:text-gray-500 italic" : "text-gray-900 dark:text-white"
+    <div
+      className={`p-3 rounded-lg border ${
+        isMissing
+          ? "bg-gray-50 dark:bg-black/30 border-gray-100 dark:border-gray-800"
+          : "bg-white dark:bg-[#26292C] border-gray-100 dark:border-gray-800"
       }`}
     >
-      {formatValue(value)}
-    </p>
+      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
+        {label}
+      </p>
+      <p
+        className={`text-sm font-semibold break-words ${
+          isMissing ? "text-gray-400 dark:text-gray-500 italic" : "text-gray-900 dark:text-white"
+        }`}
+      >
+        {display}
+      </p>
+    </div>
   );
 }
 
-// Render a section of fields (e.g. account, onboarding, kyc, banking, store)
-function Section({ title, data }: { title: string; data: Record<string, unknown> }) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
-
+// Render a titled group of fields.
+function Section({ title, fields, data }: { title: string; fields: FieldDef[]; data: Record<string, unknown> }) {
   return (
     <div className="mb-6">
       <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-3 pb-2 border-b border-gray-100 dark:border-gray-800">
-        {humanizeKey(title)}
+        {title}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {entries.map(([key, value]) => {
-          const isNull = isEmptyValue(value);
-          return (
-            <div
-              key={key}
-              className={`p-3 rounded-lg border ${
-                isNull
-                  ? "bg-gray-50 dark:bg-black/30 border-gray-100 dark:border-gray-800"
-                  : "bg-white dark:bg-[#26292C] border-gray-100 dark:border-gray-800"
-              }`}
-            >
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-                {humanizeKey(key)}
-              </p>
-              <FieldValue value={value} />
-            </div>
-          );
-        })}
+        {fields.map((field) => (
+          <FieldCard key={field.label} label={field.label} value={deepFind(data, field.aliases)} />
+        ))}
       </div>
     </div>
   );
@@ -105,9 +159,6 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
       const data = await vendorService.getVendorById(vendorId);
       setDetails(data);
     } catch (err: unknown) {
-      // Show a friendly message instead of the raw backend error.
-      // Only fall back to the raw error message if we can't determine
-      // a user-friendly contextual message.
       let message = "The server encountered an error while loading this vendor's details. Please try again later.";
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
@@ -123,7 +174,6 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
           message = "Unable to reach the server. Please check your connection and try again.";
         }
       } else if (err instanceof Error) {
-        // Only use the raw message if it's not a generic "Internal Server Error"
         if (err.message && err.message !== "Internal Server Error" && !err.message.toLowerCase().includes("500")) {
           message = err.message || message;
         }
@@ -146,15 +196,16 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
 
   if (!isOpen) return null;
 
-  // Extract top-level scalar fields (e.g. vendorId) and nested sections
-  const scalarEntries = details
-    ? Object.entries(details).filter(([, v]) => typeof v !== "object" || v === null)
-    : [];
-  const sectionEntries = details
-    ? Object.entries(details).filter(
-        ([, v]) => typeof v === "object" && v !== null && !Array.isArray(v)
-      )
-    : [];
+  const profilePicture = details
+    ? (deepFind(details, [
+        "profilePictureUrl",
+        "profile_picture_url",
+        "logoUrl",
+        "logo_url",
+        "avatar",
+        "image",
+      ]) as string | undefined)
+    : undefined;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -198,36 +249,29 @@ export function OnboardDetailsModal({ vendorId, businessName, isOpen, onClose }:
                 Retry
               </button>
             </div>
-          ) : details && (scalarEntries.length > 0 || sectionEntries.length > 0) ? (
+          ) : details ? (
             <>
-              {/* Top-level scalar fields */}
-              {scalarEntries.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {scalarEntries.map(([key, value]) => {
-                    const isNull = isEmptyValue(value);
-                    return (
-                      <div
-                        key={key}
-                        className={`p-3 rounded-lg border ${
-                          isNull
-                            ? "bg-gray-50 dark:bg-black/30 border-gray-100 dark:border-gray-800"
-                            : "bg-white dark:bg-[#26292C] border-gray-100 dark:border-gray-800"
-                        }`}
-                      >
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-                          {humanizeKey(key)}
-                        </p>
-                        <FieldValue value={value} />
-                      </div>
-                    );
-                  })}
+              {/* Vendor profile picture, centered at the top */}
+              <div className="flex justify-center mb-6">
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-orange-100 dark:border-orange-900/30 bg-gray-100 dark:bg-black/30">
+                  {profilePicture ? (
+                    <SafeAvatar
+                      src={profilePicture}
+                      alt={`${businessName} profile picture`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Store className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Nested sections */}
-              {sectionEntries.map(([key, value]) => (
-                <Section key={key} title={key} data={value as Record<string, unknown>} />
-              ))}
+              <Section title="Account" fields={ACCOUNT_FIELDS} data={details} />
+              <Section title="Onboarding" fields={ONBOARDING_FIELDS} data={details} />
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
