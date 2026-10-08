@@ -201,11 +201,11 @@ export default function VendorRegisterPage() {
                     </div>
                     <select name="businessCategory" value={formData.businessCategory} onChange={handleChange} className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                       <option value="">Select Category...</option>
-                      <option value="restaurant">Restaurant</option>
-                      <option value="fast_food">Fast Food</option>
-                      <option value="private_chef">Private Chef</option>
-                      <option value="bakery">Bakery / Cafe</option>
-                      <option value="beverages">Beverages</option>
+                      <option value="Restaurant">Restaurant</option>
+                      <option value="Fast food">Fast Food</option>
+                      <option value="Private chef">Private Chef</option>
+                      <option value="Bakery">Bakery / Cafe</option>
+                      <option value="Beverages">Beverages</option>
                     </select>
                   </div>
                 </div>
