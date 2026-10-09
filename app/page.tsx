@@ -2,6 +2,7 @@
 
 import Navbar from '@/components/landing/Navbar';
 import { CartSidebar } from '@/components/CartSidebar';
+import DownloadFloatingButton from '@/components/customer/DownloadFloatingButton';
 import Hero from '@/components/landing/Hero';
 import HowItWorks from '@/components/landing/HowItWorks';
 import Faq from '@/components/landing/Faq';
@@ -43,6 +44,7 @@ export default function Home() {
       </main>
 
       <CartSidebar />
+      <DownloadFloatingButton />
     </div>
   );
 }

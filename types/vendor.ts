@@ -6,11 +6,17 @@ export interface VendorProfile {
   phone: string;
   businessAddress?: string;
   businessCategory?: string;
+  businessDescription?: string;
   logoUrl?: string;
-  status: "APPROVED" | "PENDING" | "REJECTED" | "SUSPENDED" | "UNVERIFIED";
-  isOpen: boolean;
+  vendorStatus: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+  kycStatus: "NOT_SUBMITTED" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
+  kycCompleted: boolean;
+  isStoreOnline: boolean;
   joinedAt: string;
 }
+
+export type VendorStatus = VendorProfile["vendorStatus"];
+export type KycStatus = VendorProfile["kycStatus"];
 
 export interface PendingVendorApplication {
   vendorProfileId: string;

@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
-import { useCartStore } from "@/store/useCartStore"; // Import global Zustand cart store
+import { useCartStore, type CartItemLike } from "@/store/useCartStore";
 
 export default function CartPage() {
   const router = useRouter();
@@ -145,7 +145,7 @@ const [addressForm, setAddressForm] = useState({ type: "", location: "" });
               return (
                 <div key={item.id} className="flex gap-4 items-center bg-white dark:bg-zinc-900 p-3.5 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] dark:shadow-black/20 border border-gray-50 dark:border-zinc-800 transition-all">
                   <div className="w-[85px] h-[85px] bg-gray-100 dark:bg-zinc-800 rounded-[18px] overflow-hidden shrink-0">
-                    <Image src={(item as { imageUrl: string }).imageUrl} alt={item.name} className="w-full h-full object-cover" width={85} height={85} />
+                    <Image src={(item as CartItemLike).imageUrl ?? "/placeholder.png"} alt={item.name} className="w-full h-full object-cover" width={85} height={85} />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0 py-1">

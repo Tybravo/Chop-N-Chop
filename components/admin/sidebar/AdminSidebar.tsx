@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 type MenuItem = { name: string; href: string; icon: React.ElementType; role?: "SUPER_ADMIN" };
 
@@ -79,13 +80,34 @@ export function AdminSidebar() {
     <aside
       className={`bg-[#26292C] text-white transition-all duration-300 flex flex-col relative z-30 ${
         collapsed ? "w-20" : "w-64"
-      } h-screen shrink-0 font-sans`}
+      } h-full shrink-0 font-sans`}
     >
       {/* Header */}
-      <div className={`flex items-center h-16 px-4 bg-white ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        {!collapsed && (
+      <div className={`flex items-center h-16 px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        {!collapsed && user ? (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0">
+              <SafeAvatar
+                src={user?.avatarUrl && user.avatarUrl.trim() !== "" ? user.avatarUrl : "/avatar-placeholder.svg"}
+                alt={user?.name || "Admin"}
+                fill
+                sizes="36px"
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-gray-900 dark:text-white truncate whitespace-nowrap">
+                {user?.name || "Admin"}
+              </p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-300 truncate whitespace-nowrap">
+                {user?.role || "ADMIN"}
+              </p>
+            </div>
+          </div>
+        ) : (
           <span className="text-xl font-extrabold text-[#FC6B31] tracking-tight">
-            Chop n&apos; Chop
+            A
           </span>
         )}
         <button

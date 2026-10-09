@@ -2,6 +2,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowRight, Soup, Clock, Package, Flame } from 'lucide-react';
 
 interface StatusItemProps {
@@ -44,13 +45,16 @@ export default function Hero() {
         <p className="text-[16px] md:text-[20px] font-medium text-[#555F66] dark:text-gray-400 w-full max-w-[551px] leading-snug md:leading-none tracking-[-0.02em] md:tracking-[-0.08em] text-center mx-auto px-4 md:px-0">
           Order before the deadline, and get chef-prepared meals delivered in optimized batches. No delivery chaos. No unnecessary delays.
         </p>
-
-        <button className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-3 md:px-8 md:py-4 rounded-[12px] shadow-sm relative z-20 cursor-pointer flex items-center gap-2">
-          <span className="flex items-center gap-2 font-semibold text-white tracking-[0.25px]">
-            Order Today&apos;s Drop
-            <ArrowRight size={20} strokeWidth={2.5} color="#FFFFFF" />
-          </span>
-        </button>
+        
+        {/* BUTTON WRAPPED IN LINK FOR ROUTING */}
+        <Link href="/customer/home" className="inline-block relative z-20">
+          <button className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-3 md:px-8 md:py-4 rounded-[12px] shadow-sm cursor-pointer flex items-center gap-2">
+            <span className="flex items-center gap-2 font-semibold text-white tracking-[0.25px]">
+              Order Today&apos;s Drop
+              <ArrowRight size={20} strokeWidth={2.5} color="#FFFFFF" />
+            </span>
+          </button>
+        </Link>
 
       </div>
 

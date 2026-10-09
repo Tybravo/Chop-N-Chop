@@ -70,7 +70,7 @@ export default function PayoutPage() {
           </div>
           <button 
             onClick={handleRequestPayout}
-            disabled={stats.availableBalance <= 0 || requesting || user?.status === "UNVERIFIED" || user?.status === "PENDING"}
+            disabled={stats.availableBalance <= 0 || requesting || user?.vendorStatus === "PENDING" || user?.vendorStatus === "SUSPENDED" || user?.kycStatus !== "APPROVED"}
             className="w-full mt-6 py-2.5 bg-white text-[#FC6B31] rounded-lg font-bold hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {requesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Request Payout <ArrowRight className="w-4 h-4" /></>}

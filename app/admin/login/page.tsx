@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/admin/auth.service";
-import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -45,6 +46,15 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
         <div className="p-8">
+          <div className="mb-6">
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-1.5 text-gray-500 hover:text-[#FC6B31] dark:text-gray-400 dark:hover:text-[#FC6B31] transition-colors text-sm font-medium"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Home</span>
+            </Link>
+          </div>
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Admin Portal

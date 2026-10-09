@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -22,9 +22,10 @@ import ActiveOrderTracker from "@/components/customer/home/ActiveOrderTracker";
 import HomeSearchPrompt from "@/components/customer/home/HomeSearchPrompt";
 import MealCard from "@/components/customer/MealCard";
 import DeliveryDropBanner from "@/components/customer/DeliveryDropBanner";
-import MealDetailsModal from "@/components/customer/MealDetailsModal";
 import TodaysDealsSection from "@/components/customer/TodaysDealsSection";
 import CategoryPills from "@/components/customer/CategoryPills";
+
+const MealDetailsModal = lazy(() => import("@/components/customer/MealDetailsModal"));
 
 // --- Aligned API Types based on Backend Responses ---
 type ApiCategory = {
@@ -505,11 +506,13 @@ export default function CustomerHome() {
         <TodaysDealsSection onSelectMeal={openMeal} />
       </main>
 
-      <MealDetailsModal 
-        isOpen={Boolean(selectedMeal)} 
-        meal={selectedMeal} 
-        onClose={() => setSelectedMeal(null)} 
-      />
+      <Suspense fallback={null}>
+        <MealDetailsModal 
+          isOpen={Boolean(selectedMeal)} 
+          meal={selectedMeal} 
+          onClose={() => setSelectedMeal(null)} 
+        />
+      </Suspense>
     </div>
   );
 }

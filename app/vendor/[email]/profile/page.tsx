@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useVendorAuth } from "@/context/VendorAuthContext";
 import { vendorService } from "@/services/vendor/vendor.service";
 import { VendorProfile } from "@/types/vendor";
-import { Loader2, Upload, User, Store, Mail, Phone, MapPin, X } from "lucide-react";
+import { Loader2, Upload, User, Store, Mail, Phone, MapPin, X, AlertCircle, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 export default function UpdateProfilePage() {
@@ -13,18 +13,23 @@ export default function UpdateProfilePage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [successMsg, setSuccessMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const fetchProfile = async () => {
+    setFetching(true);
+    setError("");
+    try {
+      const data = await vendorService.getProfile();
+      setProfile(data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load profile. Please try again.");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await vendorService.getProfile();
-        setProfile(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setFetching(false);
-      }
-    };
     fetchProfile();
   }, []);
 
@@ -39,18 +44,42 @@ export default function UpdateProfilePage() {
     if (!profile) return;
     setLoading(true);
     setSuccessMsg("");
+    setError("");
     try {
       const updated = await vendorService.updateProfile(profile);
       updateUser(updated);
       setSuccessMsg("Profile updated successfully!");
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching || !profile) {
+  if (fetching) {
+    return <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FC6B31]"></div></div>;
+  }
+
+  if (error && !profile) {
+    return (
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="p-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-red-800 dark:text-red-200">Failed to load profile</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        </div>
+        <button onClick={fetchProfile} className="px-4 py-2 bg-[#FC6B31] text-white rounded-lg font-medium hover:bg-[#e35a2b] transition-colors flex items-center gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!profile) {
     return <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FC6B31]"></div></div>;
   }
 

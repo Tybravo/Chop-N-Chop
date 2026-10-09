@@ -21,6 +21,7 @@ import {
   X
 } from "lucide-react";
 import { useVendorAuth } from "@/context/VendorAuthContext";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 type MenuItem = { name: string; href: string; icon: React.ElementType };
 
@@ -34,7 +35,7 @@ export function VendorSidebar({
   const pathname = usePathname();
   const params = useParams();
   const email = params.email as string;
-  const { logout } = useVendorAuth();
+  const { user, logout } = useVendorAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -86,16 +87,37 @@ export function VendorSidebar({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 bg-[#26292C] text-white transition-all duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        } ${isCollapsed ? "w-20" : "w-64"} h-[100dvh] pb-safe shrink-0 font-sans`}
+        } ${isCollapsed ? "w-20" : "w-64"} h-full pb-safe shrink-0 font-sans`}
       >
         <div
-          className={`flex items-center h-16 px-4 bg-white border-b border-gray-200 ${
+          className={`flex items-center h-16 px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 ${
             isCollapsed ? "justify-center" : "justify-between"
           }`}
         >
-          {!isCollapsed && (
+          {!isCollapsed && user ? (
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 relative">
+                <SafeAvatar
+                  src={user.logoUrl || "/avatar-placeholder.svg"}
+                  alt={user.businessName || "Vendor"}
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate whitespace-nowrap">
+                  {user.businessName}
+                </p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-300 truncate whitespace-nowrap">
+                  {user.ownerName || user.email}
+                </p>
+              </div>
+            </div>
+          ) : (
             <span className="text-xl font-extrabold text-[#FC6B31] tracking-tight whitespace-nowrap">
-              Vendor Portal
+              V
             </span>
           )}
 

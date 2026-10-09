@@ -25,6 +25,15 @@ function LoginContent() {
 
   const googleWrapperRef = useRef<HTMLDivElement>(null);
   const [googleBtnWidth, setGoogleBtnWidth] = useState<number>(384);
+  const [isStandalonePwa, setIsStandalonePwa] = useState(false);
+
+  // Detect standalone PWA mode — popup OAuth is unreliable there, use redirect
+  useLayoutEffect(() => {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    setIsStandalonePwa(standalone);
+  }, []);
 
   // --- Handlers ---
   
@@ -186,7 +195,8 @@ function LoginContent() {
     const updateWidth = () => {
       if (googleWrapperRef.current) {
         const measured = googleWrapperRef.current.offsetWidth;
-        setGoogleBtnWidth(measured > 0 ? measured : 384);
+        const capped = Math.min(measured > 0 ? measured : 384, 384);
+        setGoogleBtnWidth(capped);
       }
     };
     updateWidth();
@@ -271,22 +281,23 @@ function LoginContent() {
                     <div className="flex-grow border-t border-gray-100"></div>
                   </div>
                   
-                   {/* Official Google Login Button Wrapper */}
-                   <div ref={googleWrapperRef} className="w-full flex justify-center hover:opacity-90 transition-opacity">
-                     <GoogleLogin
-                       onSuccess={(credentialResponse) => {
-                         if (credentialResponse.credential) {
-                           handleGoogleLoginSuccess(credentialResponse.credential);
-                         }
-                       }}
-                       onError={() => setError("Google login failed. Please try again.")}
-                       shape="pill"
-                       size="large"
-                       width={googleBtnWidth}
-                       logo_alignment="center"
-                       text="continue_with"
-                     />
-                   </div>
+{/* Official Google Login Button Wrapper */}
+                    <div ref={googleWrapperRef} className="w-full flex justify-center hover:opacity-90 transition-opacity">
+                      <GoogleLogin
+                        onSuccess={(credentialResponse) => {
+                          if (credentialResponse.credential) {
+                            handleGoogleLoginSuccess(credentialResponse.credential);
+                          }
+                        }}
+                        onError={() => setError("Google login failed. Please try again.")}
+                        shape="pill"
+                        size="large"
+                        width={googleBtnWidth}
+                        logo_alignment="center"
+                        text="continue_with"
+                        ux_mode={isStandalonePwa ? "redirect" : "popup"}
+                      />
+                    </div>
                 </div>
               </form>
             )}

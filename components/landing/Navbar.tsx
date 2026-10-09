@@ -58,7 +58,7 @@ export default function Navbar() {
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-3 md:gap-6 z-50">
-        <InstallPwaButton />
+        <InstallPwaButton className="hidden lg:flex" />
         
         <ThemeToggle />
         
@@ -101,6 +101,9 @@ export default function Navbar() {
             <PreOrderIcon size={16} />
             <span className="font-semibold text-white tracking-[0.25px]">Order Now</span>
           </button>
+          <div className="flex justify-center sm:hidden mt-2">
+            <InstallPwaButton />
+          </div>
         </div>
       )}
     </nav>

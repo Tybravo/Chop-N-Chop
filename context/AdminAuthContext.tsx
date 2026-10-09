@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { AdminUser } from "@/types/admin";
+import { AdminUser, AdminRole } from "@/types/admin";
 import { authService } from "@/services/admin/auth.service";
+import { profileService } from "@/services/admin/profile.service";
 
 interface AdminAuthContextType {
   user: AdminUser | null;
@@ -35,19 +36,52 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => {
       if (storedUser) {
         setUser(JSON.parse(storedUser));
+        setIsLoading(false);
       } else if (hasToken) {
         // Token exists but user object is missing (e.g. after refresh).
-        // Restore a minimal user so the session is recognized as authenticated.
-        setUser({
-          id: "",
-          name: "Admin",
-          email: "",
-          role: "SUPER_ADMIN",
-          status: "ACTIVE",
-          createdAt: new Date().toISOString(),
-        });
+        // Fetch the real profile so the sidebar/navbar show the actual
+        // logged-in user's name and profile picture. isLoading stays true
+        // until this settles so the redirect effect doesn't bounce the
+        // user to the login page while the session is being restored.
+        profileService
+          .getProfile()
+          .then((profile) => {
+            const fullName = [profile.firstName, profile.lastName]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            const restoredUser: AdminUser = {
+              id: profile.id,
+              name: fullName || "Admin",
+              email: profile.email,
+              role: (profile.role as AdminRole) || "ADMIN",
+              avatarUrl: profile.profilePictureUrl,
+              status: "ACTIVE",
+              createdAt: new Date().toISOString(),
+            };
+            setUser(restoredUser);
+            localStorage.setItem("adminUser", JSON.stringify(restoredUser));
+          })
+          .catch(() => {
+            // Profile fetch failed (e.g. expired token) — restore a minimal
+            // user so the session is still recognized. If the token was
+            // revoked/cleared by the axios interceptor, the redirect effect
+            // will route the user to login.
+            setUser({
+              id: "",
+              name: "Admin",
+              email: "",
+              role: "SUPER_ADMIN",
+              status: "ACTIVE",
+              createdAt: new Date().toISOString(),
+            });
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }, 0);
   }, []);
 

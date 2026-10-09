@@ -34,13 +34,18 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
-          <div className="max-w-7xl mx-auto">{children}</div>
-        </main>
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
+      {/* Navbar at the top, full width */}
+      <AdminHeader />
+
+      {/* Below navbar: sidebar (left) + main content (right) */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
+            <div className="max-w-7xl mx-auto">{children}</div>
+          </main>
+        </div>
       </div>
     </div>
   );
