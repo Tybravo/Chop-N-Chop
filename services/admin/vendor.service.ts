@@ -189,14 +189,14 @@ export const vendorService = {
    */
   async verifyVendor(vendorProfileId: string): Promise<void> {
     try {
-      await adminApiClient.patch(`/api/v1/admin/vendors/${vendorProfileId}/status`, {
-        status: "APPROVED",
+      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/kyc/review`, {
+        approve: true,
       });
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error(`Error verifying vendor ${vendorProfileId}:`, error.response?.data || error.message);
+        console.error(`Error verifying vendor KYC ${vendorProfileId}:`, error.response?.data || error.message);
       } else {
-        console.error(`Unexpected error verifying vendor ${vendorProfileId}:`, error);
+        console.error(`Unexpected error verifying vendor KYC ${vendorProfileId}:`, error);
       }
       throw error;
     }
