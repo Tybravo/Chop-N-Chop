@@ -66,12 +66,7 @@ const ACTION_BUTTON_STYLES = {
     "w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 border-b-4 border-blue-800 shadow-md hover:bg-blue-500 hover:border-blue-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm transition-all duration-150",
 };
 
-// Map KYC filter values to vendor status for filtering
-// VERIFIED -> APPROVED status, UNVERIFIED -> UNVERIFIED status
-const KYC_STATUS_MAP: Record<KycFilterStatus, PendingVendorApplication["status"]> = {
-  VERIFIED: "APPROVED",
-  UNVERIFIED: "UNVERIFIED",
-};
+
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<PendingVendorApplication[]>([]);
@@ -129,16 +124,19 @@ export default function VendorsPage() {
   // Apply client-side filtering based on active filter section
   const filteredVendors = useMemo(() => {
     if (activeFilterSection === "kyc" && activeKycStatus) {
-      // KYC filters map to actual vendor statuses
-      const targetStatus = KYC_STATUS_MAP[activeKycStatus];
-      return vendors.filter((v) => v.status === targetStatus);
+      const getKycStatus = (vendor: PendingVendorApplication) =>
+        vendor.kycStatus ?? "NOT_SUBMITTED";
+      return vendors.filter((v) =>
+        activeKycStatus === "VERIFIED"
+          ? getKycStatus(v) === "APPROVED"
+          : getKycStatus(v) !== "APPROVED"
+      );
     }
 
     // Onboard filters
     if (onboardFilter === "ALL") return vendors;
 
     // Approved includes both APPROVED and UNVERIFIED vendors
-    // (UNVERIFIED vendors are approved/onboarded, just awaiting KYC verification)
     if (onboardFilter === "APPROVED") {
       return vendors.filter(
         (v) => v.status === "APPROVED" || v.status === "UNVERIFIED"

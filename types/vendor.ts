@@ -27,6 +27,7 @@ export interface PendingVendorApplication {
   cacRegistrationNumber?: string;
   brand?: string;
   status: "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED" | "UNVERIFIED";
+  kycStatus?: "NOT_SUBMITTED" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
 }
 
 export interface MealComponent {

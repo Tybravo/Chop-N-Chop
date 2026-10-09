@@ -19,6 +19,7 @@ function normalizeAllVendor(v: Record<string, unknown>): PendingVendorApplicatio
     cacRegistrationNumber: v.cacRegistrationNumber as string | undefined,
     brand: v.brand as string | undefined,
     status: (v.status as PendingVendorApplication["status"]) || "PENDING",
+    kycStatus: v.kycStatus as PendingVendorApplication["kycStatus"] | undefined,
   };
 }
 
@@ -28,7 +29,7 @@ function normalizeAllVendor(v: Record<string, unknown>): PendingVendorApplicatio
  */
 function normalizePendingVendor(v: Record<string, unknown>): PendingVendorApplication {
   return {
-    vendorProfileId: (v.vendorProfileId as string) || (v.id as string) || "",
+    vendorProfileId: (v.vendorProfileId as string) || "",
     businessName: (v.businessName as string) || "",
     email: (v.email as string) || "",
     contactPhone: (v.contactPhone as string) || "",
@@ -36,6 +37,7 @@ function normalizePendingVendor(v: Record<string, unknown>): PendingVendorApplic
     cacRegistrationNumber: v.cacRegistrationNumber as string | undefined,
     brand: v.brand as string | undefined,
     status: (v.status as PendingVendorApplication["status"]) || "PENDING",
+    kycStatus: v.kycStatus as PendingVendorApplication["kycStatus"] | undefined,
   };
 }
 
