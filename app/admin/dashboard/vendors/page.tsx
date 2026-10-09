@@ -356,6 +356,36 @@ export default function VendorsPage() {
     return FILTER_LABELS[onboardFilter];
   };
 
+  const getKycStatusLabel = (vendor: PendingVendorApplication) => {
+    const kyc = vendor.kycStatus ?? "NOT_SUBMITTED";
+    switch (kyc) {
+      case "APPROVED":
+        return "Approved";
+      case "PENDING_REVIEW":
+        return "Pending Review";
+      case "REJECTED":
+        return "Rejected";
+      case "NOT_SUBMITTED":
+      default:
+        return "Not Submitted";
+    }
+  };
+
+  const getKycStatusBadgeStyle = (vendor: PendingVendorApplication) => {
+    const kyc = vendor.kycStatus ?? "NOT_SUBMITTED";
+    switch (kyc) {
+      case "APPROVED":
+        return "bg-green-50 text-green-600 border border-green-100 dark:bg-green-900/20 dark:border-green-800/30 dark:text-green-400";
+      case "PENDING_REVIEW":
+        return "bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/20 dark:border-orange-800/30 dark:text-orange-400";
+      case "REJECTED":
+        return "bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-800/30 dark:text-red-400";
+      case "NOT_SUBMITTED":
+      default:
+        return "bg-gray-50 text-gray-600 border border-gray-100 dark:bg-gray-900/20 dark:border-gray-800/30 dark:text-gray-400";
+    }
+  };
+
   return (
     <div className="pb-24 md:pb-8 relative min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -534,7 +564,8 @@ export default function VendorsPage() {
                   <tr>
                     <th className="px-6 py-4 font-medium">Business Name</th>
                     <th className="px-6 py-4 font-medium">Email</th>
-                    <th className="px-6 py-4 font-medium text-center">Status</th>
+                    <th className="px-6 py-4 font-medium text-center">Vendor Status</th>
+                    <th className="px-6 py-4 font-medium text-center">KYC Status</th>
                     <th className="px-6 py-4 font-medium text-center">Details</th>
                     {showActionsColumn() && (
                       <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -557,7 +588,14 @@ export default function VendorsPage() {
                         <span
                           className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE_STYLES[vendor.status as DisplayFilterStatus]}`}
                         >
-                          {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase()}
+                          {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase().replace(/_/g, " ")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${getKycStatusBadgeStyle(vendor)}`}
+                        >
+                          {getKycStatusLabel(vendor)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -592,11 +630,18 @@ export default function VendorsPage() {
                     <p className="font-semibold text-gray-900 dark:text-white truncate">{vendor.businessName}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{vendor.email}</p>
                   </div>
-                  <span
-                    className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_BADGE_STYLES[vendor.status as DisplayFilterStatus]}`}
-                  >
-                    {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase()}
-                  </span>
+                  <div className="flex flex-col gap-1 items-end">
+                    <span
+                      className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_BADGE_STYLES[vendor.status as DisplayFilterStatus]}`}
+                    >
+                      {vendor.status.charAt(0) + vendor.status.slice(1).toLowerCase().replace(/_/g, " ")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${getKycStatusBadgeStyle(vendor)}`}
+                    >
+                      {getKycStatusLabel(vendor)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mb-3">
