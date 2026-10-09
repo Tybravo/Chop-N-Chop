@@ -45,7 +45,6 @@ export function VendorSidebar({
     };
 
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -96,7 +95,7 @@ export function VendorSidebar({
         >
           {!isCollapsed && user ? (
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0 relative">
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0 relative">
                 <SafeAvatar
                   src={user.logoUrl || "/avatar-placeholder.svg"}
                   alt={user.businessName || "Vendor"}
@@ -136,7 +135,6 @@ export function VendorSidebar({
             )}
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
           <ul className="space-y-1">
             {MENU_ITEMS.map((item) => {
@@ -237,4 +235,3 @@ export function VendorSidebar({
     </>
   );
 }
-
