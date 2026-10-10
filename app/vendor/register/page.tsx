@@ -71,11 +71,11 @@ export default function VendorRegisterPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-black">
       {/* Left side: Illustration/Branding */}
-      <div className="hidden md:flex md:w-1/2 bg-[#FC6B31] items-center justify-center p-12 text-white relative overflow-hidden">
+      <div className="hidden md:flex md:flex-col md:w-1/2 bg-[#FC6B31] items-center justify-start pt-32 lg:pt-48 px-12 pb-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/file.svg')] bg-cover"></div>
-        <div className="relative z-10 max-w-lg text-center">
-          <h1 className="text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chopnchop</h1>
-          <p className="text-xl opacity-90 leading-relaxed">
+        <div className="relative z-10 max-w-lg flex flex-col items-center text-center">
+          <h1 className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chopnchop</h1>
+          <p className="text-lg lg:text-xl opacity-90 leading-relaxed">
             Join our platform to reach thousands of customers, manage orders seamlessly, and track your revenue in real-time.
           </p>
         </div>

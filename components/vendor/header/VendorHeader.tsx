@@ -26,7 +26,7 @@ export function VendorHeader({ onMenuClick }: { onMenuClick: () => void }) {
               {user?.businessName?.charAt(0) || "V"}
             </div>
           )}
-          <span className="font-semibold text-gray-900 dark:text-white truncate max-w-[150px] sm:max-w-xs">
+          <span className="font-semibold text-gray-900 dark:text-white truncate max-w-37.5 sm:max-w-xs">
             {user?.businessName || "Vendor"}
           </span>
         </div>
