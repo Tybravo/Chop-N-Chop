@@ -21,6 +21,7 @@ import {
   X
 } from "lucide-react";
 import { useVendorAuth } from "@/context/VendorAuthContext";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 type MenuItem = { name: string; href: string; icon: React.ElementType };
 
@@ -34,7 +35,7 @@ export function VendorSidebar({
   const pathname = usePathname();
   const params = useParams();
   const email = params.email as string;
-  const { logout } = useVendorAuth();
+  const { user, logout } = useVendorAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -44,7 +45,6 @@ export function VendorSidebar({
     };
 
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -86,15 +86,58 @@ export function VendorSidebar({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 bg-[#26292C] text-white transition-all duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        } ${isCollapsed ? "w-20" : "w-64"} h-dvh pb-safe shrink-0 font-sans`}
+        } ${isCollapsed ? "w-20" : "w-64"} h-full pb-safe shrink-0 font-sans`}
       >
-          {/* Mobile drawer close button */}
-          <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }} className="hidden lg:hidden absolute top-3 right-3 text-gray-400 hover:text-[#FC6B31] p-2 z-50">
+
+        <div
+          className={`flex items-center h-16 px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 ${
+            isCollapsed ? "justify-center" : "justify-between"
+          }`}
+        >
+          {!isCollapsed && user ? (
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0 relative">
+                <SafeAvatar
+                  src={user.logoUrl || "/avatar-placeholder.svg"}
+                  alt={user.businessName || "Vendor"}
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate whitespace-nowrap">
+                  {user.businessName}
+                </p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-300 truncate whitespace-nowrap">
+                  {user.ownerName || user.email}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <span className="text-xl font-extrabold text-[#FC6B31] tracking-tight whitespace-nowrap">
+              V
+            </span>
+          )}
+
+          <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }} className="lg:hidden text-gray-500 hover:text-[#FC6B31] p-2 z-50">
             <X className="w-6 h-6" />
           </button>
 
-          {/* Main Navigation */}
-          <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex text-gray-500 hover:text-[#FC6B31] transition-colors p-1"
+          >
+            {isCollapsed ? (
+              <ArrowRightToLine className="w-5 h-5" />
+            ) : (
+              <ArrowLeftToLine className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
+
           <ul className="space-y-1">
             {/* Collapse/expand toggle as the first menu item. It never routes -
                 it only toggles the sidebar width. When expanded it shows the
@@ -186,7 +229,7 @@ export function VendorSidebar({
       </aside>
 
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6 text-center animate-in zoom-in-95 duration-200">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <LogOut className="w-8 h-8" />
@@ -217,4 +260,3 @@ export function VendorSidebar({
     </>
   );
 }
-

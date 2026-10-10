@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { authService } from "@/services/vendor/auth.service";
 import { useVendorAuth } from "@/context/VendorAuthContext";
-import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function VendorLoginPage() {
@@ -42,6 +42,15 @@ export default function VendorLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
       <div className="admin-card max-w-md w-full p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+        <div className="mb-6">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-1.5 text-gray-500 hover:text-[#FC6B31] dark:text-gray-400 dark:hover:text-[#FC6B31] transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Login as a Vendor

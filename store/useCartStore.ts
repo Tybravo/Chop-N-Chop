@@ -24,6 +24,8 @@ interface SimpleCartItem {
 
 type CartItemLike = CartItem | SimpleCartItem;
 
+export type { SimpleCartItem, CartItemLike };
+
 interface CartState {
   items: CartItemLike[];
   addItem: (item: MenuItem) => void;

@@ -31,7 +31,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   // Helper to get auth token
   const getToken = () => typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
 
-  // --- Initial Fetch ---
+  // --- Initial Fetch (deferred to idle time so it doesn't block cold start) ---
   useEffect(() => {
     const token = getToken();
     if (!token) return;
@@ -60,34 +60,49 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    fetchNotifications();
+    // Defer non-critical network work so the UI renders first
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      (window as Window & typeof globalThis).requestIdleCallback(() => fetchNotifications(), { timeout: 3000 });
+    } else {
+      setTimeout(fetchNotifications, 1500);
+    }
   }, []);
 
-// --- Real-Time SSE Subscription ---
+  // --- Real-Time SSE Subscription (deferred, only for authenticated users) ---
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
-    // Added the brand query parameter required by your backend multi-tenancy
-    const eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}&brand=CHOP_N_CHOP`);
+    let eventSource: EventSource | null = null;
+    let mounted = true;
 
-    eventSource.onmessage = (event) => {
-      try {
-        const newNotification: AppNotification = JSON.parse(event.data);
-        setNotifications((prev) => [newNotification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      } catch (err) {
-        console.error("Error parsing real-time notification:", err);
-      }
+    const connectSSE = () => {
+      if (!mounted) return;
+      eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}&brand=CHOP_N_CHOP`);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const newNotification: AppNotification = JSON.parse(event.data);
+          setNotifications((prev) => [newNotification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        } catch (err) {
+          console.error("Error parsing real-time notification:", err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("SSE Connection Error:", err);
+        eventSource?.close();
+      };
     };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE Connection Error:", err);
-      eventSource.close();
-    };
+    // Start SSE after a short delay so it doesn't contend with initial render
+    const timer = setTimeout(connectSSE, 2000);
 
     return () => {
-      eventSource.close();
+      mounted = false;
+      clearTimeout(timer);
+      eventSource?.close();
     };
   }, []);
 
