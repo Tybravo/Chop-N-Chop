@@ -166,6 +166,7 @@ export default function VendorDashboardPage() {
           </p>
         </div>
         <button
+      
           onClick={handleToggleStatus}
           disabled={user.vendorStatus === "PENDING" || user.vendorStatus === "SUSPENDED" || !user.kycCompleted}
           className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FC6B31] focus:ring-offset-2 ${
