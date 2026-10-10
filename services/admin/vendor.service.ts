@@ -19,6 +19,7 @@ function normalizeAllVendor(v: Record<string, unknown>): PendingVendorApplicatio
     cacRegistrationNumber: v.cacRegistrationNumber as string | undefined,
     brand: v.brand as string | undefined,
     status: (v.status as PendingVendorApplication["status"]) || "PENDING",
+    kycStatus: v.kycStatus as PendingVendorApplication["kycStatus"] | undefined,
   };
 }
 
@@ -28,7 +29,7 @@ function normalizeAllVendor(v: Record<string, unknown>): PendingVendorApplicatio
  */
 function normalizePendingVendor(v: Record<string, unknown>): PendingVendorApplication {
   return {
-    vendorProfileId: (v.vendorProfileId as string) || (v.id as string) || "",
+    vendorProfileId: (v.vendorProfileId as string) || "",
     businessName: (v.businessName as string) || "",
     email: (v.email as string) || "",
     contactPhone: (v.contactPhone as string) || "",
@@ -36,6 +37,7 @@ function normalizePendingVendor(v: Record<string, unknown>): PendingVendorApplic
     cacRegistrationNumber: v.cacRegistrationNumber as string | undefined,
     brand: v.brand as string | undefined,
     status: (v.status as PendingVendorApplication["status"]) || "PENDING",
+    kycStatus: v.kycStatus as PendingVendorApplication["kycStatus"] | undefined,
   };
 }
 
@@ -187,14 +189,14 @@ export const vendorService = {
    */
   async verifyVendor(vendorProfileId: string): Promise<void> {
     try {
-      await adminApiClient.patch(`/api/v1/admin/vendors/${vendorProfileId}/status`, {
-        status: "APPROVED",
+      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/kyc/review`, {
+        approve: true,
       });
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error(`Error verifying vendor ${vendorProfileId}:`, error.response?.data || error.message);
+        console.error(`Error verifying vendor KYC ${vendorProfileId}:`, error.response?.data || error.message);
       } else {
-        console.error(`Unexpected error verifying vendor ${vendorProfileId}:`, error);
+        console.error(`Unexpected error verifying vendor KYC ${vendorProfileId}:`, error);
       }
       throw error;
     }

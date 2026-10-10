@@ -1,6 +1,7 @@
 import { VendorProfile } from "@/types/vendor";
 import { mockVendorProfile } from "@/lib/mock/vendor.mock";
 import axios from "axios";
+import { formatApiError } from "@/lib/format-error";
 
 // 1. Create a dedicated Axios instance for Vendor requests
 export const vendorApiClient = axios.create({
@@ -71,18 +72,55 @@ export const authService = {
       const response = await vendorApiClient.post("/api/v1/vendors/auth/login", payload);
       
       const token = response.data?.data?.access_token || response.data?.access_token;
+      const userId = response.data?.data?.user_id || response.data?.data?.id || "mock_id";
       
-      const userData: VendorProfile = {
-        id: response.data?.data?.user_id || "mock_id",
-        email: payload.email,
-        businessName: "Vendor Business", // Needs to be fetched from profile if not in token, but we satisfy type here
-        ownerName: "Vendor Owner",
-        phone: "",
-        status: response.data?.data?.status || "APPROVED",
-        logoUrl: response.data?.data?.profilePictureUrl,
-        isOpen: true,
-        joinedAt: new Date().toISOString(),
-      };
+      // Store token immediately so subsequent API calls can use it
+      if (token && typeof window !== "undefined") {
+        localStorage.setItem("vendor_access_token", token);
+      }
+
+      // Fetch the full vendor profile after login using the /me endpoint
+      let userData: VendorProfile;
+      try {
+        const profileResponse = await vendorApiClient.get(`/api/v1/vendors/me/profile`);
+        const profile = profileResponse.data?.data || profileResponse.data;
+        
+        userData = {
+          id: userId,
+          email: payload.email,
+          businessName: profile?.businessName || profile?.business_name || "Vendor Business",
+          ownerName: profile?.ownerName || profile?.owner_name || "Vendor Owner",
+          phone: profile?.phone || profile?.contactPhone || "",
+          businessAddress: profile?.businessAddress || profile?.kitchenLocation || "",
+          businessCategory: profile?.businessCategory || profile?.business_category || "",
+          businessDescription: profile?.businessDescription || profile?.business_description || "",
+          logoUrl: profile?.profilePictureUrl || profile?.logoUrl || response.data?.data?.profilePictureUrl || response.data?.data?.logoUrl || response.data?.profilePictureUrl,
+          vendorStatus: profile?.vendorStatus || "PENDING",
+          kycStatus: profile?.kycStatus || "NOT_SUBMITTED",
+          kycCompleted: profile?.kycCompleted ?? false,
+          isStoreOnline: profile?.isStoreOnline ?? false,
+          joinedAt: profile?.joinedAt || profile?.created_at || new Date().toISOString(),
+        };
+      } catch (profileError) {
+        // Fallback to login response data if profile fetch fails
+        console.warn("Failed to fetch vendor profile, using login response:", profileError);
+        userData = {
+          id: userId,
+          email: payload.email,
+          businessName: response.data?.data?.businessName || response.data?.businessName || "Vendor Business",
+          ownerName: response.data?.data?.ownerName || response.data?.ownerName || "Vendor Owner",
+          phone: response.data?.data?.phone || response.data?.data?.contactPhone || "",
+          businessAddress: "",
+          businessCategory: "",
+          businessDescription: "",
+          logoUrl: response.data?.data?.profilePictureUrl || response.data?.data?.logoUrl || response.data?.profilePictureUrl,
+          vendorStatus: "PENDING",
+          kycStatus: "NOT_SUBMITTED",
+          kycCompleted: false,
+          isStoreOnline: false,
+          joinedAt: new Date().toISOString(),
+        };
+      }
 
       return {
         success: true,
@@ -90,10 +128,7 @@ export const authService = {
         user: userData,
       };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data?.message || error.response.data?.error || "Invalid credentials");
-      }
-      throw new Error("An unexpected error occurred during login.");
+      throw new Error(formatApiError(error, "Invalid credentials"));
     }
   },
 
@@ -105,7 +140,7 @@ export const authService = {
       const userData = response.data?.user || response.data?.vendor || {
         ...mockVendorProfile,
         email: email,
-      };
+      } as VendorProfile;
       
       const token = response.data?.token || response.data?.accessToken || "mock_vendor_token";
 
@@ -115,21 +150,7 @@ export const authService = {
         user: userData,
       };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        // Extract the error message
-        const backendMsg = error.response.data?.message || error.response.data?.error;
-        
-        // If it's a Spring Boot validation error array, extract it nicely
-        if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
-          const validationMsg = error.response.data.errors
-            .map((err: Record<string, string | undefined>) => `${err.field}: ${err.defaultMessage || err.message}`)
-            .join(", ");
-          throw new Error(validationMsg);
-        }
-
-        throw new Error(backendMsg || "Invalid OTP or expired");
-      }
-      throw new Error("An unexpected error occurred during OTP verification.");
+      throw new Error(formatApiError(error, "Invalid OTP or expired"));
     }
   },
 
@@ -141,10 +162,7 @@ export const authService = {
         message: response.data?.message || "OTP resent successfully",
       };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data?.message || error.response.data?.error || "Failed to resend OTP");
-      }
-      throw new Error("An unexpected error occurred while resending OTP.");
+      throw new Error(formatApiError(error, "Failed to resend OTP"));
     }
   },
 
@@ -167,12 +185,9 @@ export const authService = {
       };
 
       const response = await vendorApiClient.post("/api/v1/vendors/apply", finalPayload);
-      return { success: true, message: response.data.message || "Registration successful" };
+      return { success: true, message: response.data?.message || "Registration successful" };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data?.message || error.response.data?.error || "Registration failed");
-      }
-      throw new Error("An unexpected error occurred during registration.");
+      throw new Error(formatApiError(error, "Registration failed"));
     }
   },
 

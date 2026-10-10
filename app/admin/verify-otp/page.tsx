@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/services/admin/auth.service";
+import { profileService } from "@/services/admin/profile.service";
 import { Loader2, KeyRound, X, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { LoginResponse } from "@/types/admin";
@@ -120,14 +121,35 @@ function VerifyOtpForm() {
       if (res.access_token) {
         localStorage.setItem("admin_access_token", res.access_token);
         localStorage.setItem("admin_refresh_token", res.refresh_token);
-        
+
+        // Fetch the real profile so the sidebar/navbar show the admin's
+        // actual name and profile picture instead of a placeholder.
+        let displayName = "Admin User";
+        let displayAvatar = res.profilePictureUrl && res.profilePictureUrl.trim() !== ""
+          ? res.profilePictureUrl
+          : undefined;
+
+        try {
+          const profile = await profileService.getProfile();
+          const fullName = [profile.firstName, profile.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+          if (fullName) displayName = fullName;
+          if (profile.profilePictureUrl && profile.profilePictureUrl.trim() !== "") {
+            displayAvatar = profile.profilePictureUrl;
+          }
+        } catch {
+          // Profile fetch is best-effort — fall back to login response values.
+        }
+
         login({
           id: res.user_id,
-          name: "Admin User", 
+          name: displayName,
           email: email!,
           role: (res.role as "SUPER_ADMIN" | "SUB_ADMIN") || "SUPER_ADMIN",
           status: (res.status as "ACTIVE" | "INACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED") || "ACTIVE",
-          avatarUrl: res.profilePictureUrl && res.profilePictureUrl.trim() !== "" ? res.profilePictureUrl : undefined,
+          avatarUrl: displayAvatar,
           createdAt: new Date().toISOString(),
         });
       }

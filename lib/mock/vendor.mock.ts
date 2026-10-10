@@ -16,8 +16,11 @@ export const mockVendorProfile: VendorProfile = {
   phone: "+2348000000000",
   businessAddress: "123 Food Street, Lagos",
   businessCategory: "Restaurant",
-  status: "APPROVED",
-  isOpen: true,
+  businessDescription: "Quality meals at affordable prices",
+  vendorStatus: "APPROVED",
+  kycStatus: "APPROVED",
+  kycCompleted: true,
+  isStoreOnline: true,
   joinedAt: "2023-01-01T00:00:00Z",
 };
 

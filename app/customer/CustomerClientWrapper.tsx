@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import FloatingBottomNav from "@/components/customer/FloatingBottomNav";
-import AIChatModal from "@/components/customer/AiChatModal";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
+
+const AIChatModal = lazy(() => import("@/components/customer/AiChatModal"));
 
 export default function CustomerClientWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -49,7 +50,9 @@ export default function CustomerClientWrapper({ children }: { children: React.Re
         </button>
       )}
 
-      <AIChatModal isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} initialQuery="" />
+      <Suspense fallback={null}>
+        <AIChatModal isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} initialQuery="" />
+      </Suspense>
       
       {showGlobalUI && <FloatingBottomNav />}
     </div>
