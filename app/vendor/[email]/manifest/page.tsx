@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { vendorService, ManifestResponse, ManifestItem } from "@/services/vendor/vendor.service";
-import { Calendar, ChevronLeft, ChevronRight, Download, RefreshCw, AlertCircle } from "lucide-react";
+import { Calendar, Download, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function ManifestPage() {
   const [manifest, setManifest] = useState<ManifestResponse | null>(null);
@@ -11,7 +11,7 @@ export default function ManifestPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [hubId, setHubId] = useState("");
 
-  const fetchManifest = async () => {
+  const fetchManifest = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -24,11 +24,11 @@ export default function ManifestPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, hubId]);
 
   useEffect(() => {
     fetchManifest();
-  }, [selectedDate, hubId]);
+  }, [fetchManifest]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {

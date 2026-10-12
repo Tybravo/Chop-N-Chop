@@ -54,47 +54,33 @@ export function VendorHeader({ onMenuClick }: { onMenuClick: () => void }) {
         >
           <Menu className="w-6 h-6" />
         </button>
-<<<<<<< HEAD
         <div className="flex items-center gap-2">
-          {user?.logoUrl ? (
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-              <Image src={user.logoUrl} alt="Logo" width={32} height={32} className="object-cover" />
-            </div>
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-[#FC6B31]/10 flex items-center justify-center text-[#FC6B31] font-bold">
-              {user?.businessName?.charAt(0) || "V"}
-            </div>
+          <Link href={`${base}/dashboard`} className="flex items-center gap-2.5 group">
+            <Image
+              src="/logo_icon.png"
+              alt="Chop n Chop Icon"
+              width={40}
+              height={40}
+              className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
+              priority
+            />
+            <Image
+              src="/Chopnchop.png"
+              alt="Chop n Chop Text"
+              width={120}
+              height={28}
+              className="w-auto h-5 md:h-[26px] object-contain mt-1"
+              priority
+            />
+          </Link>
+          {user && (
+            <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Vendor Only</span>
+              <span className="sm:hidden">Vendor</span>
+            </span>
           )}
-          <span className="font-semibold text-gray-900 dark:text-white truncate max-w-37.5 sm:max-w-xs">
-            {user?.businessName || "Vendor"}
-=======
-        <Link href={`${base}/dashboard`} className="flex items-center gap-2.5 group">
-          <Image
-            src="/logo_icon.png"
-            alt="Chop n Chop Icon"
-            width={40}
-            height={40}
-            className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
-            priority
-          />
-          <Image
-            src="/Chopnchop.png"
-            alt="Chop n Chop Text"
-            width={120}
-            height={28}
-            className="w-auto h-5 md:h-[26px] object-contain mt-1"
-            priority
-          />
-        </Link>
-
-        {user && (
-          <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
-            <Shield className="w-4 h-4" />
-            <span className="hidden sm:inline">Vendor Only</span>
-            <span className="sm:hidden">Vendor</span>
->>>>>>> origin/dev
-          </span>
-        )}
+        </div>
       </div>
 
       {/* Center: Primary Operations (desktop only) */}

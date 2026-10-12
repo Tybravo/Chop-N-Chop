@@ -18,6 +18,13 @@ export interface VendorProfile {
 export type VendorStatus = VendorProfile["vendorStatus"];
 export type KycStatus = VendorProfile["kycStatus"];
 
+export interface VendorStatusData {
+  vendorStatus: VendorProfile["vendorStatus"];
+  kycStatus: VendorProfile["kycStatus"];
+  kycCompleted: boolean;
+  isStoreOnline: boolean;
+}
+
 export interface PendingVendorApplication {
   vendorProfileId: string;
   businessName: string;
@@ -108,4 +115,45 @@ export interface VendorDashboardStats {
   totalEarnings: number;
   completedOrdersEarnings: number;
   availableBalance: number;
+}
+
+// ==========================================
+// Vendor PIN Recovery (Forgot/Reset PIN)
+// ==========================================
+export interface InitiateVendorRecoveryPayload {
+  email: string;
+}
+
+export interface VendorResetPinPayload {
+  email: string;
+  otp: string;
+  newPin: string;
+  confirmPin: string;
+}
+
+export interface ChangeVendorPinPayload {
+  oldPin: string;
+  newPin: string;
+}
+
+export interface VendorResetPinResponse {
+  access_token?: string;
+  refresh_token?: string;
+  user_id?: string;
+  message?: string;
+  role?: string;
+  status?: string;
+  profilePictureUrl?: string;
+  kycCompleted?: boolean;
+  data?: {
+    access_token?: string;
+    refresh_token?: string;
+    user_id?: string;
+    role?: string;
+    status?: string;
+    profilePictureUrl?: string;
+    kycCompleted?: boolean;
+    message?: string;
+    [key: string]: unknown;
+  };
 }

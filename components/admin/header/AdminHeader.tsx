@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Search, Shield, Smile, SlidersHorizontal, LogOut, Bell } from "lucide-react";
+import { Search, Shield, Smile, SlidersHorizontal, LogOut, Bell } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { SafeAvatar } from "@/components/SafeAvatar";
 import { ThemeToggle } from "@/components/ThemeToggle";

@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { VendorProfile } from "@/types/vendor";
 import { authService } from "@/services/vendor/auth.service";
+import { vendorService } from "@/services/vendor/vendor.service";
 
 interface VendorAuthContextType {
   user: VendorProfile | null;
@@ -69,12 +70,55 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   const updateUser = (updates: Partial<VendorProfile>) => {
-    if (user) {
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updatedUser = { ...prev, ...updates };
       localStorage.setItem("vendorUser", JSON.stringify(updatedUser));
-    }
+      return updatedUser;
+    });
   };
+
+  // Keep vendor status (approval / suspension / store online) in sync with the
+  // backend so the dashboard toggle and header reflect admin actions automatically.
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+
+    const syncStatus = async () => {
+      try {
+        const status = await vendorService.getStatus();
+        if (cancelled) return;
+
+        const current = JSON.parse(localStorage.getItem("vendorUser") || "null") as VendorProfile | null;
+        if (!current) return;
+
+        const changed =
+          current.vendorStatus !== status.vendorStatus ||
+          current.kycStatus !== status.kycStatus ||
+          current.kycCompleted !== status.kycCompleted ||
+          current.isStoreOnline !== status.isStoreOnline;
+
+        if (changed) updateUser({
+          vendorStatus: status.vendorStatus,
+          kycStatus: status.kycStatus,
+          kycCompleted: status.kycCompleted,
+          isStoreOnline: status.isStoreOnline,
+        });
+      } catch (error) {
+        console.warn("Vendor status sync failed:", error);
+      }
+    };
+
+    syncStatus();
+    const intervalId = setInterval(syncStatus, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const logout = async () => {
     setUser(null);

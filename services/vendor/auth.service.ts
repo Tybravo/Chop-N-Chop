@@ -1,4 +1,4 @@
-import { VendorProfile } from "@/types/vendor";
+import { VendorProfile, InitiateVendorRecoveryPayload, VendorResetPinPayload, ChangeVendorPinPayload, VendorResetPinResponse } from "@/types/vendor";
 import { mockVendorProfile } from "@/lib/mock/vendor.mock";
 import axios from "axios";
 import { formatApiError } from "@/lib/format-error";
@@ -200,6 +200,32 @@ export const authService = {
       console.warn("Backend logout failed silently due to server error.");
       return { success: false, message: "Backend logout failed" };
     }
-  }
+  },
 
+  initiateRecovery: async (payload: InitiateVendorRecoveryPayload): Promise<string> => {
+    try {
+      const response = await vendorApiClient.post("/api/v1/vendors/forgot-pin", payload);
+      return response.data?.message || "If an account with that email exists, a reset OTP has been sent";
+    } catch (error: unknown) {
+      throw new Error(formatApiError(error, "Failed to initiate PIN recovery"));
+    }
+  },
+
+  resetPin: async (payload: VendorResetPinPayload): Promise<VendorResetPinResponse> => {
+    try {
+      const response = await vendorApiClient.post<VendorResetPinResponse>("/api/v1/auth/recovery/reset", payload);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(formatApiError(error, "Failed to reset PIN"));
+    }
+  },
+
+  changePin: async (payload: ChangeVendorPinPayload): Promise<{ message: string }> => {
+    try {
+      const response = await vendorApiClient.patch("/api/v1/vendors/me/pin", payload);
+      return { message: response.data?.message || "PIN updated successfully" };
+    } catch (error: unknown) {
+      throw new Error(formatApiError(error, "Failed to update PIN"));
+    }
+  }
 };

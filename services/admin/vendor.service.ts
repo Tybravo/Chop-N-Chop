@@ -141,12 +141,24 @@ export const vendorService = {
   },
 
   /**
-   * Approve a pending vendor application
-   * Changes status to APPROVED, enables login, and initializes wallet
+   * Approve a vendor application
+   *
+   * Initial approval (Tier 1) uses POST /approve which ONLY accepts PENDING
+   * applications - it enables login and initializes the escrow wallet.
+   *
+   * Re-approving a SUSPENDED/REJECTED vendor must use the forceful
+   * PATCH /status endpoint with { status: "APPROVED" }, otherwise the backend
+   * rejects the request with "Only pending vendor applications can be approved."
    */
-  async approveVendor(vendorProfileId: string): Promise<void> {
+  async approveVendor(vendorProfileId: string, currentStatus?: string): Promise<void> {
     try {
-      await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/approve`, {});
+      if (currentStatus === "PENDING") {
+        await adminApiClient.post(`/api/v1/admin/vendors/${vendorProfileId}/approve`, {});
+      } else {
+        await adminApiClient.patch(`/api/v1/admin/vendors/${vendorProfileId}/status`, {
+          status: "APPROVED",
+        });
+      }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error(`Error approving vendor ${vendorProfileId}:`, {

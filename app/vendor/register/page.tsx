@@ -44,12 +44,28 @@ export default function VendorRegisterPage() {
       return;
     }
 
+    // Phone field: allow digits only, max 11 figures, and surface an error if characters are typed.
+    if (name === "contactPhone") {
+      const sanitized = value.replace(/\D/g, "").slice(0, 11);
+      if (sanitized !== value) {
+        setError("Phone number must contain only digits (0-9).");
+      }
+      setFormData({ ...formData, [name]: sanitized });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Phone number: must be exactly 11 digits.
+    if (!/^\d{11}$/.test(formData.contactPhone)) {
+      setError("Phone number must be exactly 11 digits (0-9).");
+      return;
+    }
 
     if (!/^\d{4}$/.test(formData.pin)) {
       setError("PIN must be exactly 4 digits.");
@@ -151,7 +167,7 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Phone className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} inputMode="numeric" autoComplete="tel" maxLength={11} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                 </div>
               </div>
             </div>

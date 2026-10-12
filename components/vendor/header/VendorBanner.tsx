@@ -1,7 +1,7 @@
 "use client";
 
 import { useVendorAuth } from "@/context/VendorAuthContext";
-import { AlertCircle, FileText, ChevronRight, Shield, CheckCircle } from "lucide-react";
+import { AlertCircle, FileText, ChevronRight, Shield } from "lucide-react";
 import Link from "next/link";
 
 export function VendorBanner() {

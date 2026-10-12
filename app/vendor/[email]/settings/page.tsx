@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { authService } from "@/services/vendor/auth.service";
 import { Lock, Bell, Loader2, X } from "lucide-react";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
-  
+  const [error, setError] = useState("");
+
   const [pins, setPins] = useState({
     current: "",
     new: "",
@@ -20,18 +22,39 @@ export default function SettingsPage() {
     pushAlerts: true
   });
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
     if (pins.new !== pins.confirm) {
-      alert("PINs do not match");
+      setError("New PINs do not match.");
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
-      setSuccess("PIN updated successfully.");
+
+    if (pins.new.length !== 4) {
+      setError("New PIN must be exactly 4 digits.");
+      return;
+    }
+
+    if (pins.current === pins.new) {
+      setError("New PIN must be different from your current PIN.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await authService.changePin({
+        oldPin: pins.current,
+        newPin: pins.new,
+      });
+      setSuccess(res.message);
       setPins({ current: "", new: "", confirm: "" });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update PIN.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleNotifToggle = (key: keyof typeof notifications) => {
@@ -51,6 +74,15 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {error && (
+        <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium flex justify-between items-center">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} className="text-red-600 hover:text-red-800 focus:outline-none">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* PIN Settings */}
       <div className="admin-card p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-4 flex items-center gap-2">
@@ -60,15 +92,15 @@ export default function SettingsPage() {
         <form onSubmit={handlePinSubmit} className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current PIN</label>
-            <input type="password" required value={pins.current} onChange={e => setPins({...pins, current: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <input type="password" inputMode="numeric" maxLength={4} required value={pins.current} onChange={e => setPins({...pins, current: e.target.value.replace(/\D/g, '').slice(0, 4)})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New PIN</label>
-            <input type="password" required value={pins.new} onChange={e => setPins({...pins, new: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <input type="password" inputMode="numeric" maxLength={4} required value={pins.new} onChange={e => setPins({...pins, new: e.target.value.replace(/\D/g, '').slice(0, 4)})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New PIN</label>
-            <input type="password" required value={pins.confirm} onChange={e => setPins({...pins, confirm: e.target.value})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
+            <input type="password" inputMode="numeric" maxLength={4} required value={pins.confirm} onChange={e => setPins({...pins, confirm: e.target.value.replace(/\D/g, '').slice(0, 4)})} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-900 text-sm" />
           </div>
           <button type="submit" disabled={loading} className="px-6 py-2 bg-gray-900 text-white dark:bg-white dark:text-black rounded-lg font-medium hover:bg-[#FC6B31] dark:hover:bg-[#FC6B31] transition-colors flex items-center gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update PIN"}
