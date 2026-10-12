@@ -42,6 +42,35 @@ function CheckoutContent() {
   // --- MOCK USER STATUS (Toggle these to test the flows) ---
   const [isGuest, setIsGuest] = useState(false);
   const [userHasPin, setUserHasPin] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+
+  const fetchProfileForPrefill = async () => {
+    const token = localStorage.getItem("chopnchop_token");
+    if (!token) return;
+    try {
+      setIsFetchingProfile(true);
+      const res = await customerApiClient.get("/api/v1/user/profile");
+      const profile = res.data || {};
+      const profilePhone = profile.phone || profile.phoneNumber || "";
+      const profileEmail = profile.email || "";
+
+      if (profilePhone && !phoneNumber) {
+        setPhoneNumber(profilePhone);
+      }
+      if (profileEmail && !email) {
+        setEmail(profileEmail);
+      }
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status !== 401) {
+        console.warn("Could not prefill checkout from profile:", err.response?.data || err.message);
+      }
+    } finally {
+      setIsFetchingProfile(false);
+    }
+  };
+
+  // Determine whether to display a prefill indicator (logged-in user with phone/email)
+  const isPrefilled = !isGuest && Boolean(phoneNumber || email);
 
   // --- CARD MANAGEMENT ---
   const [savedCards, setSavedCards] = useState<SavedCard[]>([
@@ -64,6 +93,14 @@ function CheckoutContent() {
   // 2. PAYMENT VERIFICATION (Post-Paystack Redirect)
   // ==========================================
   useEffect(() => {
+    const fetchPrefill = async () => {
+      const token = localStorage.getItem("chopnchop_token");
+      if (token) {
+        await fetchProfileForPrefill();
+      }
+    };
+    fetchPrefill();
+
     const reference = searchParams.get("reference");
     if (!reference) return;
 

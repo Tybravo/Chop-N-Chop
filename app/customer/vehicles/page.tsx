@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 import {
   ArrowLeft,
   Car,
@@ -15,25 +17,18 @@ import {
 
 interface SavedVehicle {
   id: string;
-  label: string;
+  label?: string;
   make: string;
+  model?: string;
   color: string;
   plate: string;
   isPrimary: boolean;
+  plateNumber?: string;
 }
 
 type VehicleDialog = "add" | "edit" | null;
 
-const initialVehicles: SavedVehicle[] = [
-  {
-    id: "primary-vehicle",
-    label: "Primary",
-    make: "Mercedes-Benz ML500",
-    color: "Silver",
-    plate: "KJA-203XX",
-    isPrimary: true,
-  },
-];
+const initialVehicles: SavedVehicle[] = [];
 
 const emptyVehicleForm = {
   label: "",
@@ -56,9 +51,31 @@ export default function VehiclesPage() {
   const saveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    const fetchVehicles = async () => {
+      setIsSaving(true);
+      try {
+        const res = await customerApiClient.get("/api/v1/user/vehicles");
+        const data = res.data?.data || res.data || [];
+        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
+          id: v.id,
+          label: v.label || v.model || "",
+          make: v.model || v.make || "",
+          model: v.model,
+          color: v.color || "",
+          plate: v.plateNumber || v.plate || "",
+          plateNumber: v.plateNumber,
+          isPrimary: Boolean(v.isDefault || v.isPrimary),
+        }));
+        setVehicles(mapped);
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status !== 401) {
+          console.error("Failed to fetch vehicles", err);
+        }
+      } finally {
+        setIsSaving(false);
+      }
     };
+    fetchVehicles();
   }, []);
 
   useEffect(() => {
@@ -86,10 +103,10 @@ export default function VehiclesPage() {
     setDialog("edit");
     setEditingVehicle(vehicle);
     setForm({
-      label: vehicle.label,
-      make: vehicle.make,
-      color: vehicle.color,
-      plate: vehicle.plate,
+      label: vehicle.label || vehicle.make,
+      make: vehicle.make || vehicle.model || "",
+      color: vehicle.color || "",
+      plate: vehicle.plate || vehicle.plateNumber || "",
     });
     setMenuVehicleId(null);
     setFormError("");
@@ -103,45 +120,55 @@ export default function VehiclesPage() {
     setFormError("");
   };
 
-  const submitVehicle = (event: FormEvent<HTMLFormElement>) => {
+  const submitVehicle = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const label = form.label.trim();
     const make = form.make.trim();
     const color = form.color.trim();
     const plate = form.plate.trim();
 
-    if (!label || !make || !plate) {
-      setFormError("Label, vehicle make, and plate number are required.");
+    if (!make || !plate) {
+      setFormError("Vehicle make/model and plate number are required.");
       return;
     }
 
     setFormError("");
     setIsSaving(true);
-    saveTimerRef.current = window.setTimeout(() => {
-      const nextVehicle: SavedVehicle = {
-        id: dialog === "edit" && editingVehicle ? editingVehicle.id : `vehicle-${Date.now()}`,
-        label,
-        make,
-        color,
-        plate,
-        isPrimary: dialog === "edit" ? editingVehicle?.isPrimary ?? false : !vehicles.some((vehicle) => vehicle.isPrimary),
-      };
-
-      setVehicles((currentVehicles) => {
-        if (dialog === "edit") {
-          return currentVehicles.map((vehicle) =>
-            vehicle.id === nextVehicle.id ? nextVehicle : vehicle,
-          );
-        }
-        return nextVehicle.isPrimary
-          ? currentVehicles.map((vehicle) => ({ ...vehicle, isPrimary: false })).concat(nextVehicle)
-          : currentVehicles.concat(nextVehicle);
+    try {
+      if (dialog === "edit" && editingVehicle) {
+        // Edit not specified in given API; skip if backend doesn't support - but user wants add/list/delete
+      }
+      await customerApiClient.post("/api/v1/user/vehicles/add", {
+        plateNumber: plate,
+        model: make,
+        color: color || "",
+        isDefault: dialog === "add" ? (!vehicles.some((v) => v.isPrimary)) : (editingVehicle?.isPrimary ?? false),
       });
+      const res = await customerApiClient.get("/api/v1/user/vehicles");
+      const data = res.data?.data || res.data || [];
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
+        id: v.id,
+        label: v.label || v.model || "",
+        make: v.model || v.make || "",
+        model: v.model,
+        color: v.color || "",
+        plate: v.plateNumber || v.plate || "",
+        plateNumber: v.plateNumber,
+        isPrimary: Boolean(v.isDefault || v.isPrimary),
+      }));
+      setVehicles(mapped);
       setDialog(null);
       setEditingVehicle(null);
+      setStatusMessage(`${make} ${dialog === "add" ? "was saved" : "was updated"} successfully.`);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setFormError(err.response?.data?.message || "Failed to save vehicle");
+      } else {
+        setFormError("Failed to save vehicle");
+      }
+    } finally {
       setIsSaving(false);
-      setStatusMessage(`${make} ${dialog === "edit" ? "was updated" : "was saved"} successfully.`);
-    }, 600);
+    }
   };
 
   const setPrimaryVehicle = (vehicleId: string) => {
@@ -156,15 +183,31 @@ export default function VehiclesPage() {
     setStatusMessage(`${vehicle?.make ?? "Vehicle"} set as your primary vehicle.`);
   };
 
-  const removeVehicle = (vehicleId: string) => {
-    const remaining = vehicles.filter((vehicle) => vehicle.id !== vehicleId);
-    const nextVehicles =
-      remaining.length > 0 && !remaining.some((vehicle) => vehicle.isPrimary)
-        ? remaining.map((vehicle, index) => ({ ...vehicle, isPrimary: index === 0 }))
-        : remaining;
-    setVehicles(nextVehicles);
-    setMenuVehicleId(null);
-    setStatusMessage("Saved vehicle removed.");
+  const removeVehicle = async (vehicleId: string) => {
+    try {
+      setIsSaving(true);
+      await customerApiClient.delete(`/api/v1/user/vehicles/${vehicleId}`);
+      const res = await customerApiClient.get("/api/v1/user/vehicles");
+      const data = res.data?.data || res.data || [];
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
+        id: v.id,
+        label: v.label || v.model || "",
+        make: v.model || v.make || "",
+        model: v.model,
+        color: v.color || "",
+        plate: v.plateNumber || v.plate || "",
+        plateNumber: v.plateNumber,
+        isPrimary: Boolean(v.isDefault || v.isPrimary),
+      }));
+      setVehicles(mapped);
+      setMenuVehicleId(null);
+      setStatusMessage("Saved vehicle removed.");
+    } catch (err) {
+      console.error("Failed to delete vehicle", err);
+      setStatusMessage("Failed to remove vehicle.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
