@@ -94,9 +94,9 @@ export default function VendorLoginPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   PIN
                 </label>
-                <a href="#" className="text-sm font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
+                <Link href="/vendor/forgot-pin" className="text-sm font-medium text-[#FC6B31] hover:text-[#e35014] transition-colors">
                   Forgot PIN?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

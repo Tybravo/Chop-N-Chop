@@ -68,7 +68,7 @@ export function VendorActionModal({ vendor, action, isOpen, onClose, onSuccess }
 
     try {
       if (action === "approve") {
-        await vendorService.approveVendor(vendor.vendorProfileId);
+        await vendorService.approveVendor(vendor.vendorProfileId, vendor.status);
       } else if (action === "suspend") {
         await vendorService.suspendVendor(vendor.vendorProfileId);
       } else if (action === "verify") {

@@ -126,28 +126,6 @@ export function AdminSidebar() {
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-6">
         <ul className="space-y-1">
-          {/* Collapse/expand toggle as the first menu item. It never routes -
-              it only toggles the sidebar width. When expanded it shows the
-              arrow icon plus the "Collapse" label; when collapsed, only the
-              icon is shown. */}
-          <li>
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className={`flex w-full items-center px-6 py-3 text-gray-300 hover:bg-[#34393d] transition-colors cursor-pointer ${
-                collapsed ? "justify-center" : ""
-              }`}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {collapsed ? (
-                <ArrowRightToLine className="w-5 h-5 shrink-0" />
-              ) : (
-                <>
-                  <ArrowLeftToLine className="w-5 h-5 shrink-0 mr-4" />
-                  <span className="font-medium">Collapse</span>
-                </>
-              )}
-            </button>
-          </li>
           {MENU_ITEMS.filter((item) => !item.role || item.role === user?.role).map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;

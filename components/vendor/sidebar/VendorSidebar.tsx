@@ -139,29 +139,6 @@ export function VendorSidebar({
         <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
 
           <ul className="space-y-1">
-            {/* Collapse/expand toggle as the first menu item. It never routes -
-                it only toggles the sidebar width. When expanded it shows the
-                arrow icon plus the "Collapse" label; when collapsed, only the
-                icon is shown. */}
-            <li>
-              <button
-                type="button"
-                onClick={() => setCollapsed(!collapsed)}
-                className={`flex w-full items-center px-6 py-3 text-gray-300 hover:bg-[#34393d] transition-colors cursor-pointer ${
-                  isCollapsed ? "justify-center" : ""
-                }`}
-                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {isCollapsed ? (
-                  <ArrowRightToLine className="w-5 h-5 shrink-0" />
-                ) : (
-                  <>
-                    <ArrowLeftToLine className="w-5 h-5 shrink-0 mr-4" />
-                    <span className="font-medium">Collapse</span>
-                  </>
-                )}
-              </button>
-            </li>
             {MENU_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;

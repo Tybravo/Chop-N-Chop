@@ -1,4 +1,4 @@
-import { VendorProfile, VendorDashboardStats } from "@/types/vendor";
+import { VendorProfile, VendorDashboardStats, VendorStatusData } from "@/types/vendor";
 import { vendorApiClient } from "@/services/vendor/auth.service";
 
 export interface ManifestItem {
@@ -61,6 +61,17 @@ export const vendorService = {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return { url: response.data?.url || response.data?.profilePictureUrl || response.data?.logoUrl };
+  },
+
+  getStatus: async (): Promise<VendorStatusData> => {
+    const response = await vendorApiClient.get("/api/v1/vendors/me/status");
+    const data = response.data?.data || response.data;
+    return {
+      vendorStatus: (data?.vendorStatus || "PENDING") as VendorStatusData["vendorStatus"],
+      kycStatus: (data?.kycStatus || "NOT_SUBMITTED") as VendorStatusData["kycStatus"],
+      kycCompleted: data?.kycCompleted ?? false,
+      isStoreOnline: data?.isStoreOnline ?? false,
+    };
   },
 
   getStats: async (): Promise<VendorDashboardStats> => {

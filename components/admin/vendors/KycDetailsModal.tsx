@@ -97,7 +97,7 @@ function FieldCard({ label, value }: { label: string; value: unknown }) {
         {label}
       </p>
       <p
-        className={`text-sm font-semibold break-words ${
+        className={`text-sm font-semibold wrap-break-words ${
           isMissing ? "text-gray-400 dark:text-gray-500 italic" : "text-gray-900 dark:text-white"
         }`}
       >

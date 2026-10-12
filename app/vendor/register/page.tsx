@@ -32,12 +32,50 @@ export default function VendorRegisterPage() {
   }, [error]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // PIN fields: allow digits only, max 4 figures, and surface an error if characters are typed.
+    if (name === "pin" || name === "confirmPin") {
+      const sanitized = value.replace(/\D/g, "").slice(0, 4);
+      if (sanitized !== value) {
+        setError("PIN must contain only numbers (0-9), exactly 4 digits.");
+      }
+      setFormData({ ...formData, [name]: sanitized });
+      return;
+    }
+
+    // Phone field: allow digits only, max 11 figures, and surface an error if characters are typed.
+    if (name === "contactPhone") {
+      const sanitized = value.replace(/\D/g, "").slice(0, 11);
+      if (sanitized !== value) {
+        setError("Phone number must contain only digits (0-9).");
+      }
+      setFormData({ ...formData, [name]: sanitized });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Phone number: must be exactly 11 digits.
+    if (!/^\d{11}$/.test(formData.contactPhone)) {
+      setError("Phone number must be exactly 11 digits (0-9).");
+      return;
+    }
+
+    if (!/^\d{4}$/.test(formData.pin)) {
+      setError("PIN must be exactly 4 digits.");
+      return;
+    }
+
+    if (!/^\d{4}$/.test(formData.confirmPin)) {
+      setError("Confirm PIN must be exactly 4 digits.");
+      return;
+    }
 
     if (formData.pin !== formData.confirmPin) {
       setError("PINs do not match.");
@@ -71,11 +109,11 @@ export default function VendorRegisterPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-black">
       {/* Left side: Illustration/Branding */}
-      <div className="hidden md:flex md:w-1/2 bg-[#FC6B31] items-center justify-center p-12 text-white relative overflow-hidden">
+      <div className="hidden md:flex md:flex-col md:w-1/2 bg-[#FC6B31] items-center justify-start pt-32 lg:pt-48 px-12 pb-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/file.svg')] bg-cover"></div>
-        <div className="relative z-10 max-w-lg text-center">
-          <h1 className="text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chopnchop</h1>
-          <p className="text-xl opacity-90 leading-relaxed">
+        <div className="relative z-10 max-w-lg flex flex-col items-center text-center">
+          <h1 className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chopnchop</h1>
+          <p className="text-lg lg:text-xl opacity-90 leading-relaxed">
             Join our platform to reach thousands of customers, manage orders seamlessly, and track your revenue in real-time.
           </p>
         </div>
@@ -129,7 +167,7 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Phone className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} inputMode="numeric" autoComplete="tel" maxLength={11} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                 </div>
               </div>
             </div>
@@ -153,7 +191,7 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type={showPin ? "text" : "password"} name="pin" value={formData.pin} onChange={handleChange} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type={showPin ? "text" : "password"} name="pin" value={formData.pin} onChange={handleChange} inputMode="numeric" autoComplete="one-time-code" maxLength={4} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                   <button type="button" onClick={() => setShowPin(!showPin)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none">
                     {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -165,7 +203,7 @@ export default function VendorRegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type={showConfirmPin ? "text" : "password"} name="confirmPin" value={formData.confirmPin} onChange={handleChange} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type={showConfirmPin ? "text" : "password"} name="confirmPin" value={formData.confirmPin} onChange={handleChange} inputMode="numeric" autoComplete="one-time-code" maxLength={4} required className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                   <button type="button" onClick={() => setShowConfirmPin(!showConfirmPin)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none">
                     {showConfirmPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>

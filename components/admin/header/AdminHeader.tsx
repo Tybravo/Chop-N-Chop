@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Search, Shield, Smile, SlidersHorizontal, LogOut, Bell } from "lucide-react";
+import { Search, Shield, Smile, SlidersHorizontal, LogOut, Bell } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { SafeAvatar } from "@/components/SafeAvatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -125,7 +125,7 @@ export function AdminHeader() {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-[#111827] border border-gray-100 dark:border-gray-800 rounded-[2rem] shadow-2xl py-8 px-6 z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-center">
+            <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-[#111827] border border-gray-100 dark:border-gray-800 rounded-4xl shadow-2xl py-8 px-6 z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-center">
               <h3 className="text-gray-900 dark:text-white text-xl font-bold mb-1">{user?.name || "Admin User"}</h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{user?.email || "admin@chopnchop.com"}</p>
               

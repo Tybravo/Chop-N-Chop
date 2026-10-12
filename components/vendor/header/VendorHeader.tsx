@@ -54,32 +54,33 @@ export function VendorHeader({ onMenuClick }: { onMenuClick: () => void }) {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <Link href={`${base}/dashboard`} className="flex items-center gap-2.5 group">
-          <Image
-            src="/logo_icon.png"
-            alt="Chop n Chop Icon"
-            width={40}
-            height={40}
-            className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
-            priority
-          />
-          <Image
-            src="/Chopnchop.png"
-            alt="Chop n Chop Text"
-            width={120}
-            height={28}
-            className="w-auto h-5 md:h-[26px] object-contain mt-1"
-            priority
-          />
-        </Link>
-
-        {user && (
-          <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
-            <Shield className="w-4 h-4" />
-            <span className="hidden sm:inline">Vendor Only</span>
-            <span className="sm:hidden">Vendor</span>
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <Link href={`${base}/dashboard`} className="flex items-center gap-2.5 group">
+            <Image
+              src="/logo_icon.png"
+              alt="Chop n Chop Icon"
+              width={40}
+              height={40}
+              className="w-7 h-7 md:w-9 md:h-9 object-contain transition-transform group-hover:scale-105"
+              priority
+            />
+            <Image
+              src="/Chopnchop.png"
+              alt="Chop n Chop Text"
+              width={120}
+              height={28}
+              className="w-auto h-5 md:h-[26px] object-contain mt-1"
+              priority
+            />
+          </Link>
+          {user && (
+            <span className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm font-medium border border-green-200 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-shadow">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Vendor Only</span>
+              <span className="sm:hidden">Vendor</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Center: Primary Operations (desktop only) */}
