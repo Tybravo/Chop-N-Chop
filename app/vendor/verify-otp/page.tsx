@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
 import { Loader2, X, Eye, EyeOff } from "lucide-react";
+import PortalTopBar from "@/components/PortalTopBar";
 
 // Define the shape of our toast notification state
 interface ToastNotification {
@@ -128,7 +129,9 @@ function VerifyOtpContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="admin-card max-w-md w-full p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -211,6 +214,7 @@ function VerifyOtpContent() {
             </button>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

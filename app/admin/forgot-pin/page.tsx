@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/admin/auth.service";
 import { Mail, Loader2, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
+import PortalTopBar from "@/components/PortalTopBar";
 
 export default function ForgotPinPage() {
   const router = useRouter();
@@ -38,7 +39,9 @@ export default function ForgotPinPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)]">
         <div className="p-8">
           <div className="mb-6">
@@ -96,9 +99,9 @@ export default function ForgotPinPage() {
               ) : (
                 "Send Recovery Code"
               )}
-            </button>
-          </form>
-        </div>
+            </button></form>
+          </div>
+      </div>
       </div>
     </div>
   );

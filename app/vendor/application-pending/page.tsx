@@ -4,13 +4,16 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Home, LogIn, Loader2 } from "lucide-react";
+import PortalTopBar from "@/components/PortalTopBar";
 
 function ApplicationPendingContent() {
   const searchParams = useSearchParams();
   const businessName = searchParams.get("businessName") || "your business";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white dark:bg-[#26292C] rounded-2xl shadow-xl p-8 text-center">
         <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
@@ -71,6 +74,7 @@ function ApplicationPendingContent() {
             support@chopnchop.com
           </a>
         </p>
+      </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { authService } from "@/services/vendor/auth.service";
 import { useVendorAuth } from "@/context/VendorAuthContext";
 import { Mail, Lock, Loader2, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import PortalTopBar from "@/components/PortalTopBar";
 
 export default function VendorLoginPage() {
   const [email, setEmail] = useState("");
@@ -40,7 +41,9 @@ export default function VendorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="admin-card max-w-md w-full p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="mb-6">
           <Link 
@@ -149,6 +152,7 @@ export default function VendorLoginPage() {
             </Link>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
