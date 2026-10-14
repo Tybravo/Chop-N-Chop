@@ -7,6 +7,7 @@ import { useVendorAuth } from "@/context/VendorAuthContext";
 import { VendorProfile } from "@/types/vendor";
 import { Lock, Loader2, ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
+import PortalTopBar from "@/components/PortalTopBar";
 
 function VendorResetPinContent() {
   const router = useRouter();
@@ -170,7 +171,9 @@ function VendorResetPinContent() {
   if (!email) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="admin-card max-w-md w-full p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="mb-6">
           <Link
@@ -320,6 +323,7 @@ function VendorResetPinContent() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );
