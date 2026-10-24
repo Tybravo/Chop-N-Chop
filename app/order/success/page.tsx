@@ -4,10 +4,13 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import { CheckCircle2, Clock, MapPin, ChefHat } from 'lucide-react';
+import PortalTopBar from '@/components/PortalTopBar';
 
 export default function OrderSuccessPage() {
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center bg-secondary-light/5 py-12 px-4">
+    <div className="min-h-screen flex flex-col bg-background">
+      <PortalTopBar />
+      <div className="flex-1 flex flex-col items-center justify-center bg-secondary-light/5 py-12 px-4">
       <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border border-[#fd8b5d] dark:border-[#e35014] transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-orange dark:hover:shadow-[0_0_25px_rgba(252,107,49,0.6)] p-8 text-center">
         <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 size={48} />
@@ -56,6 +59,7 @@ export default function OrderSuccessPage() {
         <ChefHat size={16} />
         Freshly prepared, zero waste.
       </p>
+      </div>
     </div>
   );
 }

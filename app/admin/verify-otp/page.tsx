@@ -7,6 +7,7 @@ import { profileService } from "@/services/admin/profile.service";
 import { Loader2, KeyRound, X, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { LoginResponse } from "@/types/admin";
+import PortalTopBar from "@/components/PortalTopBar";
 
 function VerifyOtpForm() {
   const router = useRouter();
@@ -271,10 +272,13 @@ function VerifyOtpForm() {
 
 export default function VerifyOtpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex items-center justify-center p-4">
       <Suspense fallback={<Loader2 className="w-8 h-8 animate-spin text-[#FC6B31]" />}>
         <VerifyOtpForm />
       </Suspense>
+      </div>
     </div>
   );
 }

@@ -296,15 +296,31 @@ animation: cnc-breath-card 720ms ease-in-out 1 forwards;
 }
 
 @utility cnc-breath-btn {
-
 will-change: transform, box-shadow;
-
 &:hover {
-
 animation: cnc-breath-btn 650ms ease-in-out 1;
-
+}
 }
 
+/* =========================================================
+   MESSAGE SLIDE-UP (success / error toast feedback)
+   Slides the message in from the bottom and gently fades it
+   in, so feedback is instantly visible without layout jumps.
+   ========================================================= */
+
+@keyframes cnc-rise-up {
+0% {
+transform: translate3d(0, 24px, 0);
+opacity: 0;
+}
+100% {
+transform: translate3d(0, 0, 0);
+opacity: 1;
+}
+}
+
+@utility cnc-message-rise {
+animation: cnc-rise-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* =========================================================

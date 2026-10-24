@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
 import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import PortalTopBar from "@/components/PortalTopBar";
 
 export default function VendorRegisterPage() {
   const router = useRouter();
@@ -107,7 +108,9 @@ export default function VendorRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-black">
+      <PortalTopBar />
+      <div className="flex-1 flex flex-col md:flex-row">
       {/* Left side: Illustration/Branding */}
       <div className="hidden md:flex md:flex-col md:w-1/2 bg-[#FC6B31] items-center justify-start pt-32 lg:pt-48 px-12 pb-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/file.svg')] bg-cover"></div>
@@ -273,6 +276,7 @@ export default function VendorRegisterPage() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

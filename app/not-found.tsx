@@ -1,10 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UtensilsCrossed, Home } from "lucide-react";
+import PortalTopBar from "@/components/PortalTopBar";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-background px-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-background">
+      <PortalTopBar />
+      <div className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden">
       {/* Decorative background blob */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
@@ -62,6 +65,7 @@ export default function NotFound() {
         <p className="mt-6 text-sm text-gray-400 dark:text-gray-500">
           Fresh meals, delivered on time — back to the landing page.
         </p>
+      </div>
       </div>
     </div>
   );
