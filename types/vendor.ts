@@ -3,7 +3,10 @@ export interface VendorProfile {
   businessName: string;
   ownerName: string;
   email: string;
+  /** Immutable account identity phone (from account.phone). Read-only. */
   phone: string;
+  /** Editable vendor contact phone (from onboarding.contactPhone). */
+  contactPhone?: string;
   businessAddress?: string;
   businessCategory?: string;
   businessDescription?: string;

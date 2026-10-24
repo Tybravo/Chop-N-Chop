@@ -39,7 +39,6 @@ vendorApiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("vendorUser");
         localStorage.removeItem("vendor_access_token");
         window.location.href = "/";
       }
@@ -83,23 +82,31 @@ export const authService = {
       let userData: VendorProfile;
       try {
         const profileResponse = await vendorApiClient.get(`/api/v1/vendors/me/profile`);
-        const profile = profileResponse.data?.data || profileResponse.data;
-        
+        const data = profileResponse.data?.data || profileResponse.data;
+        const account = data?.account || {};
+        const onboarding = data?.onboarding || {};
+        const store = data?.store || {};
+        const kyc = data?.kyc || {};
+
         userData = {
-          id: userId,
-          email: payload.email,
-          businessName: profile?.businessName || profile?.business_name || "Vendor Business",
-          ownerName: profile?.ownerName || profile?.owner_name || "Vendor Owner",
-          phone: profile?.phone || profile?.contactPhone || "",
-          businessAddress: profile?.businessAddress || profile?.kitchenLocation || "",
-          businessCategory: profile?.businessCategory || profile?.business_category || "",
-          businessDescription: profile?.businessDescription || profile?.business_description || "",
-          logoUrl: profile?.profilePictureUrl || profile?.logoUrl || response.data?.data?.profilePictureUrl || response.data?.data?.logoUrl || response.data?.profilePictureUrl,
-          vendorStatus: profile?.vendorStatus || "PENDING",
-          kycStatus: profile?.kycStatus || "NOT_SUBMITTED",
-          kycCompleted: profile?.kycCompleted ?? false,
-          isStoreOnline: profile?.isStoreOnline ?? false,
-          joinedAt: profile?.joinedAt || profile?.created_at || new Date().toISOString(),
+          // The backend's vendor profile id, not the account user id.
+          id: data?.vendorId || userId,
+          email: account?.email || payload.email,
+          businessName: onboarding?.businessName || "Vendor Business",
+          ownerName: onboarding?.ownerName || "Vendor Owner",
+          // Immutable account identity phone.
+          phone: account?.phone || "",
+          // Editable vendor contact phone.
+          contactPhone: onboarding?.contactPhone || "",
+          businessAddress: onboarding?.kitchenLocation || "",
+          businessCategory: onboarding?.businessCategory || "",
+          businessDescription: onboarding?.businessDescription || "",
+          logoUrl: onboarding?.profilePictureUrl || response.data?.data?.profilePictureUrl || response.data?.profilePictureUrl,
+          vendorStatus: store?.status || "PENDING",
+          kycStatus: "NOT_SUBMITTED",
+          kycCompleted: kyc?.kycCompleted ?? false,
+          isStoreOnline: store?.storeOnline ?? false,
+          joinedAt: account?.createdAt || new Date().toISOString(),
         };
       } catch (profileError) {
         // Fallback to login response data if profile fetch fails
