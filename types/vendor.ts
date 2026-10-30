@@ -80,6 +80,22 @@ export interface CreateDishPayload {
   tags: string[];
 }
 
+/**
+ * Paginated response for GET /api/v1/vendor/catalog/dishes/
+ * (Spring Page<T> shape — content/items + pagination metadata).
+ */
+export interface VendorDishPage {
+  content: VendorDish[];
+  totalPages: number;
+  totalElements: number;
+  numberOfElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 /** Dish as returned by the backend after creation (and listing). */
 export interface VendorDish {
   id: string;
@@ -101,6 +117,7 @@ export interface VendorDish {
   tags: string[];
 }
 
+/** Vendor loan / order — unused legacy section */
 export type OrderStatus = "PENDING" | "ACCEPTED" | "PREPARING" | "READY" | "OUT_FOR_DELIVERY" | "DELIVERED" | "RETURNED";
 
 export interface OrderItem {
