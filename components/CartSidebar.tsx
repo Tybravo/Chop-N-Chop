@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/uiStore';
 import { Button } from './Button';
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,21 @@ export function CartSidebar() {
     setMounted(true);
   }, []);
 
+  // Track which items are in delete confirmation mode
+  const [pendingDelete, setPendingDelete] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (pendingDelete) {
+      const timer = setTimeout(() => setPendingDelete(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingDelete]);
+
+  React.useEffect(() => {
+    if (!isCartOpen) {
+      setPendingDelete(null);
+    }
+  }, [isCartOpen]);
+
   // Close cart when pressing Escape
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -25,6 +40,22 @@ export function CartSidebar() {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [closeCart]);
+
+  const handleDecrement = (itemId: string, quantity: number) => {
+    if (quantity === 1) {
+      if (pendingDelete === itemId) {
+        removeItem(itemId);
+        setPendingDelete(null);
+      } else {
+        setPendingDelete(itemId);
+      }
+    } else {
+      updateQuantity(itemId, quantity - 1);
+      if (pendingDelete === itemId) {
+        setPendingDelete(null);
+      }
+    }
+  };
 
   if (!mounted) return null;
 
@@ -78,31 +109,40 @@ export function CartSidebar() {
                   
                   <div className="flex flex-1 flex-col justify-between">
                     <div className="flex justify-between">
-                      <h3 className="font-medium text-foreground leading-tight">{item.name}</h3>
+                      <h3 className="font-medium text-foreground leading-tight pr-2">{item.name}</h3>
                       <button 
-                        onClick={() => removeItem(String(item.id))}
-                        className="text-foreground/40 hover:text-red-500 transition-colors"
+                        onClick={() => {
+                          removeItem(String(item.id));
+                          setPendingDelete(null);
+                        }}
+                        className="text-red-500 hover:text-red-600 transition-colors shrink-0"
+                        aria-label="Remove item"
                       >
-                        <X size={16} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                     
-                    <div className="flex items-end justify-between mt-2">
+                      <div className="flex items-end justify-between mt-2">
                       <div className="flex items-center rounded-lg border border-secondary-light/25">
                         <button 
                           className="px-2 py-1 text-foreground/60 hover:text-foreground hover:bg-secondary-light/10 transition-colors rounded-l-lg"
-                          onClick={() => updateQuantity(String(item.id), item.quantity - 1)}
+                          onClick={() => handleDecrement(String(item.id), item.quantity)}
+                          aria-label="Decrease quantity"
                         >
-                          <Minus size={14} />
+                          {pendingDelete === String(item.id) ? (
+                            <Trash2 size={14} className="text-red-500" />
+                          ) : (
+                            <Minus size={14} />
+                          )}
                         </button>
                         <span className="px-3 py-1 text-sm font-medium text-foreground border-x border-secondary-light/25 min-w-10 text-center">
                           {item.quantity}
                         </span>
                         <button 
                           className="px-2 py-1 text-foreground/60 hover:text-foreground hover:bg-secondary-light/10 transition-colors rounded-r-lg disabled:opacity-50"
-                          onClick={() => updateQuantity(String(item.id), item.quantity + 1)}
-                          // To this:
+                          onClick={() => { updateQuantity(String(item.id), item.quantity + 1); if (pendingDelete === String(item.id)) setPendingDelete(null); }}
                           disabled={item.quantity >= (item.stock ?? Infinity)}
+                          aria-label="Increase quantity"
                         >
                           <Plus size={14} />
                         </button>

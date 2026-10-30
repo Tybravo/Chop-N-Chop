@@ -4,6 +4,7 @@ import { useState, Suspense, lazy } from "react";
 import FloatingBottomNav from "@/components/customer/FloatingBottomNav";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
+import DownloadFloatingButton from "@/components/customer/DownloadFloatingButton";
 
 const AIChatModal = lazy(() => import("@/components/customer/AiChatModal"));
 
@@ -39,6 +40,8 @@ export default function CustomerClientWrapper({ children }: { children: React.Re
       <div className={`flex-1 ${isWelcomePage ? "min-h-0 overflow-hidden" : `overflow-x-hidden ${bottomPaddingClass}`}`}>
         {children}
       </div>
+
+      <DownloadFloatingButton />
 
       {showGlobalUI && (
         <button
