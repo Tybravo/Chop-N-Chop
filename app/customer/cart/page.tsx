@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
@@ -15,6 +15,14 @@ export default function CartPage() {
   // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  
+  // Auto-clear delete confirmation after 3 seconds
+  useEffect(() => {
+    if (deleteConfirmId !== null) {
+      const timer = setTimeout(() => setDeleteConfirmId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteConfirmId]);
   
   // Modal & Form State
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
