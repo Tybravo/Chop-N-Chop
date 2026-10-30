@@ -1,7 +1,10 @@
-import { Meal, CreateDishPayload, VendorDish } from "@/types/vendor";
+import { Meal, CreateDishPayload, VendorDish, VendorDishPage } from "@/types/vendor";
 import { mockMeals } from "@/lib/mock/vendor.mock";
 import { vendorApiClient } from "@/services/vendor/auth.service";
 import { formatApiError } from "@/lib/format-error";
+
+/** Default page size for the vendor dish list (20 per page per PRD). */
+export const VENDOR_DISHES_PAGE_SIZE = 20;
 
 export const mealService = {
   getMeals: async (): Promise<Meal[]> => {
@@ -86,4 +89,132 @@ export const mealService = {
       throw new Error(formatApiError(error, "Failed to upload the meal image."));
     }
   },
+
+  // ==========================================
+  // View / Update / Delete — Vendor Catalog
+  // Note: the backend paths include the doubled
+  // "dishes/dishes/{id}" segment (confirmed in live swagger).
+  // ==========================================
+
+  /**
+   * GET /api/v1/vendor/catalog/dishes/dishes/{id}
+   * Fetch a single dish belonging to the authenticated vendor.
+   */
+  getDishById: async (id: string): Promise<VendorDish> => {
+    try {
+      const response = await vendorApiClient.get(`/api/v1/vendor/catalog/dishes/dishes/${id}`);
+      const data = response.data?.data || response.data;
+      return data as VendorDish;
+    } catch (error) {
+      throw new Error(formatApiError(error, "Failed to load the meal details."));
+    }
+  },
+
+  /**
+   * GET /api/v1/vendor/catalog/dishes/
+   * Fetch one page of dishes added by the authenticated vendor. The Bearer
+   * token (injected by the vendorApiClient interceptor) ensures only the
+   * vendor who owns the dishes can list them.
+   */
+  getVendorDishesPage: async (page = 0, size = VENDOR_DISHES_PAGE_SIZE): Promise<VendorDishPage> => {
+    try {
+      const response = await vendorApiClient.get("/api/v1/vendor/catalog/dishes/", {
+        params: { page, size },
+      });
+      const data = response.data?.data || response.data;
+      // The backend may wrap in { success, message, data } — data holds the page.
+      const pageData: VendorDishPage =
+        data && typeof data === "object" && Array.isArray(data.content)
+          ? data
+          : { content: [], totalPages: 0, totalElements: 0, numberOfElements: 0, size, number: page, first: page === 0, last: true, empty: true };
+      return {
+        content: Array.isArray(pageData.content) ? pageData.content : [],
+        totalPages: pageData.totalPages ?? 0,
+        totalElements: pageData.totalElements ?? 0,
+        numberOfElements: pageData.numberOfElements ?? pageData.content?.length ?? 0,
+        size: pageData.size ?? size,
+        number: pageData.number ?? page,
+        first: pageData.first ?? page === 0,
+        last: pageData.last ?? true,
+        empty: pageData.empty ?? pageData.content?.length === 0,
+      };
+    } catch (error) {
+      throw new Error(formatApiError(error, "Failed to load your meals."));
+    }
+  },
+
+  /**
+   * PUT /api/v1/vendor/catalog/dishes/dishes/{id}
+   * Update an existing dish (same body shape as create).
+   */
+  updateDish: async (id: string, payload: Partial<CreateDishPayload>): Promise<VendorDish> => {
+    try {
+      const response = await vendorApiClient.put(
+        `/api/v1/vendor/catalog/dishes/dishes/${id}`,
+        payload
+      );
+      const data = response.data?.data || response.data;
+      return data as VendorDish;
+    } catch (error) {
+      throw new Error(formatApiError(error, "Failed to update the meal."));
+    }
+  },
+
+  /**
+   * DELETE /api/v1/vendor/catalog/dishes/dishes/{dishId}
+   * Soft-delete a dish (removes it from the active catalog).
+   */
+  deleteDish: async (dishId: string): Promise<boolean> => {
+    try {
+      const response = await vendorApiClient.delete(
+        `/api/v1/vendor/catalog/dishes/dishes/${dishId}`
+      );
+      const data = response.data?.data || response.data;
+      return data?.success !== false;
+    } catch (error) {
+      throw new Error(formatApiError(error, "Failed to delete the meal."));
+    }
+  },
+
+  /** Persist a created dish id so it shows up on the View Meals page. */
+  saveCreatedDish: (dish: { id?: string }): void => {
+    if (!dish?.id) return;
+    persistDishIds([...getCreatedDishIds(), dish.id]);
+  },
+
+  /** Drop a dish id after it has been deleted from the catalog. */
+  removeCreatedDish: (dishId: string): void => {
+    persistDishIds(getCreatedDishIds().filter((id) => id !== dishId));
+  },
+
+  /** Read the locally-tracked vendor dish ids. */
+  getCreatedDishes: (): string[] => getCreatedDishIds(),
+};
+
+// ==========================================
+// Local dish-id registry
+// The backend has no vendor-scoped list endpoint, so we persist the ids of
+// dishes the vendor creates (including pending/not-yet-approved ones) and
+// fetch each dish through the authenticated GET-by-id endpoint.
+// ==========================================
+const DISH_IDS_KEY = "cnc_vendor_dish_ids";
+
+export const getCreatedDishIds = (): string[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(DISH_IDS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+};
+
+const persistDishIds = (ids: string[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DISH_IDS_KEY, JSON.stringify(Array.from(new Set(ids))));
+  } catch {
+    // storage unavailable — ignore; the vendor just won't have local history
+  }
 };

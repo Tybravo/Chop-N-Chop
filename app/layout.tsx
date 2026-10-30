@@ -41,7 +41,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground">
+      <body className="antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground" suppressHydrationWarning>
         <ThemeProvider>
           <AdminAuthProvider>
             <main className="flex-1 flex flex-col">

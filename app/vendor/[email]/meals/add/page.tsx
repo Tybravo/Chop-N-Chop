@@ -6,6 +6,7 @@ import { useVendorAuth } from "@/context/VendorAuthContext";
 import { vendorService } from "@/services/vendor/vendor.service";
 import { mealService } from "@/services/vendor/meal.service";
 import { ImageCropperModal } from "@/components/admin/categories/ImageCropperModal";
+import { CUSTOMER_ORDERING_WINDOW_OPTIONS } from "@/lib/vendor-meal-windows";
 import {
   Plus,
   X,
@@ -23,20 +24,21 @@ import {
   AlertCircle,
   ChevronDown,
   FileText,
+  Clock,
 } from "lucide-react";
 
 // ============================================================
 // Options shared with the vendor onboarding / catalog flow
 // ============================================================
 const PREPARATION_TIME_OPTIONS = [
-  "10 minutes",
-  "15 minutes",
-  "20 minutes",
-  "30 minutes",
-  "45 minutes",
   "60 minutes",
   "90 minutes",
-  "2 hours",
+  "3 hours",
+  "6 hours",
+  "9 hours",
+  "12 hours",
+  "18 hours",
+  "24 hours",
 ];
 
 const CATEGORY_OPTIONS = [
@@ -50,7 +52,8 @@ const CATEGORY_OPTIONS = [
   "Desserts",
 ];
 
-const ORDERING_WINDOW_OPTIONS = ["Breakfast", "Lunch", "Dinner", "All-day"];
+// The Ordering Window options now live in lib/vendor-meal-windows.ts
+// (CUSTOMER_ORDERING_WINDOW_OPTIONS — single-select Breakfast/Lunch/Dinner).
 
 const QUICK_INGREDIENT_OPTIONS = [
   "Rice",
@@ -214,7 +217,7 @@ export default function AddMealPage() {
     ingredients: [] as string[],
     ingredientInput: "",
     allergens: [] as string[],
-    orderingWindows: [] as string[],
+    orderingWindow: "",
     mealTags: [] as string[],
     customTagInput: "",
   });
@@ -310,12 +313,12 @@ export default function AddMealPage() {
     }));
   };
 
+  // Customer Ordering Window — single-select: only one option at a time.
   const toggleWindow = (value: string) => {
+    if (value.toLowerCase() === "all-day") return;
     setFormData((prev) => ({
       ...prev,
-      orderingWindows: prev.orderingWindows.includes(value)
-        ? prev.orderingWindows.filter((v) => v !== value)
-        : [...prev.orderingWindows, value],
+      orderingWindow: prev.orderingWindow === value ? "" : value,
     }));
   };
 
@@ -362,6 +365,12 @@ export default function AddMealPage() {
   const handleCropComplete = (croppedFile: File) => {
     setIsCropperOpen(false);
     setPendingCropFile(null);
+    // The backend's multipart limit is 1MB — the cropper exports a compact
+    // JPEG, but guard here too so we never submit an oversized file.
+    if (croppedFile.size > 1048576) {
+      setImageError("The resized image is still too large. Try a smaller photo.");
+      return;
+    }
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(croppedFile);
     setImagePreview(URL.createObjectURL(croppedFile));
@@ -382,6 +391,7 @@ export default function AddMealPage() {
       return "Enter how many servings are available.";
     }
     if (formData.ingredients.length === 0) return "Add at least one ingredient.";
+    if (!formData.orderingWindow) return "Select the customer ordering window.";
     if (!imageFile) return "Add a meal image (resize and upload it first).";
     return "";
   };
@@ -397,7 +407,9 @@ export default function AddMealPage() {
     setIsPreviewOpen(true);
   };
 
-  // Build the effective tag list: category + ordering windows + meal tags
+  // Build the effective tag list: category + ordering window + meal tags.
+  // The ordering window is persisted as a tag (string) so the backend stores
+  // it and the View/Edit screens can read it back from the dish `tags` array.
   const buildTags = (): string[] => {
     const tags: string[] = [];
     if (formData.category === "Other" && formData.categoryCustom.trim()) {
@@ -405,7 +417,7 @@ export default function AddMealPage() {
     } else if (formData.category) {
       tags.push(formData.category);
     }
-    tags.push(...formData.orderingWindows);
+    if (formData.orderingWindow) tags.push(formData.orderingWindow);
     tags.push(...formData.mealTags);
     return tags;
   };
@@ -436,6 +448,9 @@ export default function AddMealPage() {
       };
 
       const dish = await mealService.createDish(payload);
+      // Track the created dish id (the backend has no vendor list endpoint,
+      // so the View Meals page fetches each dish by this id).
+      mealService.saveCreatedDish(dish);
 
       if (imageFile) {
         setSubmitStage("uploading");
@@ -467,7 +482,7 @@ export default function AddMealPage() {
       ingredients: [],
       ingredientInput: "",
       allergens: [],
-      orderingWindows: [],
+      orderingWindow: "",
       mealTags: [],
       customTagInput: "",
     });
@@ -779,17 +794,24 @@ export default function AddMealPage() {
           <ChipToggleGroup options={ALLERGEN_OPTIONS} selected={formData.allergens} onToggle={toggleAllergen} color="gray" />
         </section>
 
-        {/* ===== Ordering Window & Tags ===== */}
+        {/* ===== Customer Ordering Window (single-select) ===== */}
         <section className="admin-card p-6 space-y-5">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 flex items-center gap-2">
-            <Tag className="w-5 h-5 text-[#FC6B31]" />
-            Ordering Window & Tags
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-1 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#FC6B31]" />
+            Customer Ordering Window
           </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            When can customers order this meal? Pick one ordering window.
+          </p>
+          <ChipToggleGroup options={[...CUSTOMER_ORDERING_WINDOW_OPTIONS]} selected={formData.orderingWindow ? [formData.orderingWindow] : []} onToggle={toggleWindow} color="gray" />
+        </section>
 
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">When can customers order this meal?</p>
-            <ChipToggleGroup options={ORDERING_WINDOW_OPTIONS} selected={formData.orderingWindows} onToggle={toggleWindow} color="gray" />
-          </div>
+        {/* ===== Meal Tags ===== */}
+        <section className="admin-card p-6 space-y-5">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-1 flex items-center gap-2">
+            <Tag className="w-5 h-5 text-[#FC6B31]" />
+            Meal Tags
+          </h2>
 
           <div className="space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">Meal tags help customers find your meal:</p>
@@ -919,17 +941,15 @@ export default function AddMealPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Ordering Window</p>
-                      {formData.orderingWindows.length > 0 ? (
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Customer Ordering Window</p>
+                      {formData.orderingWindow ? (
                         <div className="flex flex-wrap gap-2">
-                          {formData.orderingWindows.map((window) => (
-                            <span key={window} className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full px-3 py-1 text-xs font-medium">
-                              {window}
-                            </span>
-                          ))}
+                          <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full px-3 py-1 text-xs font-medium">
+                            {formData.orderingWindow}
+                          </span>
                         </div>
                       ) : (
-                        <p className="text-gray-500 dark:text-gray-400">All-day</p>
+                        <p className="text-gray-500 dark:text-gray-400">None</p>
                       )}
                     </div>
                   </div>
