@@ -78,6 +78,7 @@ export interface CreateDishPayload {
   servings: number;
   allergens: string[];
   tags: string[];
+  isSoldOut?: boolean;
 }
 
 /**
