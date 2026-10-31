@@ -36,14 +36,12 @@ interface SavedVehicle {
 }
 
 interface DesktopProfileProps {
-  profile: UserProfile | null;
+  profile: ProfileData | null;
   isLoading: boolean;
-  avatarUrl: string;
-  isUploadingPic?: boolean;
-  onUploadClick?: () => void;
+  avatarUrl?: string;
 }
 
-export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl, isUploadingPic, onUploadClick }: DesktopProfileProps) {
+export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl }: DesktopProfileProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("orders");
   const [vehicles, setVehicles] = useState<SavedVehicle[]>([]);
@@ -53,7 +51,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
   const [showVehicleDialog, setShowVehicleDialog] = useState(false);
   const [vehicleForm, setVehicleForm] = useState({ label: "", make: "", color: "", plate: "" });
   const [isSaving, setIsSaving] = useState(false);
-  const [pastOrders, setPastOrders] = useState<any[]>([]);
+  const [pastOrders, setPastOrders] = useState<Record<string, unknown>[]>([]);
   const [fetchingOrders, setFetchingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState("");
 
@@ -63,15 +61,18 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
       try {
         const res = await customerApiClient.get("/api/v1/user/vehicles");
         const data = res.data?.data || res.data || [];
-        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
-          id: v.id,
-          label: v.label || v.model || "",
-          make: v.model || v.make || "",
-          color: v.color || "",
-          plate: v.plateNumber || v.plate || "",
-          plateNumber: v.plateNumber,
-          isPrimary: Boolean(v.isDefault || v.isPrimary),
-        }));
+        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+          const vehicle = v as Record<string, unknown>;
+          return {
+            id: vehicle.id as string,
+            label: (vehicle.label as string) || (vehicle.model as string) || "",
+            make: (vehicle.model as string) || (vehicle.make as string) || "",
+            color: (vehicle.color as string) || "",
+            plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
+            plateNumber: vehicle.plateNumber as string | undefined,
+            isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
+          };
+        });
         setVehicles(mapped);
       } catch (err) {
         console.error("Failed to fetch vehicles", err);
@@ -87,16 +88,19 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
     try {
       const res = await customerApiClient.get("/api/v1/user/vehicles");
       const data = res.data?.data || res.data || [];
-      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
-        id: v.id,
-        label: v.label || v.model || "",
-        make: v.model || v.make || "",
-        color: v.color || "",
-        plate: v.plateNumber || v.plate || "",
-        plateNumber: v.plateNumber,
-        isPrimary: Boolean(v.isDefault || v.isPrimary),
-      }));
-       setVehicles(mapped);
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+        const vehicle = v as Record<string, unknown>;
+        return {
+          id: vehicle.id as string,
+          label: (vehicle.label as string) || (vehicle.model as string) || "",
+          make: (vehicle.model as string) || (vehicle.make as string) || "",
+          color: (vehicle.color as string) || "",
+          plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
+          plateNumber: vehicle.plateNumber as string | undefined,
+          isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
+        };
+      });
+      setVehicles(mapped);
     } catch (err) {
       console.error("Failed to fetch vehicles", err);
     } finally {
@@ -326,10 +330,10 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                           <td className="p-4 font-bold text-gray-900 dark:text-white">{ord.id}</td>
                           <td className="p-4 text-gray-500">{new Date(ord.createdAt || ord.date || new Date()).toLocaleDateString()}</td>
                           <td className="p-4 text-gray-700 dark:text-gray-300 font-medium">
-                            {ord.items?.map((item: any) => item.name).join(", ") || "—"}
+                            {(ord.items as Array<Record<string, unknown>> | undefined)?.map((item) => item.name).join(", ") || "—"}
                           </td>
                           <td className="p-4 font-bold text-gray-900 dark:text-white">
-                            {ord.totalAmount != null ? `₦${ord.totalAmount.toLocaleString()}` : `₦${(ord.total || 0).toLocaleString()}`}
+                            {ord.totalAmount != null ? `₦${Number(ord.totalAmount).toLocaleString()}` : `₦${Number(ord.total || 0).toLocaleString()}`}
                           </td>
                           <td className="p-4">
                             <button className="text-xs font-bold text-[#FC6B31] hover:underline flex items-center gap-1">

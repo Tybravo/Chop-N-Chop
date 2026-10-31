@@ -19,7 +19,7 @@ export interface Zone {
   status?: string;
   baseDeliveryFee?: number;
   estimatedDeliveryMinutes?: number;
-  boundary?: any;
+  boundary?: unknown;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -29,12 +29,12 @@ export const zoneService = {
     const response = await customerApiClient.get("/api/v1/zones/resolve", {
       params: { latitude, longitude },
     });
-    const data = response.data;
+    const data = response.data as Partial<ResolvedZone> & Record<string, unknown>;
     return {
-      zoneId: data.zoneId || data.id,
-      zoneName: data.zoneName || data.name,
-      deliveryFee: data.deliveryFee ?? data.baseDeliveryFee ?? 0,
-      estimatedDeliveryMinutes: data.estimatedDeliveryMinutes,
+      zoneId: (data.zoneId as string) || (data.id as string),
+      zoneName: (data.zoneName as string) || (data.name as string),
+      deliveryFee: (data.deliveryFee as number) ?? (data.baseDeliveryFee as number) ?? 0,
+      estimatedDeliveryMinutes: data.estimatedDeliveryMinutes as number | undefined,
       ...data,
     };
   },

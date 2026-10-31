@@ -48,7 +48,7 @@ export default function VehiclesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const labelInputRef = useRef<HTMLInputElement>(null);
-  const saveTimerRef = useRef<number | null>(null);
+  // const saveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -56,16 +56,19 @@ export default function VehiclesPage() {
       try {
         const res = await customerApiClient.get("/api/v1/user/vehicles");
         const data = res.data?.data || res.data || [];
-        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
-          id: v.id,
-          label: v.label || v.model || "",
-          make: v.model || v.make || "",
-          model: v.model,
-          color: v.color || "",
-          plate: v.plateNumber || v.plate || "",
-          plateNumber: v.plateNumber,
-          isPrimary: Boolean(v.isDefault || v.isPrimary),
-        }));
+        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+          const vehicle = v as Record<string, unknown>;
+          return {
+            id: vehicle.id as string,
+            label: (vehicle.label as string) || (vehicle.model as string) || "",
+            make: (vehicle.model as string) || (vehicle.make as string) || "",
+            model: vehicle.model as string | undefined,
+            color: (vehicle.color as string) || "",
+            plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
+            plateNumber: vehicle.plateNumber as string | undefined,
+            isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
+          };
+        });
         setVehicles(mapped);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status !== 401) {
@@ -122,7 +125,7 @@ export default function VehiclesPage() {
 
   const submitVehicle = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const label = form.label.trim();
+    // const label = form.label.trim();
     const make = form.make.trim();
     const color = form.color.trim();
     const plate = form.plate.trim();
@@ -146,16 +149,19 @@ export default function VehiclesPage() {
       });
       const res = await customerApiClient.get("/api/v1/user/vehicles");
       const data = res.data?.data || res.data || [];
-      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
-        id: v.id,
-        label: v.label || v.model || "",
-        make: v.model || v.make || "",
-        model: v.model,
-        color: v.color || "",
-        plate: v.plateNumber || v.plate || "",
-        plateNumber: v.plateNumber,
-        isPrimary: Boolean(v.isDefault || v.isPrimary),
-      }));
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+        const vehicle = v as Record<string, unknown>;
+        return {
+          id: vehicle.id as string,
+          label: (vehicle.label as string) || (vehicle.model as string) || "",
+          make: (vehicle.model as string) || (vehicle.make as string) || "",
+          model: vehicle.model as string | undefined,
+          color: (vehicle.color as string) || "",
+          plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
+          plateNumber: vehicle.plateNumber as string | undefined,
+          isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
+        };
+      });
       setVehicles(mapped);
       setDialog(null);
       setEditingVehicle(null);
@@ -189,16 +195,19 @@ export default function VehiclesPage() {
       await customerApiClient.delete(`/api/v1/user/vehicles/${vehicleId}`);
       const res = await customerApiClient.get("/api/v1/user/vehicles");
       const data = res.data?.data || res.data || [];
-      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v: any) => ({
-        id: v.id,
-        label: v.label || v.model || "",
-        make: v.model || v.make || "",
-        model: v.model,
-        color: v.color || "",
-        plate: v.plateNumber || v.plate || "",
-        plateNumber: v.plateNumber,
-        isPrimary: Boolean(v.isDefault || v.isPrimary),
-      }));
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+        const vehicle = v as Record<string, unknown>;
+        return {
+          id: vehicle.id as string,
+          label: (vehicle.label as string) || (vehicle.model as string) || "",
+          make: (vehicle.model as string) || (vehicle.make as string) || "",
+          model: vehicle.model as string | undefined,
+          color: (vehicle.color as string) || "",
+          plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
+          plateNumber: vehicle.plateNumber as string | undefined,
+          isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
+        };
+      });
       setVehicles(mapped);
       setMenuVehicleId(null);
       setStatusMessage("Saved vehicle removed.");

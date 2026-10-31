@@ -41,15 +41,16 @@ export default function LocationPage() {
       }));
       
       router.back();
-    } catch (err: any) {
-      if (err.code === 1) {
+    } catch (err) {
+      const error = err as Error & { code?: number; response?: { status?: number } };
+      if (error.code === 1) {
         setError("Location permission denied. Please enable location access.");
-      } else if (err.code === 3) {
+      } else if (error.code === 3) {
         setError("Location request timed out. Please try again.");
-      } else if (err.response?.status === 404 || err.response?.status === 400) {
+      } else if (error.response?.status === 404 || error.response?.status === 400) {
         setError("Sorry, we don't deliver to this location yet.");
-      } else if (err.message) {
-        setError(err.message);
+      } else if (error.message) {
+        setError(error.message);
       } else {
         setError("Failed to detect location. Please try again.");
       }

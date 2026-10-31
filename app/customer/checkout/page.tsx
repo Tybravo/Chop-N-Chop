@@ -42,7 +42,8 @@ function CheckoutContent() {
   // --- MOCK USER STATUS (Toggle these to test the flows) ---
   const [isGuest, setIsGuest] = useState(false);
   const [userHasPin, setUserHasPin] = useState(false);
-  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [isFetchingProfile] = useState(false);
+  void isFetchingProfile;
 
   const fetchProfileForPrefill = async () => {
     const token = localStorage.getItem("chopnchop_token");
@@ -71,6 +72,7 @@ function CheckoutContent() {
 
   // Determine whether to display a prefill indicator (logged-in user with phone/email)
   const isPrefilled = !isGuest && Boolean(phoneNumber || email);
+  void isPrefilled;
 
   // --- CARD MANAGEMENT ---
   const [savedCards, setSavedCards] = useState<SavedCard[]>([
