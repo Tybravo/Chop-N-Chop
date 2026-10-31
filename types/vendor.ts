@@ -3,7 +3,10 @@ export interface VendorProfile {
   businessName: string;
   ownerName: string;
   email: string;
+  /** Immutable account identity phone (from account.phone). Read-only. */
   phone: string;
+  /** Editable vendor contact phone (from onboarding.contactPhone). */
+  contactPhone?: string;
   businessAddress?: string;
   businessCategory?: string;
   businessDescription?: string;
@@ -58,6 +61,63 @@ export interface Meal {
   isAvailable: boolean;
 }
 
+// ==========================================
+// Vendor Catalog (Dishes) — backend model
+// POST /api/v1/vendor/catalog/dishes
+// ==========================================
+
+/** Payload for creating a new dish (MVP) via the vendor catalog API. */
+export interface CreateDishPayload {
+  name: string;
+  description: string;
+  imageUrl: string;
+  fixedPrice: number;
+  vendorId: string;
+  ingredientsList: string;
+  preparationTime: string;
+  servings: number;
+  allergens: string[];
+  tags: string[];
+}
+
+/**
+ * Paginated response for GET /api/v1/vendor/catalog/dishes/
+ * (Spring Page<T> shape — content/items + pagination metadata).
+ */
+export interface VendorDishPage {
+  content: VendorDish[];
+  totalPages: number;
+  totalElements: number;
+  numberOfElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+/** Dish as returned by the backend after creation (and listing). */
+export interface VendorDish {
+  id: string;
+  name: string;
+  vendorId: string;
+  description: string;
+  imageUrl: string;
+  fixedPrice: number;
+  isSoldOut: boolean;
+  vendorName: string;
+  /** Remaining quantity/servings available for the current ordering window. */
+  remainingQuantity: number;
+  pickupWindow: string;
+  ingredientsText: string;
+  /** Stored as a plain-text line in the backend response. */
+  preparationTime: string;
+  servings: number;
+  allergens: string[];
+  tags: string[];
+}
+
+/** Vendor loan / order — unused legacy section */
 export type OrderStatus = "PENDING" | "ACCEPTED" | "PREPARING" | "READY" | "OUT_FOR_DELIVERY" | "DELIVERED" | "RETURNED";
 
 export interface OrderItem {

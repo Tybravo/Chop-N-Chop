@@ -77,7 +77,6 @@ vendorApiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('vendorUser');
         localStorage.removeItem('vendor_access_token');
         window.location.href = '/';
       }

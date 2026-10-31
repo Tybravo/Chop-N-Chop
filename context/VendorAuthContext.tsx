@@ -23,18 +23,37 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const pathname = usePathname();
 
+  // No vendor profile is kept in localStorage. On mount, if a bearer token
+  // exists, the authenticated vendor's profile is fetched straight from the
+  // backend (GET /api/v1/vendors/me/profile) using that token.
   useEffect(() => {
-    const storedUser = localStorage.getItem("vendorUser");
-    if (storedUser) {
-      setTimeout(() => {
-        setUser(JSON.parse(storedUser));
-        setIsLoading(false);
-      }, 0);
-    } else {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 0);
-    }
+    let cancelled = false;
+
+    const hydrate = async () => {
+      try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("vendor_access_token")
+            : null;
+        if (!token) {
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+        const profile = await vendorService.getProfile();
+        if (!cancelled) setUser(profile);
+      } catch (error) {
+        // Token invalid/expired — the axios interceptor already clears it and
+        // redirects to "/". Keep the user signed out in memory.
+        console.warn("Vendor session hydration failed:", error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    hydrate();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -62,7 +81,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
 
   const login = (userData: VendorProfile, token: string) => {
     setUser(userData);
-    localStorage.setItem("vendorUser", JSON.stringify(userData));
+    // Token only — the vendor profile itself is never persisted.
     localStorage.setItem("vendor_access_token", token);
     
     const vendorEmail = userData.email.replace(/[@.]/g, "_");
@@ -72,9 +91,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
   const updateUser = (updates: Partial<VendorProfile>) => {
     setUser((prev) => {
       if (!prev) return prev;
-      const updatedUser = { ...prev, ...updates };
-      localStorage.setItem("vendorUser", JSON.stringify(updatedUser));
-      return updatedUser;
+      return { ...prev, ...updates };
     });
   };
 
@@ -90,20 +107,23 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
         const status = await vendorService.getStatus();
         if (cancelled) return;
 
-        const current = JSON.parse(localStorage.getItem("vendorUser") || "null") as VendorProfile | null;
-        if (!current) return;
+        setUser((current) => {
+          if (!current) return current;
 
-        const changed =
-          current.vendorStatus !== status.vendorStatus ||
-          current.kycStatus !== status.kycStatus ||
-          current.kycCompleted !== status.kycCompleted ||
-          current.isStoreOnline !== status.isStoreOnline;
+          const changed =
+            current.vendorStatus !== status.vendorStatus ||
+            current.kycStatus !== status.kycStatus ||
+            current.kycCompleted !== status.kycCompleted ||
+            current.isStoreOnline !== status.isStoreOnline;
 
-        if (changed) updateUser({
-          vendorStatus: status.vendorStatus,
-          kycStatus: status.kycStatus,
-          kycCompleted: status.kycCompleted,
-          isStoreOnline: status.isStoreOnline,
+          if (!changed) return current;
+          return {
+            ...current,
+            vendorStatus: status.vendorStatus,
+            kycStatus: status.kycStatus,
+            kycCompleted: status.kycCompleted,
+            isStoreOnline: status.isStoreOnline,
+          };
         });
       } catch (error) {
         console.warn("Vendor status sync failed:", error);
@@ -122,7 +142,7 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
 
   const logout = async () => {
     setUser(null);
-    localStorage.removeItem("vendorUser");
+    // Only the token is ever stored; the profile never lives in localStorage.
     localStorage.removeItem("vendor_access_token");
     router.push("/");
 

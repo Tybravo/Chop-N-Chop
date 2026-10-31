@@ -152,25 +152,30 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
       ctx.translate(cx, cy);
       ctx.drawImage(img, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
 
-      // Convert to blob
-      finalCanvas.toBlob((blob) => {
-        if (!blob) {
-          setIsProcessing(false);
-          return;
-        }
-        
-        // Ensure we maintain the file extension
-        const extension = imageFile.name.split('.').pop() || 'jpg';
-        const fileName = `cropped_${Date.now()}.${extension}`;
-        
-        const croppedFile = new File([blob], fileName, { 
-          type: imageFile.type || 'image/jpeg',
-          lastModified: Date.now()
-        });
+      // Force a JPEG export (and a .jpg extension) so the cropped upload is
+      // a compact, web-safe file. The backend's upload limit is 1MB — the
+      // crisp 800x800 JPEG at 0.8 quality (with a white background for
+      // transparent PNGs) reliably stays far below it.
+      finalCanvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            setIsProcessing(false);
+            return;
+          }
+          const croppedFile = new File([blob], `cropped_${Date.now()}.jpg`, {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
 
-        setIsProcessing(false);
-        onCropComplete(croppedFile);
-      }, imageFile.type || 'image/jpeg', 0.9);
+          // Safety net: if the exported JPEG somehow still exceeds 1MB the
+          // caller (Add/Edit meal page) surfaces a clear error immediately —
+          // the meal is never submitted with an oversized file.
+          setIsProcessing(false);
+          onCropComplete(croppedFile);
+        },
+        'image/jpeg',
+        0.8
+      );
 
     } catch (err) {
       console.error("Error cropping image", err);
