@@ -175,46 +175,4 @@ export const mealService = {
       throw new Error(formatApiError(error, "Failed to delete the meal."));
     }
   },
-
-  /** Persist a created dish id so it shows up on the View Meals page. */
-  saveCreatedDish: (dish: { id?: string }): void => {
-    if (!dish?.id) return;
-    persistDishIds([...getCreatedDishIds(), dish.id]);
-  },
-
-  /** Drop a dish id after it has been deleted from the catalog. */
-  removeCreatedDish: (dishId: string): void => {
-    persistDishIds(getCreatedDishIds().filter((id) => id !== dishId));
-  },
-
-  /** Read the locally-tracked vendor dish ids. */
-  getCreatedDishes: (): string[] => getCreatedDishIds(),
-};
-
-// ==========================================
-// Local dish-id registry
-// The backend has no vendor-scoped list endpoint, so we persist the ids of
-// dishes the vendor creates (including pending/not-yet-approved ones) and
-// fetch each dish through the authenticated GET-by-id endpoint.
-// ==========================================
-const DISH_IDS_KEY = "cnc_vendor_dish_ids";
-
-export const getCreatedDishIds = (): string[] => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(DISH_IDS_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
-  } catch {
-    return [];
-  }
-};
-
-const persistDishIds = (ids: string[]) => {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(DISH_IDS_KEY, JSON.stringify(Array.from(new Set(ids))));
-  } catch {
-    // storage unavailable — ignore; the vendor just won't have local history
-  }
 };

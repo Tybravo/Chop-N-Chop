@@ -32,6 +32,7 @@ import {
   Clock,
   ChevronDown,
   Upload,
+  ToggleLeft,
 } from "lucide-react";
 
 // ============================================================
@@ -228,6 +229,10 @@ export default function ViewMealsPage() {
   // Delete confirm modal
   const [deleteTarget, setDeleteTarget] = useState<VendorDish | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Status toggle modal
+  const [statusDish, setStatusDish] = useState<VendorDish | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   // Initial load — page 0 (20 meals per page).
   const loadDishes = useCallback(async () => {
@@ -482,12 +487,33 @@ export default function ViewMealsPage() {
 
       // A newly chosen image is uploaded after the update, then re-fetched
       // so the dish record carries the fresh imageUrl.
+      let finalImageUrl = editDish.imageUrl;
       if (editImageFile) {
-        await mealService.uploadDishImage(editDish.id, editImageFile);
+        finalImageUrl = await mealService.uploadDishImage(editDish.id, editImageFile);
       }
+      
+      // Update local state immediately to avoid resetting pagination
+      setDishes((prev) =>
+        prev.map((d) =>
+          d.id === editDish.id
+            ? {
+                ...d,
+                name: editForm.name.trim(),
+                description: editForm.description.trim(),
+                imageUrl: finalImageUrl,
+                fixedPrice: price,
+                ingredientsText: editForm.ingredients.join(", "),
+                preparationTime: editForm.preparationTime,
+                servings,
+                allergens: editForm.allergens,
+                tags,
+              }
+            : d
+        )
+      );
+
       closeEditModal();
       setToast("Meal updated successfully.");
-      await loadDishes();
     } catch (err) {
       console.error(err);
       setEditError(err instanceof Error ? err.message : "Failed to update the meal.");
@@ -502,16 +528,55 @@ export default function ViewMealsPage() {
     setDeleting(true);
     try {
       await mealService.deleteDish(deleteTarget.id);
-      mealService.removeCreatedDish(deleteTarget.id);
+      
+      // Update local state immediately to avoid resetting pagination
+      setDishes((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      
       setDeleteTarget(null);
       setToast("Meal deleted successfully.");
-      await loadDishes();
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to delete the meal.");
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // ---- Status Toggle ----
+  const handleConfirmStatusToggle = async () => {
+    if (!statusDish) return;
+    setStatusUpdating(true);
+    const newStatus = !statusDish.isSoldOut;
+    try {
+      const payload = {
+        name: statusDish.name,
+        description: statusDish.description,
+        imageUrl: statusDish.imageUrl,
+        fixedPrice: statusDish.fixedPrice,
+        vendorId: statusDish.vendorId,
+        ingredientsList: statusDish.ingredientsText || "",
+        preparationTime: statusDish.preparationTime || "",
+        servings: statusDish.servings || 1,
+        allergens: statusDish.allergens || [],
+        tags: statusDish.tags || [],
+        isSoldOut: newStatus, // toggle
+      };
+      await mealService.updateDish(statusDish.id, payload);
+      
+      // Update local state immediately so the badge reflects the change
+      setDishes((prev) =>
+        prev.map((d) => (d.id === statusDish.id ? { ...d, isSoldOut: newStatus } : d))
+      );
+      
+      setStatusDish(null);
+      setToast(`Meal marked as ${newStatus ? "Sold Out" : "Available"}.`);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to update meal status.");
+      setStatusDish(null);
+    } finally {
+      setStatusUpdating(false);
     }
   };
 
@@ -672,6 +737,15 @@ export default function ViewMealsPage() {
                       className="min-h-[44px] min-w-[44px] p-2 text-gray-500 hover:text-[#FC6B31] dark:text-gray-400 transition-colors"
                     >
                       <Edit className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setStatusDish(dish)}
+                      aria-label={`Toggle Availability ${dish.name}`}
+                      className={`min-h-[44px] min-w-[44px] p-2 transition-colors ${
+                        dish.isSoldOut ? "text-gray-500 hover:text-green-500 dark:text-gray-400" : "text-[#FC6B31] hover:text-red-500"
+                      }`}
+                    >
+                      <ToggleLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(dish)}
@@ -1241,6 +1315,60 @@ export default function ViewMealsPage() {
               >
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ STATUS TOGGLE MODAL ============ */}
+      {statusDish && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md bg-white dark:bg-[#26292C] rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden animate-in fade-in duration-200">
+            <div className="p-6 text-center space-y-4">
+              <div
+                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${
+                  !statusDish.isSoldOut
+                    ? "bg-red-100 dark:bg-red-900/30 text-red-500"
+                    : "bg-green-100 dark:bg-green-900/30 text-green-500"
+                }`}
+              >
+                <ToggleLeft className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {!statusDish.isSoldOut ? "Mark as Sold Out?" : "Mark as Available?"}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {"Are you sure you want to change the availability of "}
+                  <span className="font-semibold text-gray-700 dark:text-gray-200">
+                    {statusDish.name}
+                  </span>
+                  {"?"}
+                </p>
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setStatusDish(null)}
+                disabled={statusUpdating}
+                className="flex-1 min-h-[44px] px-4 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmStatusToggle}
+                disabled={statusUpdating}
+                className={`flex-1 min-h-[44px] px-4 py-2.5 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
+                  !statusDish.isSoldOut ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+                }`}
+              >
+                {statusUpdating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ToggleLeft className="w-4 h-4" />
+                )}
+                {statusUpdating ? "Updating..." : "Confirm"}
               </button>
             </div>
           </div>

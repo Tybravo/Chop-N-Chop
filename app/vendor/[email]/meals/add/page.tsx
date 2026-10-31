@@ -448,9 +448,6 @@ export default function AddMealPage() {
       };
 
       const dish = await mealService.createDish(payload);
-      // Track the created dish id (the backend has no vendor list endpoint,
-      // so the View Meals page fetches each dish by this id).
-      mealService.saveCreatedDish(dish);
 
       if (imageFile) {
         setSubmitStage("uploading");
