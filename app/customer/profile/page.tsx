@@ -256,13 +256,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  if (window.history.length > 1) {
-                    router.back();
-                  } else {
-                    router.push('/customer/home');
-                  }
-                }}
+                onClick={() => router.push('/customer/home')}
                 className="w-11 h-11 rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] transition-colors"
                 aria-label="Go back to the previous page"
               >
