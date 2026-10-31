@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export interface CategoryPillOption {
   id: string;
   label: string;
   icon?: string | React.ReactNode;
+  imageUrl?: string;
 }
 
 interface CategoryPillsProps {
@@ -34,17 +36,28 @@ export default function CategoryPills({ options, activeId, onChange, className =
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(option.id)}
-            className={`flex min-h-[44px] items-center gap-2 rounded-full border px-5 text-[13px] font-bold shadow-sm transition-colors whitespace-nowrap ${
+            className={`flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-[13px] font-bold shadow-sm transition-colors whitespace-nowrap ${
               isActive
                 ? "border-[#FC6B31] bg-[#FC6B31] text-white shadow-orange-500/20"
                 : "border-gray-100 bg-white text-gray-700 hover:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300"
             }`}
           >
-            {option.icon && (
+            {option.imageUrl ? (
+              <span className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 dark:bg-zinc-800" aria-hidden="true">
+                <Image
+                  src={option.imageUrl}
+                  alt=""
+                  fill
+                  sizes="24px"
+                  className="object-cover"
+                  unoptimized
+                />
+              </span>
+            ) : option.icon ? (
               <span className="text-[14px]" aria-hidden="true">
                 {option.icon}
               </span>
-            )}
+            ) : null}
             <span>{option.label}</span>
           </button>
         );

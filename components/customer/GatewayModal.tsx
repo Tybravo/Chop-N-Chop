@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useOrderContext } from '@/store/useOrderContext';
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import { Loader2, MapPin, Clock, ChevronRight, ArrowLeft } from "lucide-react";
+import { zoneService, type Zone } from "@/services/customer/zone.service";
 
 // --- API Types ---
 interface TimeObj {
@@ -58,7 +59,24 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
   const [tempLocation, setTempLocation] = useState(location || "");
   const [tempWindow, setTempWindow] = useState(deliveryWindow || "");
 
-  const availableZones = ['Yaba - Akoka', 'Gbagada', 'Surulere'];
+  const [availableZones, setAvailableZones] = useState<Zone[]>([]);
+  const [isLoadingZones, setIsLoadingZones] = useState(false);
+
+  useEffect(() => {
+    const fetchZones = async () => {
+      setIsLoadingZones(true);
+      try {
+        const zones = await zoneService.getAllZones();
+        const activeZones = zones.filter((zone) => zone.status === "ACTIVE" || zone.status === "active" || !zone.status);
+        setAvailableZones(activeZones.length > 0 ? activeZones : zones);
+      } catch (error) {
+        console.error("Failed to fetch zones:", error);
+      } finally {
+        setIsLoadingZones(false);
+      }
+    };
+    fetchZones();
+  }, []);
 
   // Fetch time slots when moving to the TIME step
   useEffect(() => {
@@ -103,8 +121,8 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
     }
   }, [step, tempLocation]);
 
-  const handleLocationSelect = (zone: string) => {
-    setTempLocation(zone);
+  const handleLocationSelect = (zoneName: string) => {
+    setTempLocation(zoneName);
     setStep('TIME');
   };
 
@@ -119,7 +137,7 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
 
   // Failsafe bypass for development if the backend crashes
   const handleBypass = () => {
-    setLocation(tempLocation || availableZones[0]);
+    setLocation(tempLocation || availableZones[0]?.name || availableZones[0]?.id || "");
     setDeliveryWindow("mock-window");
     if (confirmGateway) confirmGateway();
     onClose();
@@ -159,21 +177,37 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
           {/* STEP 1: Location Cards */}
           {step === 'LOCATION' && (
             <div className="space-y-3.5 animate-in slide-in-from-left-4 duration-300">
-              {availableZones.map((zone) => (
-                <button
-                  key={zone}
-                  onClick={() => handleLocationSelect(zone)}
-                  className="w-full flex items-center justify-between p-4 rounded-[20px] border border-gray-200 bg-white hover:border-[#FC6B31] hover:shadow-[0_4px_20px_rgba(252,107,49,0.08)] transition-all text-gray-800 active:scale-[0.98] shadow-sm group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-[#FC6B31] group-hover:bg-[#FC6B31] group-hover:text-white transition-colors">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <span className="text-[16px] font-bold">{zone}</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#FC6B31] transition-colors" />
-                </button>
-              ))}
+              {isLoadingZones ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <Loader2 className="w-8 h-8 text-[#FC6B31] animate-spin mb-3" />
+                  <p className="text-[13px] font-bold text-gray-500">Loading zones...</p>
+                </div>
+              ) : availableZones.length === 0 ? (
+                <div className="text-center py-10 bg-white rounded-[20px] border border-gray-100 shadow-sm px-4">
+                  <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-900 font-bold text-[16px] mb-1">No zones available</p>
+                  <p className="text-gray-500 font-medium text-[14px]">No active delivery zones found.</p>
+                </div>
+              ) : (
+                availableZones.map((zone) => {
+                  const zoneName = zone.name || zone.id;
+                  return (
+                    <button
+                      key={zone.id}
+                      onClick={() => handleLocationSelect(zoneName)}
+                      className="w-full flex items-center justify-between p-4 rounded-[20px] border border-gray-200 bg-white hover:border-[#FC6B31] hover:shadow-[0_4px_20px_rgba(252,107,49,0.08)] transition-all text-gray-800 active:scale-[0.98] shadow-sm group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-[#FC6B31] group-hover:bg-[#FC6B31] group-hover:text-white transition-colors">
+                          <MapPin className="w-5 h-5" />
+                        </div>
+                        <span className="text-[16px] font-bold">{zoneName}</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#FC6B31] transition-colors" />
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
 

@@ -98,7 +98,8 @@ type MealModalData = {
 type Category = {
   id: string;
   name: string;
-  icon: string;
+  icon?: string;
+  imageUrl?: string;
 };
 
 export default function CustomerHome() {
@@ -125,8 +126,7 @@ export default function CustomerHome() {
   const [dailyMeals, setDailyMeals] = useState<MealModalData[]>([]);
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
 
-  // Mock wallet balance for UI (You can replace this with a real fetch later)
-  const walletBalance = isAuthenticated ? 24500 : 0;
+  const walletBalance = 0;
 
   // --- Dynamic Time-Based Suggestions ---
   const getDynamicSuggestions = () => {
@@ -143,12 +143,19 @@ export default function CustomerHome() {
       setIsCatalogLoading(true);
       try {
         const catRes = await customerApiClient.get("/api/v1/catalog/categories");
-        const catData: ApiCategory[] = catRes.data;
-        const mappedCategories = catData.map((c) => ({
-          id: c.name, 
-          name: c.name,
-          icon: c.name.includes("Burger") ? "🍔" : c.name.includes("Pizza") ? "🍕" : c.name.includes("Drink") ? "🥤" : "🍲"
-        }));
+        const catPayload = catRes.data;
+        const catData: ApiCategory[] = Array.isArray(catPayload)
+          ? catPayload
+          : (catPayload?.data || catPayload?.categories || []);
+        const mappedCategories = catData
+          .filter((c) => c.active !== false)
+          .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+          .map((c) => ({
+            id: c.id || c.name,
+            name: c.name,
+            icon: c.imageUrl ? undefined : (c.name.toLowerCase().includes("burger") ? "🍔" : c.name.toLowerCase().includes("pizza") ? "🍕" : c.name.toLowerCase().includes("drink") ? "🥤" : "🍲"),
+            imageUrl: c.imageUrl || undefined,
+          }));
         setCategories([{ id: "All", name: "All", icon: "🍽️" }, ...mappedCategories]);
 
         const mockHubId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
@@ -437,7 +444,12 @@ export default function CustomerHome() {
             </div>
           ) : (
             <CategoryPills 
-              options={categories.map(c => ({ id: c.id, label: c.name, icon: c.icon }))} 
+              options={categories.map(c => ({ 
+                id: c.id, 
+                label: c.name, 
+                icon: c.icon,
+                imageUrl: c.imageUrl 
+              }))} 
               activeId={activeCategory} 
               onChange={setActiveCategory} 
               className="px-1 md:px-0" 
