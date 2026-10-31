@@ -52,9 +52,9 @@ export default function CartPage() {
       // Step 2: Confirm Delete (Bin was tapped) -> String comparison fixes the bug
       if (deleteConfirmId === stringId) {
         if (typeof removeItem === "function") {
-          removeItem(id); 
+          removeItem(String(id)); 
         } else {
-          updateQuantity(id, 0);
+          updateQuantity(String(id), 0);
         }
         setDeleteConfirmId(null);
       } else {
@@ -64,7 +64,7 @@ export default function CartPage() {
     } else {
       // Normal increment/decrement
       setDeleteConfirmId(null);
-      updateQuantity(id, newQty);
+      updateQuantity(String(id), newQty);
     }
   };
 

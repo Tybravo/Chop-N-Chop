@@ -231,12 +231,10 @@ export default function ProfilePage() {
     <>
       {/* Desktop Profile - shown on md+ screens */}
       <div className="hidden md:block">
-        <DesktopProfileDashboard 
-          profile={profile} 
-          isLoading={isLoading} 
-          avatarUrl={liveAvatar}
-          isUploadingPic={isUploadingPic}
-          onUploadClick={() => fileInputRef.current?.click()}
+        <DesktopProfileDashboard
+          profile={profile}
+          isLoading={isLoading}
+          avatarUrl={liveAvatar || ""}
         />
       </div>
 
