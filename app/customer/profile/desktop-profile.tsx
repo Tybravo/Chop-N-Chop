@@ -53,6 +53,9 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
   const [showVehicleDialog, setShowVehicleDialog] = useState(false);
   const [vehicleForm, setVehicleForm] = useState({ label: "", make: "", color: "", plate: "" });
   const [isSaving, setIsSaving] = useState(false);
+  const [pastOrders, setPastOrders] = useState<any[]>([]);
+  const [fetchingOrders, setFetchingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -93,13 +96,37 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
         plateNumber: v.plateNumber,
         isPrimary: Boolean(v.isDefault || v.isPrimary),
       }));
-      setVehicles(mapped);
+       setVehicles(mapped);
     } catch (err) {
       console.error("Failed to fetch vehicles", err);
     } finally {
       setFetchingVehicles(false);
     }
   };
+
+  const fetchOrders = async () => {
+    setFetchingOrders(true);
+    try {
+      const res = await customerApiClient.get("/api/v1/orders/mine", {
+        params: { page: 0, size: 20 },
+      });
+      const orders = res.data?.content || res.data || [];
+      setPastOrders(Array.isArray(orders) ? orders : []);
+    } catch (err) {
+      console.error("Failed to fetch orders", err);
+      if (axios.isAxiosError(err)) {
+        setOrdersError(err.response?.data?.message || err.response?.data?.error || "Failed to load orders");
+      } else {
+        setOrdersError("Failed to load orders");
+      }
+    } finally {
+      setFetchingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   const handleAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,7 +151,11 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
       setVehicleStatusMessage("Saved vehicle successfully.");
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setVehicleFormError(err.response?.data?.message || "Failed to save vehicle");
+        const backendMsg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          `Request failed with status ${err.response?.status || "Unknown"}`;
+        setVehicleFormError(backendMsg);
       } else {
         setVehicleFormError("Failed to save vehicle");
       }
@@ -178,11 +209,6 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
       localStorage.setItem("theme", "light");
     }
   };
-
-  const pastOrders = [
-    { id: "ORD-9281", date: "Sep 16, 2026", items: "Smoky Jollof & Chicken (2x)", vendor: "Taste & See", total: "₦11,000", status: "Delivered" },
-    { id: "ORD-9104", date: "Sep 14, 2026", items: "Fluffy Yam & Eggs", vendor: "Lagos Mainland Kitchen", total: "₦3,500", status: "Delivered" },
-  ];
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
@@ -272,34 +298,50 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-400 font-semibold text-xs uppercase">
-                    <tr>
-                      <th className="p-4 rounded-l-xl">Order ID</th>
-                      <th className="p-4">Date</th>
-                      <th className="p-4">Items / Batch</th>
-                      <th className="p-4">Total</th>
-                      <th className="p-4 rounded-r-xl">Receipt</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
-                    {pastOrders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
-                        <td className="p-4 font-bold text-gray-900 dark:text-white">{ord.id}</td>
-                        <td className="p-4 text-gray-500">{ord.date}</td>
-                        <td className="p-4 text-gray-700 dark:text-gray-300 font-medium">{ord.items}</td>
-                        <td className="p-4 font-bold text-gray-900 dark:text-white">{ord.total}</td>
-                        <td className="p-4">
-                          <button className="text-xs font-bold text-[#FC6B31] hover:underline flex items-center gap-1">
-                            PDF <ExternalLink className="w-3 h-3" />
-                          </button>
-                        </td>
+              {ordersError && (
+                <p className="text-[12px] font-medium text-red-600 dark:text-red-400">{ordersError}</p>
+              )}
+
+              {fetchingOrders ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-[#FC6B31] animate-spin" />
+                </div>
+              ) : pastOrders.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No orders yet. Place your first order to get started.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-400 font-semibold text-xs uppercase">
+                      <tr>
+                        <th className="p-4 rounded-l-xl">Order ID</th>
+                        <th className="p-4">Date</th>
+                        <th className="p-4">Items / Batch</th>
+                        <th className="p-4">Total</th>
+                        <th className="p-4 rounded-r-xl">Receipt</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
+                      {pastOrders.map((ord) => (
+                        <tr key={ord.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
+                          <td className="p-4 font-bold text-gray-900 dark:text-white">{ord.id}</td>
+                          <td className="p-4 text-gray-500">{new Date(ord.createdAt || ord.date || new Date()).toLocaleDateString()}</td>
+                          <td className="p-4 text-gray-700 dark:text-gray-300 font-medium">
+                            {ord.items?.map((item: any) => item.name).join(", ") || "—"}
+                          </td>
+                          <td className="p-4 font-bold text-gray-900 dark:text-white">
+                            {ord.totalAmount != null ? `₦${ord.totalAmount.toLocaleString()}` : `₦${(ord.total || 0).toLocaleString()}`}
+                          </td>
+                          <td className="p-4">
+                            <button className="text-xs font-bold text-[#FC6B31] hover:underline flex items-center gap-1">
+                              PDF <ExternalLink className="w-3 h-3" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -442,7 +484,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                       type="text"
                       value={vehicleForm.make}
                       onChange={(e) => setVehicleForm((f) => ({ ...f, make: e.target.value }))}
-                      placeholder="Mercedes-Benz ML500"
+                      placeholder="Mercedes-Benz GL500"
                       className="w-full px-4 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#FC6B31] transition-colors"
                     />
                   </div>
@@ -462,7 +504,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                       type="text"
                       value={vehicleForm.plate}
                       onChange={(e) => setVehicleForm((f) => ({ ...f, plate: e.target.value }))}
-                      placeholder="KJA-203XX"
+                      placeholder="SDA-293XX"
                       className="w-full px-4 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#FC6B31] transition-colors"
                     />
                   </div>

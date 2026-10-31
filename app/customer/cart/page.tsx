@@ -14,7 +14,7 @@ export default function CartPage() {
 
   // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   
   // Auto-clear delete confirmation after 3 seconds
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function CartPage() {
   // Modal & Form State
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
-const [addressForm, setAddressForm] = useState({ type: "", location: "" });
+  const [addressForm, setAddressForm] = useState({ type: "", location: "" });
   
   const typeInputRef = useRef<HTMLInputElement>(null);
   const locationInputRef = useRef<HTMLTextAreaElement>(null);
@@ -42,28 +42,29 @@ const [addressForm, setAddressForm] = useState({ type: "", location: "" });
   
   // Smart 2-Step Delete Logic linked to global store
   const handleQuantityChange = (id: number | string, delta: number) => {
-    const item = cartItems.find(i => i.id === id);
+    const stringId = String(id);
+    const item = cartItems.find(i => String(i.id) === stringId);
     if (!item) return;
 
     const newQty = item.quantity + delta;
 
     if (delta === -1 && item.quantity === 1) {
-      if (deleteConfirmId === id) {
-        // Step 2: Confirm Delete (Bin was tapped) -> completely removes item
+      // Step 2: Confirm Delete (Bin was tapped) -> String comparison fixes the bug
+      if (deleteConfirmId === stringId) {
         if (typeof removeItem === "function") {
-          removeItem(String(id));
+          removeItem(id); 
         } else {
-          updateQuantity(String(id), 0); // Fallback if store uses updateQuantity for removal
+          updateQuantity(id, 0);
         }
         setDeleteConfirmId(null);
       } else {
         // Step 1: Intend to Delete (Minus tapped at qty 1, show bin icon)
-        setDeleteConfirmId(Number(id));
+        setDeleteConfirmId(stringId);
       }
     } else {
-      // Normal increment/decrement - ALWAYS clear delete confirmation on any other action
+      // Normal increment/decrement
       setDeleteConfirmId(null);
-      updateQuantity(String(id), newQty);
+      updateQuantity(id, newQty);
     }
   };
 
@@ -148,7 +149,8 @@ const [addressForm, setAddressForm] = useState({ type: "", location: "" });
             </div>
           ) : (
             cartItems.map((item) => {
-              const isConfirmingDelete = deleteConfirmId !== null && deleteConfirmId === Number(item.id);
+              // 🚀 Use string comparison here to ensure the state matches the mapped ID
+              const isConfirmingDelete = deleteConfirmId === String(item.id);
 
               return (
                 <div key={item.id} className="flex gap-4 items-center bg-white dark:bg-zinc-900 p-3.5 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] dark:shadow-black/20 border border-gray-50 dark:border-zinc-800 transition-all">
