@@ -42,14 +42,10 @@ function CheckoutContent() {
   // --- MOCK USER STATUS (Toggle these to test the flows) ---
   const [isGuest, setIsGuest] = useState(false);
   const [userHasPin, setUserHasPin] = useState(false);
-  const [isFetchingProfile] = useState(false);
-  void isFetchingProfile;
-
   const fetchProfileForPrefill = async () => {
     const token = localStorage.getItem("chopnchop_token");
     if (!token) return;
     try {
-      setIsFetchingProfile(true);
       const res = await customerApiClient.get("/api/v1/user/profile");
       const profile = res.data || {};
       const profilePhone = profile.phone || profile.phoneNumber || "";
@@ -63,10 +59,8 @@ function CheckoutContent() {
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status !== 401) {
-        console.warn("Could not prefill checkout from profile:", err.response?.data || err.message);
+        console.error("Failed to fetch profile for checkout prefill", err);
       }
-    } finally {
-      setIsFetchingProfile(false);
     }
   };
 
