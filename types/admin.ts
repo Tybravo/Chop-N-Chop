@@ -176,3 +176,35 @@ export interface Transaction {
   paymentMethod: string;
 }
 
+export interface Zone {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  hubId: string;
+  status: "DRAFT" | "ACTIVE" | "INACTIVE";
+  baseDeliveryFee: number;
+  estimatedDeliveryMinutes: number;
+  boundary: Record<string, unknown>;
+}
+
+export interface CreateZonePayload {
+  name: string;
+  code: string;
+  description: string;
+  hubId: string;
+  baseDeliveryFee: number;
+  estimatedDeliveryMinutes: number;
+  boundaryWkt: string;
+}
+
+export interface UpdateZonePayload {
+  name: string;
+  code: string;
+  description: string;
+  hubId: string;
+  baseDeliveryFee: number;
+  estimatedDeliveryMinutes: number;
+  boundaryWkt: string;
+}
+
