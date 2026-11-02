@@ -142,7 +142,11 @@ export default function CustomerHome() {
     const fetchCatalog = async () => {
       setIsCatalogLoading(true);
       try {
-        const catRes = await customerApiClient.get("/api/v1/catalog/categories");
+        const catRes = await customerApiClient.get("/api/v1/catalog/categories", {
+          headers: {
+            "X-App-Brand": "CHOP_N_CHOP",
+          },
+        });
         const catPayload = catRes.data;
         const catData: ApiCategory[] = Array.isArray(catPayload)
           ? catPayload
