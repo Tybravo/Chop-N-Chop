@@ -86,7 +86,7 @@ export default function MealDetailsModal({ isOpen, onClose, meal }: MealDetailsM
                 🔥 271 Cal
               </span>
             </div>
-            <p className="text-[13px] text-[#FC6B31] font-medium">$0 Delivery fee over ₦26,000</p>
+            <p className="text-[13px] text-[#FC6B31] font-medium">₦0 Delivery fee over ₦26,000</p>
           </div>
 
           <div>
