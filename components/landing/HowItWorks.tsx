@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Bell, Timer, Bike, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: string }) {
   return (
@@ -66,9 +66,24 @@ export default function HowItWorks() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Auto-play effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const container = scrollContainerRef.current;
+      // Only run auto-play if the mobile container is visible
+      if (container && container.clientWidth > 0) {
+        const nextIndex = currentSlide === steps.length - 1 ? 0 : currentSlide + 1;
+        scrollToSlide(nextIndex);
+      }
+    }, 4000); // Changes slide every 4 seconds
+
+    // Clear interval on unmount or when currentSlide changes (so user interactions reset the timer)
+    return () => clearInterval(timer);
+  }, [currentSlide]);
+
   const scrollToSlide = (index: number) => {
     const container = scrollContainerRef.current;
-    if (container) {
+    if (container && container.clientWidth > 0) {
       const slideWidth = container.clientWidth;
       container.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
       setCurrentSlide(index);

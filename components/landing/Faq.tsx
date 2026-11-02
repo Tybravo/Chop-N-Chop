@@ -16,7 +16,7 @@ interface FaqItemProps { question: string; answer: string; isOpen: boolean; onCl
 
 function FaqItem({ question, answer, isOpen, onClick }: FaqItemProps) {
   return (
-    <div className="flex flex-col bg-[#FFF7F5] dark:bg-gray-900 rounded-[5px] overflow-hidden transition-all duration-200">
+    <div className="flex flex-col bg-[#FFF7F5] dark:bg-gray-900 rounded-[5px] overflow-hidden transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-sm">
       <button onClick={onClick} className="flex flex-row justify-between items-center w-full py-[16px] md:py-[23px] px-4 md:px-[24px] text-left cursor-pointer hover:bg-[#ffece6] dark:hover:bg-gray-800 transition-colors">
         <span className="text-[#3E3D42] dark:text-white font-medium text-[15px] md:text-[16px]">{question}</span>
         <span className="flex-shrink-0 text-[#FF6633] ml-4 transition-transform duration-300">
