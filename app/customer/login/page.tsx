@@ -7,11 +7,13 @@ import { Mail, ArrowRight, ArrowLeft, Loader2, Sparkles, EyeOff, Eye } from "luc
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import axios from "axios";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { useCartStore } from "@/store/useCartStore";
 
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
 function LoginContent() {
   const router = useRouter();
+  const clearCart = useCartStore((state) => state.clearCart);
   
   // --- State ---
   const [step, setStep] = useState<AuthStep>("EMAIL");
@@ -83,12 +85,7 @@ function LoginContent() {
         if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
         localStorage.setItem("chopnchop_session", "active");
 
-        // FIX: Cache the profile picture instantly on login
-        const pic = data.profilePictureUrl || data.pictureUrl || data.avatar || data.imageUrl;
-        if (pic) {
-          localStorage.setItem("chopnchop_avatar", pic);
-        }
-        
+        clearCart();
         router.push("/customer/home");
       }
     } catch (err) {
@@ -127,7 +124,7 @@ function LoginContent() {
         if (pic) {
           localStorage.setItem("chopnchop_avatar", pic);
         }
-      
+      clearCart();
       router.push("/customer/home");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -160,7 +157,7 @@ function LoginContent() {
       localStorage.setItem("chopnchop_token", data.access_token);
       if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
       localStorage.setItem("chopnchop_session", "active");
-      
+      clearCart();
       router.push("/customer/home");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
