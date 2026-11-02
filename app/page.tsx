@@ -14,7 +14,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-white dark:bg-background">
       <Navbar />
       
-      <main className="flex-grow flex flex-col">
+      <main className="flex-grow flex flex-col pt-[72px] md:pt-[90px]">
         <Hero />
         <HowItWorks />
         

@@ -23,7 +23,7 @@ export default function Navbar() {
 
   // Using lg:px-[80px] so landscape phones don't lose horizontal space
   return (
-    <nav className="relative z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] lg:px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] lg:px-[80px] bg-background/95 backdrop-blur-md border-b border-[#E5E7EB] dark:border-secondary-light/20">
       
       {/* Logo */}
       <div className="flex-shrink-0 z-50">
