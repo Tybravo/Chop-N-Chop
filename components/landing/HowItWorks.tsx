@@ -194,7 +194,7 @@ export default function HowItWorks() {
           onClick={prevSlide}
           disabled={currentSlide === 0}
           className={`absolute left-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
-            currentSlide === 0 ? 'opacity-40 cursor-not-allowed' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
+            currentSlide === 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
           }`}
           aria-label="Previous step"
         >
@@ -204,7 +204,7 @@ export default function HowItWorks() {
           onClick={nextSlide}
           disabled={currentSlide === steps.length - 1}
           className={`absolute right-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
-            currentSlide === steps.length - 1 ? 'opacity-40 cursor-not-allowed' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
+            currentSlide === steps.length - 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
           }`}
           aria-label="Next step"
         >
