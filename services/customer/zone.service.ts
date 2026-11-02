@@ -65,9 +65,8 @@ export const zoneService = {
         });
         return Array.isArray(response.data) ? response.data : response.data?.content || [];
       } catch {
-        // Fallback to authenticated client if public fails
-        const response = await customerApiClient.get("/api/v1/zones");
-        return Array.isArray(response.data) ? response.data : response.data?.content || [];
+        // Do not attach auth for public endpoint - just return empty
+        return [];
       }
     }
   },
