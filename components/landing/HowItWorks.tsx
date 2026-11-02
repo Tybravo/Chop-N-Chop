@@ -11,7 +11,7 @@ function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: 
       <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#FF6633]/10 text-[#FF6633]">
         <Icon size={20} strokeWidth={2} />
       </div>
-      <p className="text-[14px] text-[#555F66] dark:text-gray-400 font-medium leading-tight md:max-w-[200px]">
+      <p className="text-[14px] text-[#555F66] dark:text-gray-400 font-medium leading-tight">
         {text}
       </p>
     </div>
@@ -170,9 +170,9 @@ export default function HowItWorks() {
           {steps.map((step) => (
             <div 
               key={step.id}
-              className="w-full flex-shrink-0 snap-center bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 flex flex-col relative overflow-hidden h-[420px]"
+              className="w-full flex-shrink-0 snap-center bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 flex flex-col relative overflow-hidden h-[440px]"
             >
-              <div className="relative z-20 pb-[240px]">
+              <div className="relative z-20">
                 <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">{step.title}</h3>
                 <p className="text-[#555F66] dark:text-gray-400 leading-tight mb-6">{step.description}</p>
                 {step.hasFeatures && (
@@ -193,7 +193,7 @@ export default function HowItWorks() {
         <button
           onClick={prevSlide}
           disabled={currentSlide === 0}
-          className={`absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
+          className={`absolute left-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
             currentSlide === 0 ? 'opacity-40 cursor-not-allowed' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
           }`}
           aria-label="Previous step"
@@ -203,7 +203,7 @@ export default function HowItWorks() {
         <button
           onClick={nextSlide}
           disabled={currentSlide === steps.length - 1}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
+          className={`absolute right-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
             currentSlide === steps.length - 1 ? 'opacity-40 cursor-not-allowed' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
           }`}
           aria-label="Next step"
