@@ -54,10 +54,21 @@ export const zoneService = {
     try {
       const response = await publicApiClient.get("/api/v1/zones");
       return Array.isArray(response.data) ? response.data : response.data?.content || [];
-    } catch (error) {
-      // Fallback to authenticated client if public fails
-      const response = await customerApiClient.get("/api/v1/zones");
-      return Array.isArray(response.data) ? response.data : response.data?.content || [];
+    } catch {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com"}/api/v1/zones`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-App-Brand": "CHOP_N_CHOP",
+          },
+        });
+        return Array.isArray(response.data) ? response.data : response.data?.content || [];
+      } catch {
+        // Fallback to authenticated client if public fails
+        const response = await customerApiClient.get("/api/v1/zones");
+        return Array.isArray(response.data) ? response.data : response.data?.content || [];
+      }
     }
   },
 
