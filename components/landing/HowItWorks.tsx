@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Bell, Timer, Bike, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: string }) {
   return (
@@ -65,35 +65,63 @@ const steps = [
 export default function HowItWorks() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const scrollToSlide = (index: number) => {
+  const scrollToSlide = useCallback((index: number) => {
     const container = scrollContainerRef.current;
-    if (container) {
+    if (container && container.clientWidth > 0) {
       const slideWidth = container.clientWidth;
       container.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
       setCurrentSlide(index);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      const container = scrollContainerRef.current;
+      if (container && container.clientWidth > 0) {
+        const nextIndex = currentSlide === steps.length - 1 ? 0 : currentSlide + 1;
+        const slideWidth = container.clientWidth;
+        container.scrollTo({ left: slideWidth * nextIndex, behavior: 'smooth' });
+        setCurrentSlide(nextIndex);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [currentSlide, isAutoPlaying]);
 
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (container) {
       const slideWidth = container.clientWidth;
+      if (slideWidth === 0) return;
       const index = Math.round(container.scrollLeft / slideWidth);
-      setCurrentSlide(index);
+      setCurrentSlide(Math.max(0, Math.min(index, steps.length - 1)));
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 5000);
     }
   };
 
   const nextSlide = () => {
+    setIsAutoPlaying(false);
     if (currentSlide < steps.length - 1) {
       scrollToSlide(currentSlide + 1);
+    } else {
+      scrollToSlide(0);
     }
+    setTimeout(() => setIsAutoPlaying(true), 5000);
   };
 
   const prevSlide = () => {
+    setIsAutoPlaying(false);
     if (currentSlide > 0) {
       scrollToSlide(currentSlide - 1);
+    } else {
+      scrollToSlide(steps.length - 1);
     }
+    setTimeout(() => setIsAutoPlaying(true), 5000);
   };
 
   return (
@@ -160,30 +188,30 @@ export default function HowItWorks() {
       </div>
 
       {/* Mobile Carousel View */}
-      <div className="md:hidden w-full max-w-[1281px] relative">
+      <div className="md:hidden w-full max-w-[1281px] relative overflow-hidden">
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide gap-0 touch-pan-x"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         >
           {steps.map((step) => (
             <div 
               key={step.id}
-              className="w-full flex-shrink-0 snap-center bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 flex flex-col relative overflow-hidden h-[440px]"
+              className="w-full flex-shrink-0 snap-center bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 flex flex-col h-[480px]"
             >
-              <div className="relative z-20">
+              <div className="relative z-20 flex-shrink-0">
                 <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">{step.title}</h3>
-                <p className="text-[#555F66] dark:text-gray-400 leading-tight mb-6">{step.description}</p>
+                <p className="text-[#555F66] dark:text-gray-400 leading-tight mb-4">{step.description}</p>
                 {step.hasFeatures && (
-                  <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-4 mb-2">
                     {step.features?.map((feature, idx) => (
                       <FeatureListItem key={idx} icon={feature.icon} text={feature.text} />
                     ))}
                   </div>
                 )}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-[250px] z-10 pointer-events-none">
+              <div className="relative flex-1 w-full z-10 pointer-events-none mt-2">
                 <Image src={step.image} alt={step.imageAlt} fill sizes="100vw" className="object-contain object-bottom" priority={step.id === 1} />
               </div>
             </div>
