@@ -23,7 +23,7 @@ export default function Navbar() {
 
   // Using lg:px-[80px] so landscape phones don't lose horizontal space
   return (
-    <nav className="relative z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] lg:px-[80px] bg-background border-b border-[#E5E7EB] dark:border-secondary-light/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between w-full py-4 px-4 md:py-[20px] lg:px-[80px] bg-background/95 backdrop-blur-md border-b border-[#E5E7EB] dark:border-secondary-light/20">
       
       {/* Logo */}
       <div className="flex-shrink-0 z-50">
@@ -75,10 +75,10 @@ export default function Navbar() {
           )}
         </button>
 
-        <button className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-2.5 rounded-lg hidden sm:flex items-center gap-2 shadow-sm">
+        <Link href="/customer/home" className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-2.5 rounded-lg hidden sm:flex items-center gap-2 shadow-sm">
           <PreOrderIcon size={16} />
           <span className="font-semibold text-white tracking-[0.25px]">Order Now</span>
-        </button>
+        </Link>
 
         {/* Mobile Menu Toggle */}
         <button 
@@ -97,10 +97,10 @@ export default function Navbar() {
           <Link href="#faqs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">FAQs</Link>
           <Link href="#contact-us" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Contact Us</Link>
           <Link href="/vendor/login" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Vendor Portal</Link>
-          <button className="bg-[#FF6633] text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm w-full mt-2">
+          <Link href="/customer/home" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#FF6633] text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm w-full mt-2">
             <PreOrderIcon size={16} />
             <span className="font-semibold text-white tracking-[0.25px]">Order Now</span>
-          </button>
+          </Link>
           <div className="flex justify-center sm:hidden mt-2">
             <InstallPwaButton />
           </div>

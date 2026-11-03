@@ -2,7 +2,8 @@
 'use client';
 
 import Image from 'next/image';
-import { Bell, Timer, Bike } from 'lucide-react';
+import { Bell, Timer, Bike, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: string }) {
   return (
@@ -10,15 +11,91 @@ function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: 
       <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#FF6633]/10 text-[#FF6633]">
         <Icon size={20} strokeWidth={2} />
       </div>
-      {/* Replaced max-w-[200px] with md:max-w-[200px] so text has full width to breathe on mobile */}
-      <p className="text-[14px] text-[#555F66] dark:text-gray-400 font-medium leading-tight md:max-w-[200px]">
+      <p className="text-[14px] text-[#555F66] dark:text-gray-400 font-medium leading-tight">
         {text}
       </p>
     </div>
   );
 }
 
+const steps = [
+  {
+    id: 1,
+    title: "Step 1: You Order",
+    description: "Choose your meals and pay before time",
+    image: "/Lady-at-table-with-phone.png",
+    imageAlt: "Woman ordering on phone",
+    hasFeatures: false,
+  },
+  {
+    id: 2,
+    title: "Step 2: We Cook",
+    description: "Meals are prepared only after orders are confirmed",
+    image: "/Chef-stirring-pot.png",
+    imageAlt: "Chef cooking food",
+    hasFeatures: true,
+    features: [
+      { icon: Bell, text: "Place your orders" },
+      { icon: Timer, text: "We confirm and start your food preparation." },
+    ],
+  },
+  {
+    id: 3,
+    title: "Step 3: We Deliver",
+    description: "Riders deliver in optimised batches within a time window.",
+    image: "/Rider.png",
+    imageAlt: "Delivery rider on motorcycle",
+    hasFeatures: true,
+    features: [
+      { icon: Bell, text: "Place your orders" },
+      { icon: Timer, text: "We confirm and start your food preparation." },
+      { icon: Bike, text: "The rider picks it up, and is on the way" },
+    ],
+  },
+  {
+    id: 4,
+    title: "Step 4: You Enjoy",
+    description: "Fresh, delicious meals delivered right on schedule.",
+    image: "/lady_eating_food.png",
+    imageAlt: "Woman enjoying a meal",
+    hasFeatures: false,
+  },
+];
+
 export default function HowItWorks() {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const scrollToSlide = (index: number) => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const slideWidth = container.clientWidth;
+      container.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+      setCurrentSlide(index);
+    }
+  };
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const slideWidth = container.clientWidth;
+      const index = Math.round(container.scrollLeft / slideWidth);
+      setCurrentSlide(index);
+    }
+  };
+
+  const nextSlide = () => {
+    if (currentSlide < steps.length - 1) {
+      scrollToSlide(currentSlide + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      scrollToSlide(currentSlide - 1);
+    }
+  };
+
   return (
     <section id="how-it-works" className="w-full flex flex-col items-center pt-8 md:pt-0 pb-16 md:pb-24 px-4 md:px-[10px] bg-white dark:bg-background">
       
@@ -28,11 +105,10 @@ export default function HowItWorks() {
         </h2>
       </div>
 
-      <div className="w-full max-w-[1281px] grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 px-0 md:px-[85px]">
+      {/* Desktop Grid View */}
+      <div className="hidden md:grid w-full max-w-[1281px] grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 px-0 md:px-[85px]">
 
-        {/* --- STEP 1: YOU ORDER --- */}
         <div className="md:col-span-4 bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 md:p-10 flex flex-col relative overflow-hidden h-auto md:h-[391px]">
-          {/* Added pb-[260px] on mobile to reserve space for the bottom illustration */}
           <div className="relative z-20 pb-[260px] md:pb-0">
             <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">Step 1: You Order</h3>
             <p className="text-[#555F66] dark:text-gray-400 leading-tight">Choose your meals and pay before time</p>
@@ -42,9 +118,7 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        {/* --- STEP 2: WE COOK --- */}
         <div className="md:col-span-8 bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 md:p-10 flex flex-col md:flex-row relative overflow-hidden h-auto md:h-[391px]">
-          {/* Added pb-[240px] on mobile to reserve space for the bottom illustration */}
           <div className="w-full md:w-1/2 relative z-20 flex flex-col pb-[240px] md:pb-0">
             <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">Step 2: We Cook</h3>
             <p className="text-[#555F66] dark:text-gray-400 mb-8 max-w-sm leading-tight">Meals are prepared only after orders are confirmed</p>
@@ -58,9 +132,7 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        {/* --- STEP 3: WE DELIVER --- */}
         <div className="md:col-span-8 bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 md:p-10 flex flex-col md:flex-row relative overflow-hidden h-auto md:h-[391px]">
-           {/* Added pb-[240px] on mobile to reserve space for the bottom illustration */}
            <div className="w-full md:w-1/2 relative z-20 flex flex-col pb-[240px] md:pb-0">
             <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">Step 3: We Deliver</h3>
             <p className="text-[#555F66] dark:text-gray-400 mb-8 max-w-sm leading-tight">Riders deliver in optimised batches within a time window.</p>
@@ -75,9 +147,7 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        {/* --- STEP 4: YOU ENJOY --- */}
         <div className="md:col-span-4 bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 md:p-10 flex flex-col relative overflow-hidden h-auto md:h-[391px]">
-          {/* Added pb-[260px] on mobile to reserve space for the bottom illustration */}
           <div className="relative z-20 pb-[260px] md:pb-0">
             <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">Step 4: You Enjoy</h3>
             <p className="text-[#555F66] dark:text-gray-400 leading-tight">Fresh, delicious meals delivered right on schedule.</p>
@@ -87,6 +157,72 @@ export default function HowItWorks() {
           </div>
         </div>
 
+      </div>
+
+      {/* Mobile Carousel View */}
+      <div className="md:hidden w-full max-w-[1281px] relative">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {steps.map((step) => (
+            <div 
+              key={step.id}
+              className="w-full flex-shrink-0 snap-center bg-[#FFF7F5] dark:bg-gray-900 rounded-[20px] p-6 flex flex-col relative overflow-hidden h-[440px]"
+            >
+              <div className="relative z-20">
+                <h3 className="text-[#FF6633] text-2xl font-semibold mb-2">{step.title}</h3>
+                <p className="text-[#555F66] dark:text-gray-400 leading-tight mb-6">{step.description}</p>
+                {step.hasFeatures && (
+                  <div className="flex flex-col gap-5">
+                    {step.features?.map((feature, idx) => (
+                      <FeatureListItem key={idx} icon={feature.icon} text={feature.text} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-[250px] z-10 pointer-events-none">
+                <Image src={step.image} alt={step.imageAlt} fill sizes="100vw" className="object-contain object-bottom" priority={step.id === 1} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={prevSlide}
+          disabled={currentSlide === 0}
+          className={`absolute left-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
+            currentSlide === 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
+          }`}
+          aria-label="Previous step"
+        >
+          <ChevronLeft className="w-5 h-5 text-[#FF6633]" />
+        </button>
+        <button
+          onClick={nextSlide}
+          disabled={currentSlide === steps.length - 1}
+          className={`absolute right-2 top-[calc(50%-20px)] -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center transition-all ${
+            currentSlide === steps.length - 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'opacity-100 hover:bg-white dark:hover:bg-gray-800'
+          }`}
+          aria-label="Next step"
+        >
+          <ChevronRight className="w-5 h-5 text-[#FF6633]" />
+        </button>
+
+        <div className="flex justify-center gap-2 mt-4">
+          {steps.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                currentSlide === index ? 'bg-[#FF6633] w-6' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+              aria-label={`Go to step ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

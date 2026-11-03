@@ -83,7 +83,11 @@ export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionP
       setIsLoading(true);
       try {
         const mockHubId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
-        const res = await customerApiClient.get(`/api/v1/catalog/today?hubId=${mockHubId}`);
+        const res = await customerApiClient.get(`/api/v1/catalog/today?hubId=${mockHubId}`, {
+          headers: {
+            "X-App-Brand": "CHOP_N_CHOP",
+          },
+        });
         const menuData: ApiTodaysMenu = res.data;
 
         const items: DealItem[] = [];

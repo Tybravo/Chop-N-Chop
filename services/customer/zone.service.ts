@@ -1,4 +1,5 @@
 import { customerApiClient } from "@/lib/api/customerApiClient";
+import axios from "axios";
 
 export interface ResolvedZone {
   zoneId: string;
@@ -20,9 +21,19 @@ export interface Zone {
   baseDeliveryFee?: number;
   estimatedDeliveryMinutes?: number;
   boundary?: unknown;
+  boundaryWkt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+
+const publicApiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-App-Brand": "CHOP_N_CHOP",
+  },
+});
 
 export const zoneService = {
   async resolveLocation(latitude: number, longitude: number): Promise<ResolvedZone> {
@@ -40,8 +51,24 @@ export const zoneService = {
   },
 
   async getAllZones(): Promise<Zone[]> {
-    const response = await customerApiClient.get("/api/v1/zones");
-    return Array.isArray(response.data) ? response.data : response.data?.content || [];
+    try {
+      const response = await publicApiClient.get("/api/v1/zones");
+      return Array.isArray(response.data) ? response.data : response.data?.content || [];
+    } catch {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com"}/api/v1/zones`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-App-Brand": "CHOP_N_CHOP",
+          },
+        });
+        return Array.isArray(response.data) ? response.data : response.data?.content || [];
+      } catch {
+        // Do not attach auth for public endpoint - just return empty
+        return [];
+      }
+    }
   },
 
   async getZoneById(zoneId: string): Promise<Zone> {
