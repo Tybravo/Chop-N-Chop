@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Bell, Timer, Bike, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 function FeatureListItem({ icon: Icon, text }: { icon: React.ElementType, text: string }) {
   return (
@@ -65,30 +65,32 @@ const steps = [
 export default function HowItWorks() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Auto-play effect
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const container = scrollContainerRef.current;
-      // Only run auto-play if the mobile container is visible
-      if (container && container.clientWidth > 0) {
-        const nextIndex = currentSlide === steps.length - 1 ? 0 : currentSlide + 1;
-        scrollToSlide(nextIndex);
-      }
-    }, 4000); // Changes slide every 4 seconds
-
-    // Clear interval on unmount or when currentSlide changes (so user interactions reset the timer)
-    return () => clearInterval(timer);
-  }, [currentSlide]);
-
-  const scrollToSlide = (index: number) => {
+  const scrollToSlide = useCallback((index: number) => {
     const container = scrollContainerRef.current;
     if (container && container.clientWidth > 0) {
       const slideWidth = container.clientWidth;
       container.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
       setCurrentSlide(index);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      const container = scrollContainerRef.current;
+      if (container && container.clientWidth > 0) {
+        const nextIndex = currentSlide === steps.length - 1 ? 0 : currentSlide + 1;
+        const slideWidth = container.clientWidth;
+        container.scrollTo({ left: slideWidth * nextIndex, behavior: 'smooth' });
+        setCurrentSlide(nextIndex);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [currentSlide, isAutoPlaying]);
 
   const handleScroll = () => {
     const container = scrollContainerRef.current;
@@ -97,19 +99,29 @@ export default function HowItWorks() {
       if (slideWidth === 0) return;
       const index = Math.round(container.scrollLeft / slideWidth);
       setCurrentSlide(Math.max(0, Math.min(index, steps.length - 1)));
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 5000);
     }
   };
 
   const nextSlide = () => {
+    setIsAutoPlaying(false);
     if (currentSlide < steps.length - 1) {
       scrollToSlide(currentSlide + 1);
+    } else {
+      scrollToSlide(0);
     }
+    setTimeout(() => setIsAutoPlaying(true), 5000);
   };
 
   const prevSlide = () => {
+    setIsAutoPlaying(false);
     if (currentSlide > 0) {
       scrollToSlide(currentSlide - 1);
+    } else {
+      scrollToSlide(steps.length - 1);
     }
+    setTimeout(() => setIsAutoPlaying(true), 5000);
   };
 
   return (
