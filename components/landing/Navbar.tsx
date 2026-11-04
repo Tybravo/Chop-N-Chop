@@ -50,7 +50,7 @@ export default function Navbar() {
       {/* Desktop Navigation Links */}
       <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-foreground">
         <Link href="#how-it-works" className="hover:text-[#FF6633] transition-colors">How it works</Link>
-        <Link href="#todays-drop" className="hover:text-[#FF6633] transition-colors">Today&apos;s drop</Link>
+        <Link href="/customer/drops" className="hover:text-[#FF6633] transition-colors">Today&apos;s drop</Link>
         <Link href="#faqs" className="hover:text-[#FF6633] transition-colors">FAQs</Link>
         <Link href="#contact-us" className="hover:text-[#FF6633] transition-colors">Contact Us</Link>
         <Link href="/vendor/login" className="hover:text-[#FF6633] transition-colors">Vendor</Link>
@@ -62,18 +62,14 @@ export default function Navbar() {
         
         <ThemeToggle />
         
-        <button
-          className="relative p-2 text-foreground hover:text-[#FF6633] hover:bg-[#FF6633]/10 rounded-full transition-colors"
-          onClick={toggleCart}
-          aria-label="Open cart"
-        >
+        <Link href="/customer/cart" aria-label="Open cart" className="relative p-2 text-foreground hover:text-[#FF6633] hover:bg-[#FF6633]/10 rounded-full transition-colors">
           <ShoppingCart size={24} />
           {mounted && getTotalItems > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF6633] text-[10px] font-bold text-white">
               {getTotalItems}
             </span>
           )}
-        </button>
+        </Link>
 
         <Link href="/customer/home" className="bg-[#FF6633] hover:bg-[#e55a2b] transition-colors text-white px-6 py-2.5 rounded-lg hidden sm:flex items-center gap-2 shadow-sm">
           <PreOrderIcon size={16} />
@@ -93,7 +89,7 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-background border-b border-[#E5E7EB] dark:border-gray-800 shadow-lg flex flex-col py-6 px-6 gap-6 lg:hidden z-40">
           <Link href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">How it works</Link>
-          <Link href="#todays-drop" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Today&apos;s drop</Link>
+          <Link href="/customer/drops" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Today&apos;s drop</Link>
           <Link href="#faqs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">FAQs</Link>
           <Link href="#contact-us" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Contact Us</Link>
           <Link href="/vendor/login" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium hover:text-[#FF6633]">Vendor Portal</Link>
