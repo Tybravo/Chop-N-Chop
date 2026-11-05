@@ -105,7 +105,7 @@ export default function NotificationsPage() {
               type="button"
               onClick={() => router.back()}
               aria-label="Go back"
-              className="p-2 -ml-2 rounded-full text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:text-white dark:hover:bg-zinc-900"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
