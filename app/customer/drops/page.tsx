@@ -183,7 +183,7 @@ export default function DropsPage() {
                 : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            Active Drops (1)
+            Active Drops
           </button>
           <button
             onClick={() => setActiveTab("past")}
@@ -199,76 +199,12 @@ export default function DropsPage() {
 
         {/* ACTIVE TAB CONTENT */}
         {activeTab === "active" && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-zinc-900 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-              
-              <div className="bg-[#FC6B31] p-5 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <span className="text-[10px] font-extrabold tracking-wider uppercase bg-white/20 px-2.5 py-0.5 rounded-full block w-fit mb-2">
-                    Arriving Today
-                  </span>
-                  <h2 className="text-lg font-extrabold leading-tight">Smoky Party Jollof & Turkey</h2>
-                  <p className="text-xs text-orange-100 mt-1">Taste & See Kitchen • 1 Item</p>
-                </div>
-                <div className="w-full sm:w-auto bg-black/10 sm:bg-transparent p-3 sm:p-0 rounded-2xl sm:text-right flex sm:flex-col justify-between items-center sm:items-end">
-                  <span className="block text-[10px] font-medium text-orange-100 uppercase mb-0.5">Drop Window</span>
-                  <span className="block text-xs sm:text-sm font-extrabold bg-white text-[#FC6B31] px-3 py-1.5 sm:py-1 rounded-xl shadow-sm">
-                    1:30 PM - 2:00 PM
-                  </span>
-                </div>
-              </div>
-
-              {/* Vertical Timeline */}
-              <div className="p-6">
-                <div className="relative border-l-2 border-gray-100 dark:border-zinc-800 ml-4 space-y-8">
-                  <div className="relative pl-8">
-                    <span className="absolute -left-[13px] bg-[#FC6B31] w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900">
-                      <CheckCircle2 className="w-3 h-3 text-white" />
-                    </span>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Order Confirmed</h3>
-                    <p className="text-xs text-gray-500 mt-1">11:00 AM • Vendor has acknowledged your pre-order.</p>
-                  </div>
-                  <div className="relative pl-8">
-                    <span className="absolute -left-[13px] bg-[#FC6B31] w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900">
-                      <Package className="w-3 h-3 text-white" />
-                    </span>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Batching & Preparing</h3>
-                    <p className="text-xs text-gray-500 mt-1">12:15 PM • Your meal is being prepared and batched for the hub drop.</p>
-                  </div>
-                  <div className="relative pl-8">
-                    <span className="absolute -left-[13px] bg-orange-100 dark:bg-orange-900/30 border-2 border-[#FC6B31] w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900">
-                      <span className="w-2 h-2 bg-[#FC6B31] rounded-full animate-pulse" />
-                    </span>
-                    <h3 className="text-sm font-bold text-[#FC6B31]">Out for Delivery</h3>
-                    <p className="text-xs text-gray-500 mt-1">Driver is currently en route to your selected hub.</p>
-                  </div>
-                  <div className="relative pl-8">
-                    <span className="absolute -left-[13px] bg-gray-100 dark:bg-zinc-800 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900">
-                      <MapPin className="w-3 h-3 text-gray-400" />
-                    </span>
-                    <h3 className="text-sm font-bold text-gray-400">Ready at Hub</h3>
-                    <p className="text-xs text-gray-400 mt-1">Pending arrival at Victoria Island Corporate Tower.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Area */}
-              <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 flex gap-3 border-t border-gray-100 dark:border-zinc-800">
-                <button 
-                  onClick={() => handleOpenReceipt(activeOrderReceiptData)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-sm font-bold py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors text-gray-900 dark:text-white"
-                >
-                  View Receipt
-                </button>
-                <button 
-                  onClick={() => setIsDriverModalOpen(true)}
-                  className="flex-1 bg-[#FC6B31] text-white text-sm font-bold py-3 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-colors"
-                >
-                  Contact Driver
-                </button>
-              </div>
-
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4">
+              <Package className="w-7 h-7 text-gray-400" />
             </div>
+            <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-1">No active drops</h3>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400">You don&apos;t have any orders being delivered right now.</p>
           </div>
         )}
 
