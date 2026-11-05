@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, SlidersHorizontal, Star, MapPin, ChefHat, X } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
+import { SafeAvatar } from "@/components/SafeAvatar";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import { useOrderContext } from "@/store/useOrderContext";
 
@@ -211,7 +212,7 @@ export default function ExplorePage() {
                 }`}
               >
                 {cat.imageUrl ? (
-                  <Image src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" />
+                  <SafeAvatar src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" />
                 ) : (
                   <span className="text-[14px]">{cat.icon}</span>
                 )}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { SafeAvatar } from "@/components/SafeAvatar";
 
 export interface CategoryPillOption {
   id: string;
@@ -44,13 +44,13 @@ export default function CategoryPills({ options, activeId, onChange, className =
           >
             {option.imageUrl ? (
               <span className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 dark:bg-zinc-800" aria-hidden="true">
-                <Image
+                <SafeAvatar
                   src={option.imageUrl}
                   alt=""
-                  fill
+                  width={24}
+                  height={24}
                   sizes="24px"
                   className="object-cover"
-                  unoptimized
                 />
               </span>
             ) : option.icon ? (
