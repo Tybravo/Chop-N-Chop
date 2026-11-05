@@ -235,6 +235,9 @@ export default function ProfilePage() {
           profile={profile}
           isLoading={isLoading}
           avatarUrl={liveAvatar || ""}
+          isUploadingPic={isUploadingPic}
+          onUploadClick={() => fileInputRef.current?.click()}
+          onOpenEdit={openEditModal}
         />
       </div>
 

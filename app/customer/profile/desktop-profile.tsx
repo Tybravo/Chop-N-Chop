@@ -34,9 +34,12 @@ interface DesktopProfileProps {
   profile: UserProfile | null;
   isLoading: boolean;
   avatarUrl?: string;
+  isUploadingPic?: boolean;
+  onUploadClick?: () => void;
+  onOpenEdit?: () => void;
 }
 
-export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl }: DesktopProfileProps) {
+export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl, isUploadingPic, onUploadClick, onOpenEdit }: DesktopProfileProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("orders");
   const [vehicles, setVehicles] = useState<SavedVehicle[]>([]);
@@ -251,32 +254,62 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          {/* FIX 2: Replaced <img> with Next.js <Image> for performance. Added 'relative' to the parent div. */}
-          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#FC6B31]/20 shrink-0 shadow-sm bg-orange-50 relative">
-            <SafeAvatar 
-              src={avatarUrl || "/avatar-placeholder.svg"} 
-              alt="Profile Avatar" 
-              fill
-              className="object-cover"
-            />
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#FC6B31]/20 shrink-0 shadow-sm bg-orange-50 relative">
+              <SafeAvatar 
+                src={avatarUrl || "/avatar-placeholder.svg"} 
+                alt="Profile Avatar" 
+                fill
+                className="object-cover"
+              />
+              {isUploadingPic && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+            {onUploadClick && (
+              <button
+                type="button"
+                onClick={onUploadClick}
+                disabled={isUploadingPic}
+                className="absolute -bottom-1 -right-1 w-8 h-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm transition-transform active:scale-95 disabled:opacity-50"
+                aria-label="Upload profile picture"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               {isLoading 
                 ? "Loading Profile..." 
-                : profile ? `Welcome back, ${profile.firstName}` : "Guest User"
+                : profile ? `Welcome back, ${profile.firstName || profile.lastName || "User"}` : "Guest User"
               }
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Manage security credentials, vehicle profiles, corporate invoices, and saved hubs.
+              Manage your orders, wallet, hubs, vehicles, and account settings.
             </p>
+            {!profile && !isLoading && (
+              <button
+                type="button"
+                onClick={() => router.push("/customer/login")}
+                className="mt-2 text-[12px] font-bold text-[#FC6B31] hover:underline"
+              >
+                Log in or create an account
+              </button>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {profile?.role === "CORPORATE" && (
-             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900">
-               Corporate Account Active
-             </span>
+          {profile && onOpenEdit && (
+            <button
+              type="button"
+              onClick={onOpenEdit}
+              className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-colors"
+            >
+              <Edit3 className="w-4 h-4" /> Edit Profile
+            </button>
           )}
         </div>
       </div>
