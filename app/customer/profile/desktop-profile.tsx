@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import { SafeAvatar } from "@/components/SafeAvatar";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { customerApiClient } from "@/lib/api/customerApiClient";
@@ -253,11 +253,10 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
           </button>
           {/* FIX 2: Replaced <img> with Next.js <Image> for performance. Added 'relative' to the parent div. */}
           <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#FC6B31]/20 shrink-0 shadow-sm bg-orange-50 relative">
-            <Image 
+            <SafeAvatar 
               src={avatarUrl || "/avatar-placeholder.svg"} 
               alt="Profile Avatar" 
               fill
-              unoptimized // Added since external Cloudinary URLs might not be configured in next.config.js yet
               className="object-cover"
             />
           </div>
