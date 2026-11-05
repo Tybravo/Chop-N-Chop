@@ -349,7 +349,7 @@ export default function VehiclesPage() {
                     setFormError("");
                   }}
                   aria-invalid={Boolean(formError)}
-                  placeholder="Primary, weekend car, or family car"
+                  placeholder="e.g. Work car"
                   className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
                 />
               </div>
@@ -366,7 +366,7 @@ export default function VehiclesPage() {
                       setForm((current) => ({ ...current, make: event.target.value }));
                       setFormError("");
                     }}
-                    placeholder="Mercedes-Benz ML500"
+                    placeholder="e.g. Toyota Camry"
                     className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
@@ -379,7 +379,7 @@ export default function VehiclesPage() {
                     type="text"
                     value={form.color}
                     onChange={(event) => setForm((current) => ({ ...current, color: event.target.value }))}
-                    placeholder="Silver"
+                    placeholder="e.g. Black"
                     className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
@@ -396,7 +396,7 @@ export default function VehiclesPage() {
                     setForm((current) => ({ ...current, plate: event.target.value }));
                     setFormError("");
                   }}
-                  placeholder="KJA-203XX"
+                  placeholder="e.g. ABC-123XX"
                   className="w-full rounded-[18px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-bold text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder:text-gray-500"
                 />
               </div>
