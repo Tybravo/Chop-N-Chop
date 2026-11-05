@@ -28,7 +28,7 @@ interface SavedVehicle {
 
 type VehicleDialog = "add" | "edit" | null;
 
-const initialVehicles: SavedVehicle[] = [];
+
 
 const emptyVehicleForm = {
   label: "",
@@ -39,7 +39,9 @@ const emptyVehicleForm = {
 
 export default function VehiclesPage() {
   const router = useRouter();
-  const [vehicles, setVehicles] = useState<SavedVehicle[]>(initialVehicles);
+  const [vehicles, setVehicles] = useState<SavedVehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [dialog, setDialog] = useState<VehicleDialog>(null);
   const [editingVehicle, setEditingVehicle] = useState<SavedVehicle | null>(null);
   const [menuVehicleId, setMenuVehicleId] = useState<string | null>(null);
@@ -50,36 +52,37 @@ export default function VehiclesPage() {
   const labelInputRef = useRef<HTMLInputElement>(null);
   // const saveTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      setIsSaving(true);
-      try {
-        const res = await customerApiClient.get("/api/v1/user/vehicles");
-        const data = res.data?.data || res.data || [];
-        const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
-          const vehicle = v as Record<string, unknown>;
-          return {
-            id: vehicle.id as string,
-            label: (vehicle.label as string) || (vehicle.model as string) || "",
-            make: (vehicle.model as string) || (vehicle.make as string) || "",
-            model: vehicle.model as string | undefined,
-            color: (vehicle.color as string) || "",
-            plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
-            plateNumber: vehicle.plateNumber as string | undefined,
-            isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
-          };
-        });
-        setVehicles(mapped);
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status !== 401) {
-          console.error("Failed to fetch vehicles", err);
-        }
-      } finally {
-        setIsSaving(false);
+  const fetchVehicles = async () => {
+    setIsLoading(true);
+    setLoadError("");
+    try {
+      const res = await customerApiClient.get("/api/v1/user/vehicles");
+      const data = res.data?.data || res.data || [];
+      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
+        const vehicle = v as Record<string, unknown>;
+        return {
+          id: vehicle.id as string,
+          label: (vehicle.model as string) || "",
+          make: (vehicle.model as string) || "",
+          color: (vehicle.color as string) || "",
+          plate: (vehicle.plateNumber as string) || "",
+          isPrimary: Boolean(vehicle.isDefault),
+        };
+      });
+      setVehicles(mapped);
+    } catch (err) {
+      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+        setLoadError("Log in to view and manage your vehicles.");
+      } else {
+        setLoadError("Unable to load vehicles right now.");
       }
-    };
-    fetchVehicles();
-  }, []);
+      setVehicles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchVehicles(); }, []);
 
   useEffect(() => {
     if (!dialog) return;
@@ -103,17 +106,9 @@ export default function VehiclesPage() {
   };
 
   const openEditVehicle = (vehicle: SavedVehicle) => {
-    setDialog("edit");
-    setEditingVehicle(vehicle);
-    setForm({
-      label: vehicle.label || vehicle.make,
-      make: vehicle.make || vehicle.model || "",
-      color: vehicle.color || "",
-      plate: vehicle.plate || vehicle.plateNumber || "",
-    });
     setMenuVehicleId(null);
-    setFormError("");
-    setStatusMessage("");
+    setStatusMessage("Editing is not available yet. You can remove and add the vehicle again.");
+    void vehicle;
   };
 
   const closeDialog = () => {
@@ -125,47 +120,25 @@ export default function VehiclesPage() {
 
   const submitVehicle = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // const label = form.label.trim();
     const make = form.make.trim();
     const color = form.color.trim();
     const plate = form.plate.trim();
-
     if (!make || !plate) {
-      setFormError("Vehicle make/model and plate number are required.");
+      setFormError("Vehicle model and plate number are required.");
       return;
     }
-
     setFormError("");
     setIsSaving(true);
     try {
-      if (dialog === "edit" && editingVehicle) {
-        // Edit not specified in given API; skip if backend doesn't support - but user wants add/list/delete
-      }
       await customerApiClient.post("/api/v1/user/vehicles/add", {
         plateNumber: plate,
         model: make,
         color: color || "",
-        isDefault: dialog === "add" ? (!vehicles.some((v) => v.isPrimary)) : (editingVehicle?.isPrimary ?? false),
+        isDefault: !vehicles.some((v) => v.isPrimary),
       });
-      const res = await customerApiClient.get("/api/v1/user/vehicles");
-      const data = res.data?.data || res.data || [];
-      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
-        const vehicle = v as Record<string, unknown>;
-        return {
-          id: vehicle.id as string,
-          label: (vehicle.label as string) || (vehicle.model as string) || "",
-          make: (vehicle.model as string) || (vehicle.make as string) || "",
-          model: vehicle.model as string | undefined,
-          color: (vehicle.color as string) || "",
-          plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
-          plateNumber: vehicle.plateNumber as string | undefined,
-          isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
-        };
-      });
-      setVehicles(mapped);
+      await fetchVehicles();
       setDialog(null);
-      setEditingVehicle(null);
-      setStatusMessage(`${make} ${dialog === "add" ? "was saved" : "was updated"} successfully.`);
+      setStatusMessage(`${make} was saved successfully.`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setFormError(err.response?.data?.message || "Failed to save vehicle");
@@ -178,37 +151,16 @@ export default function VehiclesPage() {
   };
 
   const setPrimaryVehicle = (vehicleId: string) => {
-    setVehicles((currentVehicles) =>
-      currentVehicles.map((vehicle) => ({
-        ...vehicle,
-        isPrimary: vehicle.id === vehicleId,
-      })),
-    );
     setMenuVehicleId(null);
-    const vehicle = vehicles.find((item) => item.id === vehicleId);
-    setStatusMessage(`${vehicle?.make ?? "Vehicle"} set as your primary vehicle.`);
+    void vehicleId;
+    setStatusMessage("Setting a primary vehicle is not available yet.");
   };
 
   const removeVehicle = async (vehicleId: string) => {
     try {
       setIsSaving(true);
       await customerApiClient.delete(`/api/v1/user/vehicles/${vehicleId}`);
-      const res = await customerApiClient.get("/api/v1/user/vehicles");
-      const data = res.data?.data || res.data || [];
-      const mapped: SavedVehicle[] = (Array.isArray(data) ? data : []).map((v) => {
-        const vehicle = v as Record<string, unknown>;
-        return {
-          id: vehicle.id as string,
-          label: (vehicle.label as string) || (vehicle.model as string) || "",
-          make: (vehicle.model as string) || (vehicle.make as string) || "",
-          model: vehicle.model as string | undefined,
-          color: (vehicle.color as string) || "",
-          plate: (vehicle.plateNumber as string) || (vehicle.plate as string) || "",
-          plateNumber: vehicle.plateNumber as string | undefined,
-          isPrimary: Boolean(vehicle.isDefault || vehicle.isPrimary),
-        };
-      });
-      setVehicles(mapped);
+      await fetchVehicles();
       setMenuVehicleId(null);
       setStatusMessage("Saved vehicle removed.");
     } catch (err) {
@@ -253,7 +205,20 @@ export default function VehiclesPage() {
         )}
 
         <div className="mt-6 space-y-4 px-2">
-          {vehicles.length === 0 ? (
+          {isLoading ? (
+            <div role="status" className="flex items-center justify-center rounded-[24px] border border-gray-100 bg-white p-10 dark:border-zinc-800 dark:bg-zinc-900">
+              <Loader2 className="h-6 w-6 animate-spin text-[#FC6B31]" />
+            </div>
+          ) : loadError ? (
+            <div role="status" className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
+              <Car className="mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+              <h3 className="text-[14px] font-bold text-gray-900 dark:text-white">Couldn&apos;t load vehicles</h3>
+              <p className="mt-1 text-[13px] text-gray-500">{loadError}</p>
+              {loadError.includes("Log in") && (
+                <button type="button" onClick={() => router.push("/customer/login")} className="mt-4 rounded-full bg-[#FC6B31] px-4 py-2.5 text-[13px] font-bold text-white">Log in</button>
+              )}
+            </div>
+          ) : vehicles.length === 0 ? (
             <div role="status" className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
               <Car className="mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
               <h3 className="text-[14px] font-bold text-gray-900 dark:text-white">No saved vehicles</h3>
@@ -354,7 +319,7 @@ export default function VehiclesPage() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 id="vehicle-dialog-title" className="text-[18px] font-extrabold text-gray-900 dark:text-white">
-                  {dialog === "add" ? "Add saved vehicle" : "Edit saved vehicle"}
+                  "Add saved vehicle"
                 </h2>
                 <p className="mt-1 text-[13px] text-gray-500">Use the details staff will see during pickup.</p>
               </div>

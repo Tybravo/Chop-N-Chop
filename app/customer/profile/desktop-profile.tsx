@@ -32,6 +32,9 @@ import {
   X,
   CheckCircle2,
   ChevronRight,
+  Plus,
+  Trash2,
+  Heart,
 } from "lucide-react";
 import { UserProfile } from "./page";
 
@@ -90,6 +93,19 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
   const [pastOrders, setPastOrders] = useState<Record<string, unknown>[]>([]);
   const [fetchingOrders, setFetchingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState("");
+
+  // Hubs / Promos / Favorites (live)
+  const [hubs, setHubs] = useState<Record<string, unknown>[]>([]);
+  const [fetchingHubs, setFetchingHubs] = useState(false);
+  const [hubsError, setHubsError] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "applying" | "applied" | "error">("idle");
+  const [promoMsg, setPromoMsg] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [favorites, setFavorites] = useState<Record<string, unknown>[]>([]);
+  const [fetchingFavorites, setFetchingFavorites] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({ plateNumber: "", model: "", color: "" });
+  const [submittingVehicle, setSubmittingVehicle] = useState(false);
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -312,6 +328,63 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
     }
   };
 
+  useEffect(() => {
+    if (activeTab !== "locations") return;
+    (async () => {
+      setFetchingHubs(true); setHubsError("");
+      try {
+        const res = await customerApiClient.get("/api/v1/hubs/active");
+        const data = res.data?.data || res.data || [];
+        setHubs(Array.isArray(data) ? data : []);
+      } catch { setHubs([]); setHubsError("Unable to load hubs right now."); }
+      finally { setFetchingHubs(false); }
+    })();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "favorites") return;
+    (async () => {
+      setFetchingFavorites(true);
+      try {
+        const token = localStorage.getItem("chopnchop_token");
+        if (!token) { setFavorites([]); return; }
+        const res = await customerApiClient.get("/api/v1/orders/mine", { params: { page: 0, size: 20 } });
+        const orders = res.data?.content || res.data || [];
+        const seen = new Set<string>(); const meals: Record<string, unknown>[] = [];
+        (Array.isArray(orders) ? orders : []).forEach((o: any) => (Array.isArray(o.items) ? o.items : []).forEach((it: any) => {
+          const id = String(it.productId || it.dishId || it.id || it.name || "");
+          if (!id || seen.has(id)) return; seen.add(id);
+          meals.push({ id, name: it.name || "Meal", vendor: it.vendorName || "Vendor", price: it.unitPrice || it.totalPrice || 0 });
+        }));
+        setFavorites(meals.slice(0, 12));
+      } catch { setFavorites([]); }
+      finally { setFetchingFavorites(false); }
+    })();
+  }, [activeTab]);
+
+  const handleApplyPromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = promoCode.trim().toUpperCase();
+    if (!code) { setPromoStatus("error"); setPromoMsg("Enter a promo code."); return; }
+    const cartId = typeof window !== "undefined" ? localStorage.getItem("chopnchop_active_cart_id") : null;
+    if (!cartId) { setPromoStatus("error"); setPromoMsg("Add items to your cart first, then apply a promo code."); return; }
+    setPromoStatus("applying"); setPromoMsg("");
+    try {
+      await customerApiClient.post(`/api/v1/carts/${cartId}/promo`, { promoCode: code });
+      setAppliedPromo(code); setPromoStatus("applied"); setPromoMsg(`Promo code ${code} applied.`);
+    } catch (err) {
+      setPromoStatus("error");
+      setPromoMsg(axios.isAxiosError(err) ? (err.response?.data?.message || "Invalid or expired promo code.") : "Unable to apply promo.");
+    }
+  };
+
+  const handleRemovePromo = async () => {
+    const cartId = typeof window !== "undefined" ? localStorage.getItem("chopnchop_active_cart_id") : null;
+    if (!cartId) return;
+    try { await customerApiClient.delete(`/api/v1/carts/${cartId}/promo`); } catch {}
+    setAppliedPromo(""); setPromoStatus("idle"); setPromoMsg(""); setPromoCode("");
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
       
@@ -396,6 +469,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
             { id: "promos", label: "Promos & Rewards", icon: Ticket },
             { id: "locations", label: "Hub Management", icon: MapPin },
             { id: "vehicles", label: "Drive-Thru Vehicles", icon: Car },
+            { id: "favorites", label: "Favorites & Quick Reorder", icon: Heart },
             { id: "settings", label: "App Settings & Security", icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -505,6 +579,158 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                 </button>
               </div>
               <div className="text-center py-10 text-gray-400 text-sm">No transactions yet.</div>
+            </div>
+          )}
+
+          {activeTab === "promos" && (
+            <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Promos & Rewards</h2>
+                <p className="text-xs text-gray-500 mt-1">Apply a promo code to your active cart</p>
+              </div>
+              <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row gap-3">
+                <input value={promoCode} onChange={(e) => { setPromoCode(e.target.value); if (promoStatus !== "applying") { setPromoStatus("idle"); setPromoMsg(""); } }}
+                  placeholder="Enter promo code" maxLength={24}
+                  className="min-w-0 flex-1 rounded-[18px] border border-gray-200 bg-white px-5 py-3.5 text-[14px] font-bold text-gray-900 outline-none focus:border-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-white" />
+                <button type="submit" disabled={promoStatus === "applying"}
+                  className="flex items-center justify-center gap-2 rounded-[18px] bg-gray-900 px-6 py-3.5 text-[14px] font-bold text-white disabled:opacity-60 dark:bg-white dark:text-zinc-900">
+                  {promoStatus === "applying" ? <><Loader2 className="h-4 w-4 animate-spin" /> Applying</> : "Apply"}
+                </button>
+              </form>
+              {promoMsg && (
+                <p className={`rounded-xl px-4 py-3 text-[13px] font-medium ${promoStatus === "error" ? "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-300"}`}>{promoMsg}</p>
+              )}
+              {appliedPromo ? (
+                <div className="flex items-center justify-between gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20">
+                  <div><h3 className="text-[14px] font-extrabold text-emerald-800 dark:text-emerald-200">Promo applied</h3><p className="text-[13px] text-emerald-700 dark:text-emerald-300"><span className="font-bold">{appliedPromo}</span> is applied to your cart.</p></div>
+                  <button type="button" onClick={handleRemovePromo} className="text-[12px] font-bold text-emerald-700 hover:underline dark:text-emerald-300">Remove</button>
+                </div>
+              ) : (
+                <div role="status" className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">
+                  <Ticket className="mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No coupons available</h4>
+                  <p className="mt-1 text-[13px] text-gray-500">Rewards and promo offers will appear here when they&apos;re available. You can still apply a code above.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "locations" && (
+            <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Saved Hubs & Locations</h2>
+                <p className="text-xs text-gray-500 mt-1">Active pickup hubs</p>
+              </div>
+              {fetchingHubs ? (
+                <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-[#FC6B31]" /></div>
+              ) : hubsError ? (
+                <div role="status" className="rounded-[24px] border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">
+                  <MapPin className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <p className="text-[13px] text-gray-500">{hubsError}</p>
+                </div>
+              ) : hubs.length === 0 ? (
+                <div role="status" className="rounded-[24px] border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">
+                  <MapPin className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No active hubs</h4>
+                  <p className="mt-1 text-[13px] text-gray-500">Available pickup hubs will appear here when they&apos;re live.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {hubs.map((hub: any) => (
+                    <div key={String(hub.id)} className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FC6B31]/10 text-[#FC6B31]"><MapPin className="h-5 w-5" /></div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">{hub.name || "Hub"}</h4>
+                          {hub.status && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-emerald-600 dark:bg-emerald-950/30">{hub.status}</span>}
+                        </div>
+                        <p className="mt-0.5 text-[13px] text-gray-500">{[hub.address, hub.city, hub.state].filter(Boolean).join(", ") || "Address unavailable"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "vehicles" && (
+            <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Drive-Thru Vehicles</h2>
+                <p className="text-xs text-gray-500 mt-1">Saved vehicles help staff identify you during pickup.</p>
+              </div>
+              <form onSubmit={handleAddVehicle} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <input required value={newVehicle.model} onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })} placeholder="Model (e.g. Camry)"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-[#FC6B31] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white" />
+                <input required value={newVehicle.plateNumber} onChange={(e) => setNewVehicle({ ...newVehicle, plateNumber: e.target.value })} placeholder="Plate number"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-[#FC6B31] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white" />
+                <input value={newVehicle.color} onChange={(e) => setNewVehicle({ ...newVehicle, color: e.target.value })} placeholder="Color"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-[#FC6B31] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white" />
+                <button type="submit" disabled={submittingVehicle}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#FC6B31] px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+                  {submittingVehicle ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
+                </button>
+              </form>
+              {vehicleFormError && <p className="text-[12px] font-medium text-red-600">{vehicleFormError}</p>}
+              {vehicleStatusMessage && <p className="text-[12px] font-medium text-emerald-600">{vehicleStatusMessage}</p>}
+              {fetchingVehicles ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-[#FC6B31]" /></div>
+              ) : vehicles.length === 0 ? (
+                <div role="status" className="rounded-[24px] border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">
+                  <Car className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No saved vehicles</h4>
+                  <p className="mt-1 text-[13px] text-gray-500">Add a vehicle to make pickup identification faster.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {vehicles.map((v) => (
+                    <div key={v.id} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400"><Car className="h-5 w-5" /></div>
+                        <div className="min-w-0">
+                          <h4 className="text-[14px] font-bold text-gray-900 dark:text-white truncate">{v.model || v.make || "Vehicle"}</h4>
+                          <p className="text-[12px] text-gray-500">{[v.color, v.plateNumber || v.plate].filter(Boolean).join(" • ")}</p>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => handleDeleteVehicle(v.id)} className="shrink-0 rounded-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20" aria-label="Remove vehicle">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "favorites" && (
+            <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Favorites & Quick Reorder</h2>
+                <p className="text-xs text-gray-500 mt-1">Based on your recent orders</p>
+              </div>
+              {fetchingFavorites ? (
+                <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-[#FC6B31]" /></div>
+              ) : favorites.length === 0 ? (
+                <div role="status" className="rounded-[24px] border border-dashed border-gray-200 p-10 text-center dark:border-zinc-800">
+                  <Heart className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-zinc-700" />
+                  <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">No favorites or quick reorders yet</h4>
+                  <p className="mt-1 text-[13px] text-gray-500">Meals from your past orders will appear here for quick reordering.</p>
+                  <button type="button" onClick={() => router.push("/customer/explore")} className="mt-4 rounded-full bg-[#FC6B31] px-4 py-2.5 text-[13px] font-bold text-white">Browse meals</button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {favorites.map((m: any) => (
+                    <button key={String(m.id)} type="button" onClick={() => router.push(String(m.id).includes("-") ? `/customer/meals/${m.id}` : "/customer/explore")}
+                      className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-left hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-800/30">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-950/20"><Heart className="h-4 w-4" /></div>
+                      <div className="min-w-0">
+                        <h4 className="text-[14px] font-bold text-gray-900 dark:text-white truncate">{m.name}</h4>
+                        <p className="text-[12px] text-gray-500 truncate">{m.vendor} • ₦{Number(m.price || 0).toLocaleString()}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
