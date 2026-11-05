@@ -145,14 +145,16 @@ export default function CartPage() {
       
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-5 flex items-center justify-between border-b border-gray-100 dark:border-zinc-800">
-        <button 
-          onClick={handleBackNavigation} 
-          className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+        <button
+          type="button"
+          onClick={handleBackNavigation}
+          aria-label="Go back"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Your Cart</h1>
-        <div className="w-9" />
+        <div className="h-10 w-10" aria-hidden="true" />
       </header>
 
       <div className="px-5 md:px-8 max-w-3xl mx-auto pt-6 space-y-8">
