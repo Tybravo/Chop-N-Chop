@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, SlidersHorizontal, Star, MapPin, ChefHat, X } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+
+interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  imageUrl?: string;
+}
 
 const handleBackNavigation = (router: ReturnType<typeof useRouter>) => {
   if (window.history.length > 2) {
@@ -22,6 +30,7 @@ export default function ExplorePage() {
   // --- States ---
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "All", icon: "🍽️" }]);
   const [selectedMeal, setSelectedMeal] = useState<{
     name: string;
     vendor: string;
@@ -36,16 +45,33 @@ export default function ExplorePage() {
   const [minPrice, setMinPrice] = useState("1000");
   const [maxPrice, setMaxPrice] = useState("15000");
 
-  // --- Mock Data ---
-  const categories = [
-    { name: "All", icon: "🍽️" },
-    { name: "Rice", icon: "🍛" },
-    { name: "Burger", icon: "🍔" },
-    { name: "Pizza", icon: "🍕" },
-    { name: "Healthy", icon: "🥗" },
-    { name: "Drinks", icon: "🥤" },
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await customerApiClient.get("/api/v1/catalog/categories", {
+          headers: { "X-App-Brand": "CHOP_N_CHOP" },
+        });
+        const payload = res.data;
+        const data = Array.isArray(payload) ? payload : payload?.data || payload?.content || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories([
+            { id: "all", name: "All", icon: "🍽️" },
+            ...data.map((cat: any) => ({
+              id: cat.id || cat.name,
+              name: cat.name,
+              icon: cat.icon || "🍽️",
+              imageUrl: cat.imageUrl,
+            })),
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
+  // --- Mock Data ---
   const vendors = [
     { id: 1, name: "The Brunch Club", rating: 4.8, time: "30-45 min", image: "/hero-food-illustration.png" },
     { id: 2, name: "Pizza Italiano", rating: 4.9, time: "20-30 min", image: "/hero-food-illustration.png" },
@@ -122,7 +148,7 @@ export default function ExplorePage() {
             
             {categories.map((cat) => (
               <button 
-                key={cat.name}
+                key={cat.id}
                 onClick={() => setActiveCategory(cat.name)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap transition-all border shrink-0 snap-start ${
                   activeCategory === cat.name 
@@ -130,7 +156,11 @@ export default function ExplorePage() {
                     : "bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 hover:border-[#FC6B31]"
                 }`}
               >
-                <span className="text-[14px]">{cat.icon}</span>
+                {cat.imageUrl ? (
+                  <Image src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" />
+                ) : (
+                  <span className="text-[14px]">{cat.icon}</span>
+                )}
                 <span className="font-bold text-[13px]">{cat.name}</span>
               </button>
             ))}

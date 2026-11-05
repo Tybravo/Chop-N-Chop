@@ -310,6 +310,36 @@ function CheckoutContent() {
         </header>
 
         <div className="px-5 md:px-8 max-w-3xl mx-auto pt-4 space-y-6">
+          {/* DELIVERY ADDRESS */}
+          <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100 dark:border-zinc-800 space-y-4">
+            <h2 className="font-bold text-[16px] text-gray-900 dark:text-white pl-1">Delivery Address</h2>
+            <div>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                required
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Enter your delivery address"
+                className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] transition-colors" 
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">
+                Delivery Note <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <textarea
+                value={deliveryNote}
+                onChange={(e) => setDeliveryNote(e.target.value)}
+                placeholder="Gate code, landmark, or special instructions"
+                rows={2}
+                className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] transition-colors resize-none" 
+              />
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100 dark:border-zinc-800">
             <h2 className="font-bold text-[16px] text-gray-900 dark:text-white mb-4 pl-1">Contact Information</h2>
             <div className="space-y-4">
