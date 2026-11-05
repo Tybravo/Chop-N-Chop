@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
 import { useCartStore, type CartItemLike } from "@/store/useCartStore";
+import { customerApiClient } from "@/lib/api/customerApiClient";
 
 export default function CartPage() {
   const router = useRouter();
@@ -33,10 +34,29 @@ export default function CartPage() {
   const locationInputRef = useRef<HTMLTextAreaElement>(null);
   
   // --- Address State (Specific location within the pre-selected Zone) ---
-  const [addresses, setAddresses] = useState([
-    { id: 1, type: "Home", location: "14 Allen Avenue, Ikeja, Lagos" },
-    { id: 2, type: "Office", location: "Herbert Macaulay Way, Yaba, Lagos" },
-  ]);
+  const [addresses, setAddresses] = useState<{ id: number; type: string; location: string }[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const res = await customerApiClient.get("/api/v1/user/addresses");
+        const data = res.data?.data || res.data || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setAddresses(data.map((a: any, i: number) => ({
+            id: a.id || i + 1,
+            type: a.label || a.type || "Address",
+            location: a.address || a.street || a.location || "",
+          })));
+        }
+      } catch (err) {
+        console.error("Failed to fetch addresses", err);
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+    fetchAddresses();
+  }, []);
 
   // --- Handlers ---
   

@@ -101,34 +101,52 @@ export default function DropsPage() {
     total: drop.subtotal + drop.deliveryFee,
   });
 
-  const pastDrops: PastDrop[] = [
-    {
-      id: "ORD-9281",
-      date: "Sep 16",
-      meal: "Smoky Jollof & Chicken (2x)",
-      vendor: "Taste & See",
-      totalLabel: "₦11,000",
-      status: "Delivered",
-      subtotal: 10000,
-      deliveryFee: 1000,
-      paymentMethod: "Card (**** 8047)",
-      address: "14 Allen Avenue, Ikeja, Lagos",
-      items: [{ id: 1, name: "Smoky Jollof & Chicken", desc: "Double portion", qty: 2, price: 5000 }]
-    },
-    {
-      id: "ORD-9104",
-      date: "Sep 14",
-      meal: "Fluffy Yam & Eggs",
-      vendor: "Lagos Mainland Kitchen",
-      totalLabel: "₦3,500",
-      status: "Delivered",
-      subtotal: 2800,
-      deliveryFee: 700,
-      paymentMethod: "Cash on Delivery",
-      address: "14 Allen Avenue, Ikeja, Lagos",
-      items: [{ id: 1, name: "Fluffy Yam & Eggs", desc: "Standard pack", qty: 1, price: 2800 }]
-    },
-  ];
+  const [pastDrops, setPastDrops] = useState<PastDrop[]>([]);
+  const [isLoadingDrops, setIsLoadingDrops] = useState(true);
+
+  useEffect(() => {
+    const fetchPastDrops = async () => {
+      try {
+        const res = await customerApiClient.get("/api/v1/orders/mine?page=0&size=10");
+        const orders = res.data?.content || res.data?.data || res.data || [];
+        if (Array.isArray(orders) && orders.length > 0) {
+          const mapped: PastDrop[] = orders.map((ord: any) => {
+            const items = Array.isArray(ord.items) ? ord.items : [];
+            const firstItem = items[0]?.name || items[0]?.mealName || "Order";
+            const itemCount = items.length;
+            const meal = itemCount > 1 ? `${firstItem} (${itemCount} items)` : firstItem;
+            const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+            const deliveryFee = Number(ord.deliveryFee || ord.delivery_fee || 0);
+            return {
+              id: ord.id || ord.orderId || "",
+              date: ord.createdAt ? new Date(ord.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+              meal,
+              vendor: ord.vendorName || ord.vendor || "Chop N Chop",
+              totalLabel: `₦${Number(ord.totalAmount || ord.total || subtotal + deliveryFee).toLocaleString()}`,
+              status: ord.status || "Delivered",
+              subtotal,
+              deliveryFee,
+              paymentMethod: ord.paymentMethod || "Card",
+              address: ord.deliveryAddress || ord.address || "",
+              items: items.map((item: any, i: number) => ({
+                id: item.id || i + 1,
+                name: item.name || item.mealName || "Item",
+                desc: item.description || item.desc || "",
+                qty: Number(item.quantity || 1),
+                price: Number(item.price || 0),
+              })),
+            };
+          });
+          setPastDrops(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch past drops", err);
+      } finally {
+        setIsLoadingDrops(false);
+      }
+    };
+    fetchPastDrops();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 pb-32 pt-4 px-4 md:px-8 selection:bg-[#FC6B31] selection:text-white">
@@ -256,33 +274,49 @@ export default function DropsPage() {
         {/* PAST TAB CONTENT */}
         {activeTab === "past" && (
           <div className="space-y-4">
-            {pastDrops.map((drop) => (
-              <div key={drop.id} className="bg-white dark:bg-zinc-900 p-4 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col gap-3">
-                <div className="flex justify-between items-start border-b border-gray-50 dark:border-zinc-800 pb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{drop.meal}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{drop.vendor} • {drop.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-sm font-extrabold text-gray-900 dark:text-white">{drop.totalLabel}</span>
-                    <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full mt-1">
-                      {drop.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleOpenReceipt(toReceiptOrder(drop))}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
-                  >
-                    View Receipt
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
-                    <RotateCcw className="w-3.5 h-3.5" /> Reorder
-                  </button>
-                </div>
+            {isLoadingDrops ? (
+              <div className="flex justify-center py-12">
+                <div className="w-6 h-6 border-2 border-[#FC6B31] border-t-transparent rounded-full animate-spin" />
               </div>
-            ))}
+            ) : pastDrops.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4">
+                  <Package className="w-7 h-7 text-gray-400" />
+                </div>
+                <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-1">No past drops yet</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400">Your completed orders will appear here.</p>
+              </div>
+            ) : (
+              <>
+                {pastDrops.map((drop) => (
+                  <div key={drop.id} className="bg-white dark:bg-zinc-900 p-4 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col gap-3">
+                    <div className="flex justify-between items-start border-b border-gray-50 dark:border-zinc-800 pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{drop.meal}</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">{drop.vendor} • {drop.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-sm font-extrabold text-gray-900 dark:text-white">{drop.totalLabel}</span>
+                        <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full mt-1">
+                          {drop.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleOpenReceipt(toReceiptOrder(drop))}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        View Receipt
+                      </button>
+                      <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
+                        <RotateCcw className="w-3.5 h-3.5" /> Reorder
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         )}
 
