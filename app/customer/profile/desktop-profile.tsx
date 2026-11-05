@@ -111,7 +111,12 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
   const fetchOrders = async () => {
     const token = typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
     if (!token) {
-      setPastOrders([]);
+      try {
+        const guestOrders = JSON.parse(localStorage.getItem("chopnchop_guest_orders") || "[]");
+        setPastOrders(Array.isArray(guestOrders) ? guestOrders : []);
+      } catch {
+        setPastOrders([]);
+      }
       setOrdersError("");
       return;
     }
@@ -126,7 +131,12 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
     } catch (err) {
       console.error("Failed to fetch orders", err);
       if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
-        setPastOrders([]);
+        try {
+          const guestOrders = JSON.parse(localStorage.getItem("chopnchop_guest_orders") || "[]");
+          setPastOrders(Array.isArray(guestOrders) ? guestOrders : []);
+        } catch {
+          setPastOrders([]);
+        }
         setOrdersError("");
       } else if (axios.isAxiosError(err)) {
         setOrdersError(err.response?.data?.message || err.response?.data?.error || "Failed to load orders");
@@ -329,7 +339,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
                       onClick={() => router.push("/customer/login")}
                       className="bg-[#FC6B31] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-orange-600 transition-colors"
                     >
-                      Log in to view orders
+                      Log in to view all orders
                     </button>
                   )}
                 </div>

@@ -207,6 +207,18 @@ function CheckoutContent() {
 
       const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;
       if (checkoutUrl) {
+        try {
+          const guestOrders = JSON.parse(localStorage.getItem("chopnchop_guest_orders") || "[]");
+          guestOrders.unshift({
+            id: orderId,
+            createdAt: new Date().toISOString(),
+            totalAmount: total,
+            items: cartItems.map((item) => ({ name: item.name, quantity: item.quantity, price: item.price })),
+            status: "PENDING",
+            deliveryAddress,
+          });
+          localStorage.setItem("chopnchop_guest_orders", JSON.stringify(guestOrders.slice(0, 20)));
+        } catch {}
         window.location.href = checkoutUrl;
       } else {
         throw new Error("No checkout link provided by the server.");
