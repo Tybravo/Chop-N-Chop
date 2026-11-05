@@ -204,40 +204,35 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
     fetchOrders();
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
-    const make = vehicleForm.make.trim();
-    const plate = vehicleForm.plate.trim();
-    if (!make || !plate) {
-      setVehicleFormError("Vehicle make/model and plate number are required.");
+    const model = newVehicle.model.trim();
+    const plate = newVehicle.plateNumber.trim();
+    if (!model || !plate) {
+      setVehicleFormError("Model and plate number are required.");
       return;
     }
-    setIsSaving(true);
+    setSubmittingVehicle(true);
     setVehicleFormError("");
+    setVehicleStatusMessage("");
     try {
       await customerApiClient.post("/api/v1/user/vehicles/add", {
         plateNumber: plate,
-        model: make,
-        color: vehicleForm.color.trim() || "",
+        model,
+        color: newVehicle.color.trim() || "",
         isDefault: !vehicles.some((v) => v.isPrimary),
       });
       await fetchVehicles();
-      setShowVehicleDialog(false);
-      setVehicleForm({ label: "", make: "", color: "", plate: "" });
-      setVehicleStatusMessage("Saved vehicle successfully.");
+      setNewVehicle({ plateNumber: "", model: "", color: "" });
+      setVehicleStatusMessage("Vehicle saved.");
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        const backendMsg =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          `Request failed with status ${err.response?.status || "Unknown"}`;
-        setVehicleFormError(backendMsg);
-      } else {
-        setVehicleFormError("Failed to save vehicle");
-      }
+      setVehicleFormError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message || err.response?.data?.error || "Failed to save vehicle."
+          : "Failed to save vehicle."
+      );
     } finally {
-      setIsSaving(false);
+      setSubmittingVehicle(false);
     }
   };
 
