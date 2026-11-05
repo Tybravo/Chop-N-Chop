@@ -105,7 +105,7 @@ type Category = {
 export default function CustomerHome() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const { location, deliveryWindow } = useOrderContext();
+  const { location, deliveryWindow, resolvedZone } = useOrderContext();
   const { unreadCount } = useNotifications();
   
   // --- Cart State (Syncing with Mobile Floating Nav) ---
@@ -162,8 +162,8 @@ export default function CustomerHome() {
           }));
         setCategories([{ id: "All", name: "All", icon: "🍽️" }, ...mappedCategories]);
 
-        const mockHubId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
-        const menuRes = await customerApiClient.get(`/api/v1/catalog/today?hubId=${mockHubId}`);
+        const hubId = resolvedZone?.zoneId || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+        const menuRes = await customerApiClient.get(`/api/v1/catalog/today?hubId=${hubId}`);
         const menuData: ApiTodaysMenu = menuRes.data;
         
         const flattenedMeals: MealModalData[] = [];

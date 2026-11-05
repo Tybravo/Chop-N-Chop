@@ -137,8 +137,7 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
 
   // Failsafe bypass for development if the backend crashes
   const handleBypass = () => {
-    setLocation(tempLocation || availableZones[0]?.name || availableZones[0]?.id || "");
-    setDeliveryWindow("mock-window");
+    setLocation(tempLocation || availableZones[0]?.name || "");
     if (confirmGateway) confirmGateway();
     onClose();
   };

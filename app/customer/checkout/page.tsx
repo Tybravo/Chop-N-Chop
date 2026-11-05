@@ -200,9 +200,9 @@ function CheckoutContent() {
     setIsProcessing(true);
     
     try {
-      const mockOrderId = "ORD-" + Math.random().toString(36).substring(7);
-
-      const res = await customerApiClient.post(`/api/v1/payments/initialize/${mockOrderId}`);
+      // In real integration, use actual order id from order creation
+      const orderId = "ORD-" + Math.random().toString(36).substring(7);
+      const res = await customerApiClient.post(`/api/v1/payments/initialize/${orderId}`);
       const data = res.data;
 
       const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;

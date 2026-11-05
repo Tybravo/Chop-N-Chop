@@ -5,6 +5,7 @@ import { Clock, Truck, Calendar, Plus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
 import { customerApiClient } from "@/lib/api/customerApiClient";
+import { useOrderContext } from "@/store/useOrderContext";
 import CategoryPills from "@/components/customer/CategoryPills"; // <-- Updated Import
 
 interface TodaysDealsSectionProps {
@@ -73,6 +74,7 @@ type DealTab = {
 export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionProps) {
   const [activeDealTab, setActiveDealTab] = useState("all");
   const addToCart = useCartStore((state) => state.addToCart);
+  const { resolvedZone } = useOrderContext();
   
   const [todaysDealItems, setTodaysDealItems] = useState<DealItem[]>([]);
   const [dealTabs, setDealTabs] = useState<DealTab[]>([{ id: "all", label: "All Drops" }]);
@@ -82,8 +84,8 @@ export default function TodaysDealsSection({ onSelectMeal }: TodaysDealsSectionP
     const fetchDeals = async () => {
       setIsLoading(true);
       try {
-        const mockHubId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
-        const res = await customerApiClient.get(`/api/v1/catalog/today?hubId=${mockHubId}`, {
+        const hubId = resolvedZone?.zoneId || "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
+        const res = await customerApiClient.get(`/api/v1/catalog/today?hubId=${hubId}`, {
           headers: {
             "X-App-Brand": "CHOP_N_CHOP",
           },
