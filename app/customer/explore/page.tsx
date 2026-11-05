@@ -43,6 +43,7 @@ export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "All", icon: "🍽️" }]);
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [vendors, setVendors] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMeal, setSelectedMeal] = useState<{
     name: string;
@@ -94,13 +95,17 @@ export default function ExplorePage() {
         });
         const menuData = res.data;
         const flattenedMeals: Meal[] = [];
+        const vendorMap = new Map<string, { id: string; name: string }>();
         
         menuData?.categories?.forEach((categoryChunk: any) => {
           categoryChunk?.products?.forEach((product: any) => {
+            const vendorName = product.vendorName || "Vendor";
+            const vendorId = product.vendorId || vendorName;
+            if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
             flattenedMeals.push({
               id: product.id,
               name: product.name,
-              vendor: product.vendorName || "Vendor",
+              vendor: vendorName,
               price: product.price,
               category: categoryChunk.categoryName || "Meal",
               image: product.imageUrl || "/hero-food-illustration.png",
@@ -108,10 +113,13 @@ export default function ExplorePage() {
           });
           categoryChunk?.preparedDishes?.forEach((dish: any) => {
             if (!dish.baseProductId) {
+              const vendorName = dish.vendorName || "Vendor";
+              const vendorId = dish.vendorId || vendorName;
+              if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
               flattenedMeals.push({
                 id: dish.id,
                 name: dish.name,
-                vendor: dish.vendorName || "Vendor",
+                vendor: vendorName,
                 price: dish.price,
                 category: categoryChunk.categoryName || "Meal",
                 image: dish.imageUrl || "/hero-food-illustration.png",
@@ -121,6 +129,7 @@ export default function ExplorePage() {
         });
         
         setMeals(flattenedMeals);
+        setVendors(Array.from(vendorMap.values()));
       } catch (err) {
         console.error("Failed to fetch meals", err);
       } finally {
@@ -213,6 +222,34 @@ export default function ExplorePage() {
             <div className="w-1 shrink-0" />
           </div>
         </section>
+
+        {/* --- FEATURED STORES (Derived from catalog) --- */}
+        {!isLoading && vendors.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">Stores</h2>
+            <div className="flex overflow-x-auto no-scrollbar gap-4 pb-3 items-start snap-x snap-mandatory">
+              <div className="w-0.5 shrink-0 snap-start" />
+              {vendors.map((vendor) => (
+                <Link 
+                  href={`/customer/vendor/${vendor.id}`} 
+                  key={vendor.id} 
+                  className="flex flex-col w-[220px] min-w-[220px] shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] p-4 border border-gray-100 dark:border-zinc-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-black/20 text-left group hover:border-gray-200 transition-all cursor-pointer snap-start"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#FC6B31]/10 flex items-center justify-center text-[#FC6B31]">
+                      <ChefHat className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-[14px] text-gray-900 dark:text-white truncate">{vendor.name}</h3>
+                      <p className="text-[11px] text-gray-500">Available in today&apos;s drop</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              <div className="w-0.5 shrink-0" /> 
+            </div>
+          </section>
+        )}
 
         {/* --- AVAILABLE PRODUCTS GRID --- */}
         <section>
