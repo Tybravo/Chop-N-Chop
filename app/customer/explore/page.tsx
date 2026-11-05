@@ -212,9 +212,9 @@ export default function ExplorePage() {
                 }`}
               >
                 {cat.imageUrl ? (
-                  <SafeAvatar src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" />
+                  <SafeAvatar src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" fallbackSrc="/hero-food-illustration.png" />
                 ) : (
-                  <span className="text-[14px]">{cat.icon}</span>
+                  <span className="text-[14px]">{cat.icon || "🍽️"}</span>
                 )}
                 <span className="font-bold text-[13px]">{cat.name}</span>
               </button>

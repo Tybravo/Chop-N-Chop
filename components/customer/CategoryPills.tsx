@@ -51,13 +51,16 @@ export default function CategoryPills({ options, activeId, onChange, className =
                   height={24}
                   sizes="24px"
                   className="object-cover"
+                  fallbackSrc="/hero-food-illustration.png"
                 />
               </span>
             ) : option.icon ? (
               <span className="text-[14px]" aria-hidden="true">
                 {option.icon}
               </span>
-            ) : null}
+            ) : (
+              <span className="text-[14px]" aria-hidden="true">🍽️</span>
+            )}
             <span>{option.label}</span>
           </button>
         );
