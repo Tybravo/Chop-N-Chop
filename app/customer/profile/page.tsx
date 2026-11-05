@@ -331,6 +331,15 @@ export default function ProfilePage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[170px]">
                         {profile?.email || "Not logged in"}
                       </p>
+                      {!profile && (
+                        <button
+                          type="button"
+                          onClick={() => router.push("/customer/login")}
+                          className="mt-2 text-[11px] font-bold text-[#FC6B31] hover:underline"
+                        >
+                          Log in or create an account
+                        </button>
+                      )}
                       {profile?.phone && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full mt-1">
                           <ShieldCheck className="w-3 h-3" /> Phone Verified

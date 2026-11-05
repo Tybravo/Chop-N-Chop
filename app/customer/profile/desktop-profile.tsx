@@ -109,7 +109,14 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
   };
 
   const fetchOrders = async () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("chopnchop_token") : null;
+    if (!token) {
+      setPastOrders([]);
+      setOrdersError("");
+      return;
+    }
     setFetchingOrders(true);
+    setOrdersError("");
     try {
       const res = await customerApiClient.get("/api/v1/orders/mine", {
         params: { page: 0, size: 20 },
@@ -118,7 +125,10 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
       setPastOrders(Array.isArray(orders) ? orders : []);
     } catch (err) {
       console.error("Failed to fetch orders", err);
-      if (axios.isAxiosError(err)) {
+      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+        setPastOrders([]);
+        setOrdersError("");
+      } else if (axios.isAxiosError(err)) {
         setOrdersError(err.response?.data?.message || err.response?.data?.error || "Failed to load orders");
       } else {
         setOrdersError("Failed to load orders");
@@ -245,7 +255,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               {isLoading 
                 ? "Loading Profile..." 
-                : profile ? `Welcome back, ${profile.firstName}` : "Account & Ledger"
+                : profile ? `Welcome back, ${profile.firstName}` : "Account"
               }
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -267,7 +277,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
         {/* Sidebar Navigation */}
         <div className="space-y-1 bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-100 dark:border-zinc-800 h-fit shadow-sm">
           {[
-            { id: "orders", label: "Detailed Order Ledger", icon: FileText },
+            { id: "orders", label: "Order History", icon: FileText },
             { id: "wallet", label: "Wallet & Transactions", icon: Wallet },
             { id: "promos", label: "Promos & Rewards", icon: Ticket },
             { id: "locations", label: "Hub Management", icon: MapPin },
@@ -299,10 +309,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
           {activeTab === "orders" && (
             <div className="bg-white dark:bg-zinc-900 p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Order Ledger</h2>
-                <button className="flex items-center gap-2 text-xs font-bold text-[#FC6B31] border border-[#FC6B31]/30 px-3.5 py-2 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors">
-                  <Download className="w-4 h-4" /> Download All PDF Receipts
-                </button>
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">Order History</h2>
               </div>
 
               {ordersError && (
@@ -314,7 +321,18 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
                   <div className="w-6 h-6 border-2 border-[#FC6B31] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : pastOrders.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No orders yet. Place your first order to get started.</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No orders yet. Place your first order to get started.</p>
+                  {!profile && (
+                    <button
+                      type="button"
+                      onClick={() => router.push("/customer/login")}
+                      className="bg-[#FC6B31] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-orange-600 transition-colors"
+                    >
+                      Log in to view orders
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
