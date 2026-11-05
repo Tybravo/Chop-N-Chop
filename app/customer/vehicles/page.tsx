@@ -48,6 +48,7 @@ export default function VehiclesPage() {
   const [form, setForm] = useState(emptyVehicleForm);
   const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const labelInputRef = useRef<HTMLInputElement>(null);
   // const saveTimerRef = useRef<number | null>(null);
@@ -157,17 +158,20 @@ export default function VehiclesPage() {
   };
 
   const removeVehicle = async (vehicleId: string) => {
+    setMenuVehicleId(null);
+    setDeletingId(vehicleId);
+    setStatusMessage("");
     try {
-      setIsSaving(true);
       await customerApiClient.delete(`/api/v1/user/vehicles/${vehicleId}`);
-      await fetchVehicles();
-      setMenuVehicleId(null);
+      setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
       setStatusMessage("Saved vehicle removed.");
     } catch (err) {
       console.error("Failed to delete vehicle", err);
       setStatusMessage("Failed to remove vehicle.");
+      // silent background refresh to restore truth if needed
+      fetchVehicles().catch(() => {});
     } finally {
-      setIsSaving(false);
+      setDeletingId(null);
     }
   };
 
@@ -233,7 +237,7 @@ export default function VehiclesPage() {
             </div>
           ) : (
             vehicles.map((vehicle) => (
-              <article key={vehicle.id} className="relative overflow-visible rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:p-5">
+              <article key={vehicle.id} className={`relative overflow-visible rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm transition-opacity dark:border-zinc-800 dark:bg-zinc-900 dark:p-5 ${deletingId === vehicle.id ? "opacity-50" : ""}`}>
                 <div className="flex items-start justify-between gap-3">
                   <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
                     {vehicle.label || "Saved"}
@@ -277,10 +281,11 @@ export default function VehiclesPage() {
                     <button
                       type="button"
                       role="menuitem"
+                      disabled={deletingId === vehicle.id}
                       onClick={() => removeVehicle(vehicle.id)}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 dark:hover:bg-red-950/20"
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 disabled:opacity-60 dark:hover:bg-red-950/20"
                     >
-                      <Trash2 className="h-4 w-4" /> Remove
+                      {deletingId === vehicle.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Remove
                     </button>
                   </div>
                 )}

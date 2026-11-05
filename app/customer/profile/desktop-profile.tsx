@@ -106,6 +106,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
   const [fetchingFavorites, setFetchingFavorites] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ plateNumber: "", model: "", color: "" });
   const [submittingVehicle, setSubmittingVehicle] = useState(false);
+  const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -238,16 +239,18 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDeleteVehicle = async (id: string) => {
+    setDeletingVehicleId(id);
+    setVehicleStatusMessage("");
     try {
-      setIsSaving(true);
       await customerApiClient.delete(`/api/v1/user/vehicles/${id}`);
-      await fetchVehicles();
+      setVehicles((prev) => prev.filter((v) => v.id !== id));
       setVehicleStatusMessage("Vehicle removed.");
     } catch (err) {
       console.error("Failed to delete vehicle", err);
       setVehicleStatusMessage("Failed to remove vehicle.");
+      fetchVehicles().catch(() => {});
     } finally {
-      setIsSaving(false);
+      setDeletingVehicleId(null);
     }
   };
   
@@ -679,7 +682,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
               ) : (
                 <div className="space-y-3">
                   {vehicles.map((v) => (
-                    <div key={v.id} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
+                    <div key={v.id} className={`flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition-opacity dark:border-zinc-800 dark:bg-zinc-800/30 ${deletingVehicleId === v.id ? "opacity-50" : ""}`}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400"><Car className="h-5 w-5" /></div>
                         <div className="min-w-0">
@@ -687,8 +690,8 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                           <p className="text-[12px] text-gray-500">{[v.color, v.plateNumber || v.plate].filter(Boolean).join(" • ")}</p>
                         </div>
                       </div>
-                      <button type="button" onClick={() => handleDeleteVehicle(v.id)} className="shrink-0 rounded-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20" aria-label="Remove vehicle">
-                        <Trash2 className="h-4 w-4" />
+                      <button type="button" disabled={deletingVehicleId === v.id} onClick={() => handleDeleteVehicle(v.id)} className="shrink-0 rounded-full p-2 text-red-500 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950/20" aria-label="Remove vehicle">
+                        {deletingVehicleId === v.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                       </button>
                     </div>
                   ))}
