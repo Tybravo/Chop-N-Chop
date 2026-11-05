@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/app/context/ThemeContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
@@ -40,7 +39,11 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.json" />
-        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          id="theme-init"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground" suppressHydrationWarning>
         <ThemeProvider>
