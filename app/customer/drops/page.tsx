@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Package, CheckCircle2, MapPin, RotateCcw, PhoneCall, X, MessageSquare, ArrowLeft } from "lucide-react";
 import OrderReceiptModal from "@/components/customer/OrderReceiptModal";
+import { customerApiClient } from "@/lib/api/customerApiClient";
 
 interface ReceiptItem {
   id: string | number;
