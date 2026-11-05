@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import { 
@@ -23,6 +22,7 @@ import {
   Loader2,
   Camera
 } from "lucide-react";
+import { SafeAvatar } from "@/components/SafeAvatar";
 import DesktopProfileDashboard from "./desktop-profile";
 import axios from "axios";
 
@@ -294,13 +294,15 @@ export default function ProfilePage() {
                 {/* Avatar with Camera Badge */}
                 <div className="relative shrink-0">
                   <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#FC6B31]/30 bg-orange-50 relative">
-<Image
-  src={liveAvatar}
-  alt="Profile Avatar"
-  className="w-full h-full object-cover"
-  width={64}
-  height={64}
-/>
+                    <SafeAvatar
+                      src={liveAvatar}
+                      alt="Profile Avatar"
+                      fill
+                      sizes="64px"
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      timeoutMs={8000}
+                    />
                     {isUploadingPic && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
                         <Loader2 className="w-5 h-5 text-white animate-spin" />
