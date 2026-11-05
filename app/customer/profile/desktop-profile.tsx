@@ -265,7 +265,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl 
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               {isLoading 
                 ? "Loading Profile..." 
-                : profile ? `Welcome back, ${profile.firstName}` : "Account"
+                : profile ? `Welcome back, ${profile.firstName}` : "Guest User"
               }
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
