@@ -12,6 +12,11 @@ import { useCartStore } from "@/store/useCartStore";
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
 function LoginContent() {
+  const cacheAvatar = (data: any) => {
+    const pic = data?.profilePictureUrl || data?.profileImageUrl || data?.pictureUrl || data?.avatarUrl || data?.picture || data?.avatar || data?.imageUrl || data?.photo || data?.user?.profilePictureUrl || data?.user?.avatarUrl || data?.user?.picture;
+    if (pic && typeof pic === "string") localStorage.setItem("chopnchop_avatar", pic);
+  };
+
   const router = useRouter();
   const clearCart = useCartStore((state) => state.clearCart);
   
@@ -84,7 +89,7 @@ function LoginContent() {
         localStorage.setItem("chopnchop_token", data.access_token);
         if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
         localStorage.setItem("chopnchop_session", "active");
-
+        cacheAvatar(data);
         clearCart();
         router.push("/customer/home");
       }
@@ -119,11 +124,7 @@ function LoginContent() {
       if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
       localStorage.setItem("chopnchop_session", "active");
 
-      // FIX: Cache the profile picture instantly on login
-        const pic = data.profilePictureUrl || data.pictureUrl || data.avatar || data.imageUrl;
-        if (pic) {
-          localStorage.setItem("chopnchop_avatar", pic);
-        }
+      cacheAvatar(data);
       clearCart();
       router.push("/customer/home");
     } catch (err) {
@@ -157,6 +158,7 @@ function LoginContent() {
       localStorage.setItem("chopnchop_token", data.access_token);
       if (data.refresh_token) localStorage.setItem("chopnchop_refresh", data.refresh_token);
       localStorage.setItem("chopnchop_session", "active");
+      cacheAvatar(data);
       clearCart();
       router.push("/customer/home");
     } catch (err) {

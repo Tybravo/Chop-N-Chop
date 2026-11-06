@@ -60,6 +60,13 @@ const decodeJwtPayload = (token: string) => {
   }
 };
 
+const extractAvatar = (obj: any): string | null => {
+  if (!obj) return null;
+  const o = obj?.data?.user || obj?.data || obj?.user || obj;
+  const pic = o?.profilePictureUrl || o?.profileImageUrl || o?.pictureUrl || o?.avatarUrl || o?.avatar || o?.picture || o?.imageUrl || o?.photo || o?.profile_picture || o?.profilePic;
+  return typeof pic === "string" && pic ? pic : null;
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   
@@ -115,8 +122,9 @@ export default function ProfilePage() {
         ]);
 
         if (profileRes.status === "fulfilled" && profileRes.value.data) {
-          setProfile(profileRes.value.data);
-          const pic = profileRes.value.data.profilePictureUrl || profileRes.value.data.profileImageUrl || profileRes.value.data.pictureUrl || profileRes.value.data.imageUrl || profileRes.value.data.picture || profileRes.value.data.avatar;
+          const pdata = profileRes.value.data?.data || profileRes.value.data;
+          setProfile(pdata);
+          const pic = extractAvatar(profileRes.value.data);
           if (pic) {
             const cached = localStorage.getItem("chopnchop_avatar");
             if (cached && cached.startsWith(pic) && cached.includes("t=")) {
@@ -199,19 +207,22 @@ export default function ProfilePage() {
         },
       });
 
-      if (uploadRes.data?.url) {
-        // FORCE the browser to pull the new pixels by appending a timestamp to the URL
-        const freshUrl = uploadRes.data.url.includes("?") 
-          ? `${uploadRes.data.url}&t=${Date.now()}` 
-          : `${uploadRes.data.url}?t=${Date.now()}`;
-          
+      const uploadPic = extractAvatar(uploadRes.data) || uploadRes.data?.url || uploadRes.data?.data?.url;
+      if (uploadPic) {
+        const freshUrl = String(uploadPic).includes("?")
+          ? `${uploadPic}&t=${Date.now()}`
+          : `${uploadPic}?t=${Date.now()}`;
         setLiveAvatar(freshUrl);
-        localStorage.setItem("chopnchop_avatar", freshUrl); // Cache the fresh timestamped version globally!
+        localStorage.setItem("chopnchop_avatar", freshUrl);
       }
-      
-      // Also refetch full profile to keep text details in sync
       const profileRes = await customerApiClient.get("/api/v1/user/profile");
-      setProfile(profileRes.data);
+      const pdata = profileRes.data?.data || profileRes.data;
+      setProfile(pdata);
+      const refPic = extractAvatar(profileRes.data);
+      if (refPic && !uploadPic) {
+        setLiveAvatar(refPic);
+        localStorage.setItem("chopnchop_avatar", refPic);
+      }
       
     } catch (error) {
       console.error("Failed to upload profile picture", error);
