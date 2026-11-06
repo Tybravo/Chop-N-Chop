@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
 import { useCartStore, type CartItemLike } from "@/store/useCartStore";
+import { useOrderContext } from "@/store/useOrderContext";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 
 export default function CartPage() {
@@ -12,6 +13,7 @@ export default function CartPage() {
 
   // --- Global Store State ---
   const { items: cartItems, updateQuantity, removeItem } = useCartStore();
+  const { resolvedZone, deliveryFee: contextDeliveryFee, location } = useOrderContext();
 
   // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
@@ -136,8 +138,9 @@ export default function CartPage() {
 
   // --- Consolidated Hub Pricing Engine ---
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const packagingFee = cartItems.length > 0 ? 500 : 0; 
-  const deliveryFee = cartItems.length > 0 ? 1500 : 0; 
+  const storedZone = typeof window !== "undefined" ? (() => { try { return JSON.parse(localStorage.getItem("chopnchop_delivery_zone") || "null"); } catch { return null; } })() : null;
+  const packagingFee = cartItems.length > 0 ? 500 : 0;
+  const deliveryFee = cartItems.length > 0 ? (resolvedZone?.deliveryFee ?? contextDeliveryFee ?? storedZone?.deliveryFee ?? 1500) : 0;
   const total = subtotal + (cartItems.length > 0 ? packagingFee + deliveryFee : 0);
 
   return (

@@ -106,42 +106,40 @@ export default function DropsPage() {
   const [isLoadingDrops, setIsLoadingDrops] = useState(true);
 
   useEffect(() => {
+    const mapOrders = (orders: any[]): PastDrop[] => orders.map((ord: any) => {
+      const items = Array.isArray(ord.items) ? ord.items : [];
+      const firstItem = items[0]?.name || items[0]?.mealName || "Order";
+      const meal = items.length > 1 ? `${firstItem} (${items.length} items)` : firstItem;
+      const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+      const deliveryFee = Number(ord.deliveryFee || ord.delivery_fee || 0);
+      return {
+        id: String(ord.id || ord.orderId || ""),
+        date: ord.createdAt ? new Date(ord.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+        meal, vendor: ord.vendorName || ord.vendor || "Chop N Chop",
+        totalLabel: `₦${Number(ord.totalAmount || ord.total || subtotal + deliveryFee).toLocaleString()}`,
+        status: ord.status || "Delivered", subtotal, deliveryFee,
+        paymentMethod: ord.paymentMethod || "Card",
+        address: ord.deliveryAddress || ord.address || "",
+        items: items.map((item: any, i: number) => ({
+          id: item.id || i + 1, name: item.name || item.mealName || "Item",
+          desc: item.description || item.desc || "", qty: Number(item.quantity || 1), price: Number(item.price || 0),
+        })),
+      };
+    });
+    const loadGuest = () => {
+      try { return JSON.parse(localStorage.getItem("chopnchop_guest_orders") || "[]"); } catch { return []; }
+    };
     const fetchPastDrops = async () => {
+      const token = localStorage.getItem("chopnchop_token");
+      if (!token) { setPastDrops(mapOrders(loadGuest())); setIsLoadingDrops(false); return; }
       try {
         const res = await customerApiClient.get("/api/v1/orders/mine?page=0&size=10");
         const orders = res.data?.content || res.data?.data || res.data || [];
-        if (Array.isArray(orders) && orders.length > 0) {
-          const mapped: PastDrop[] = orders.map((ord: any) => {
-            const items = Array.isArray(ord.items) ? ord.items : [];
-            const firstItem = items[0]?.name || items[0]?.mealName || "Order";
-            const itemCount = items.length;
-            const meal = itemCount > 1 ? `${firstItem} (${itemCount} items)` : firstItem;
-            const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
-            const deliveryFee = Number(ord.deliveryFee || ord.delivery_fee || 0);
-            return {
-              id: ord.id || ord.orderId || "",
-              date: ord.createdAt ? new Date(ord.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
-              meal,
-              vendor: ord.vendorName || ord.vendor || "Chop N Chop",
-              totalLabel: `₦${Number(ord.totalAmount || ord.total || subtotal + deliveryFee).toLocaleString()}`,
-              status: ord.status || "Delivered",
-              subtotal,
-              deliveryFee,
-              paymentMethod: ord.paymentMethod || "Card",
-              address: ord.deliveryAddress || ord.address || "",
-              items: items.map((item: any, i: number) => ({
-                id: item.id || i + 1,
-                name: item.name || item.mealName || "Item",
-                desc: item.description || item.desc || "",
-                qty: Number(item.quantity || 1),
-                price: Number(item.price || 0),
-              })),
-            };
-          });
-          setPastDrops(mapped);
-        }
-      } catch (err) {
-        console.error("Failed to fetch past drops", err);
+        if (Array.isArray(orders) && orders.length > 0) setPastDrops(mapOrders(orders));
+        else setPastDrops(mapOrders(loadGuest()));
+      } catch (err: any) {
+        if (err?.response?.status === 401 || err?.response?.status === 403) setPastDrops(mapOrders(loadGuest()));
+        else console.error("Failed to fetch past drops", err);
       } finally {
         setIsLoadingDrops(false);
       }
