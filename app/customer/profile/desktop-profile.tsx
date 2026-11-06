@@ -56,11 +56,12 @@ interface DesktopProfileProps {
   isUploadingPic?: boolean;
   onUploadClick?: () => void;
   onOpenEdit?: () => void;
+  isGuest?: boolean;
 }
 
-export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl, isUploadingPic, onUploadClick, onOpenEdit }: DesktopProfileProps) {
+export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl, isUploadingPic, onUploadClick, onOpenEdit, isGuest }: DesktopProfileProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("orders");
+  const [activeTab, setActiveTab] = useState(isGuest ? "settings" : "orders");
   const [vehicles, setVehicles] = useState<SavedVehicle[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [fetchingVehicles, setFetchingVehicles] = useState(false);
@@ -107,6 +108,8 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
   const [newVehicle, setNewVehicle] = useState({ plateNumber: "", model: "", color: "" });
   const [submittingVehicle, setSubmittingVehicle] = useState(false);
   const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
+
+  useEffect(() => { if (isGuest) setActiveTab("settings"); }, [isGuest]);
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -411,7 +414,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                 </div>
               )}
             </div>
-            {onUploadClick && (
+            {!isGuest && onUploadClick && (
               <button
                 type="button"
                 onClick={onUploadClick}
@@ -445,7 +448,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {profile && onOpenEdit && (
+          {!isGuest && profile && onOpenEdit && (
             <button
               type="button"
               onClick={onOpenEdit}
@@ -461,15 +464,17 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
         
         {/* Sidebar Navigation */}
         <div className="space-y-1 bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-100 dark:border-zinc-800 h-fit shadow-sm">
-          {[
-            { id: "orders", label: "Order History", icon: FileText },
-            { id: "wallet", label: "Wallet & Transactions", icon: Wallet },
-            { id: "promos", label: "Promos & Rewards", icon: Ticket },
-            { id: "locations", label: "Hub Management", icon: MapPin },
-            { id: "vehicles", label: "Drive-Thru Vehicles", icon: Car },
-            { id: "favorites", label: "Favorites & Quick Reorder", icon: Heart },
-            { id: "settings", label: "App Settings & Security", icon: Settings },
-          ].map((tab) => {
+          {(isGuest
+            ? [{ id: "settings", label: "App Settings & Preferences", icon: Settings }]
+            : [
+                { id: "orders", label: "Order History", icon: FileText },
+                { id: "wallet", label: "Wallet & Transactions", icon: Wallet },
+                { id: "promos", label: "Promos & Rewards", icon: Ticket },
+                { id: "locations", label: "Hub Management", icon: MapPin },
+                { id: "vehicles", label: "Drive-Thru Vehicles", icon: Car },
+                { id: "favorites", label: "Favorites & Quick Reorder", icon: Heart },
+                { id: "settings", label: "App Settings & Security", icon: Settings },
+              ]).map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -492,6 +497,13 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
         {/* Content Panel */}
         <div className="lg:col-span-3 space-y-6">
 
+          {isGuest && activeTab !== "settings" ? (
+            <div className="bg-white dark:bg-zinc-900 p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm text-center space-y-3">
+              <h3 className="text-[16px] font-extrabold text-gray-900 dark:text-white">Log in to access this</h3>
+              <p className="text-[13px] text-gray-500">Wallet, Drops & Order History, Promos & Rewards, Saved Hubs, Vehicles, and Favorites are available after you sign in.</p>
+              <button type="button" onClick={() => router.push("/customer/login")} className="rounded-full bg-[#FC6B31] px-5 py-2.5 text-[13px] font-bold text-white">Log in / Sign up</button>
+            </div>
+          ) : (<>
           {activeTab === "orders" && (
             <div className="bg-white dark:bg-zinc-900 p-8 rounded-[28px] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
               <div className="flex justify-between items-center">
@@ -819,6 +831,8 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
               </div>
             </div>
           )}
+
+          </>) }
 
           {isPinModalOpen && (
             <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
