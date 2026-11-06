@@ -208,3 +208,48 @@ export interface UpdateZonePayload {
   boundaryWkt: string;
 }
 
+export interface OpeningTime {
+  hour: number;
+  minute: number;
+  second: number;
+  nano: number;
+}
+
+export interface Hub {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  status: "ACTIVE" | "INACTIVE";
+  openingTime: OpeningTime;
+  closingTime: OpeningTime;
+}
+
+export interface CreateHubPayload {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  /** Backend expects LocalTime as a "HH:mm:ss" string. */
+  openingTime: string;
+  closingTime: string;
+}
+
+export interface UpdateHubPayload {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  /** Backend expects LocalTime as a "HH:mm:ss" string. */
+  openingTime: string;
+  closingTime: string;
+}
+
