@@ -49,7 +49,7 @@ const formatTime = (timeObj: TimeObj) => {
 };
 
 export default function GatewayModal({ onClose }: { onClose: () => void }) {
-  const { location, setLocation, deliveryWindow, setDeliveryWindow, confirmGateway } = useOrderContext();
+  const { location, setLocation, deliveryWindow, setDeliveryWindow, confirmGateway, setResolvedZone } = useOrderContext();
 
   const [step, setStep] = useState<'LOCATION' | 'TIME'>('LOCATION');
   const [isLoadingDrops, setIsLoadingDrops] = useState(false);
@@ -58,6 +58,7 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
   // Local state to hold selections before confirming
   const [tempLocation, setTempLocation] = useState(location || "");
   const [tempWindow, setTempWindow] = useState(deliveryWindow || "");
+  const [tempZone, setTempZone] = useState<Zone | null>(null);
 
   const [availableZones, setAvailableZones] = useState<Zone[]>([]);
   const [isLoadingZones, setIsLoadingZones] = useState(false);
@@ -121,8 +122,9 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
     }
   }, [step, tempLocation]);
 
-  const handleLocationSelect = (zoneName: string) => {
-    setTempLocation(zoneName);
+  const handleLocationSelect = (zone: Zone) => {
+    setTempZone(zone);
+    setTempLocation(zone.name || zone.id);
     setStep('TIME');
   };
 
@@ -130,6 +132,11 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
     if (tempLocation && tempWindow) {
       setLocation(tempLocation);
       setDeliveryWindow(tempWindow);
+      if (tempZone) {
+        const rz = { zoneId: tempZone.id, zoneName: tempZone.name || tempZone.id, deliveryFee: tempZone.baseDeliveryFee ?? 1500, estimatedDeliveryMinutes: tempZone.estimatedDeliveryMinutes };
+        setResolvedZone(rz);
+        try { localStorage.setItem("chopnchop_delivery_zone", JSON.stringify(rz)); } catch {}
+      }
       if (confirmGateway) confirmGateway();
       onClose();
     }
@@ -137,8 +144,13 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
 
   // Failsafe bypass for development if the backend crashes
   const handleBypass = () => {
-    setLocation(tempLocation || availableZones[0]?.name || availableZones[0]?.id || "");
-    setDeliveryWindow("mock-window");
+    const z = tempZone || availableZones[0] || null;
+    setLocation(tempLocation || z?.name || "");
+    if (z) {
+      const rz = { zoneId: z.id, zoneName: z.name || z.id, deliveryFee: z.baseDeliveryFee ?? 1500, estimatedDeliveryMinutes: z.estimatedDeliveryMinutes };
+      setResolvedZone(rz);
+      try { localStorage.setItem("chopnchop_delivery_zone", JSON.stringify(rz)); } catch {}
+    }
     if (confirmGateway) confirmGateway();
     onClose();
   };
@@ -194,7 +206,7 @@ export default function GatewayModal({ onClose }: { onClose: () => void }) {
                   return (
                     <button
                       key={zone.id}
-                      onClick={() => handleLocationSelect(zoneName)}
+                      onClick={() => handleLocationSelect(zone)}
                       className="w-full flex items-center justify-between p-4 rounded-[20px] border border-gray-200 bg-white hover:border-[#FC6B31] hover:shadow-[0_4px_20px_rgba(252,107,49,0.08)] transition-all text-gray-800 active:scale-[0.98] shadow-sm group"
                     >
                       <div className="flex items-center gap-4">

@@ -171,7 +171,9 @@ export default function UpdateProfilePage() {
       try {
         const fresh = await vendorService.getProfile();
         if (fresh.logoUrl) {
-          setProfile(fresh);
+          const syncedUrl = `${fresh.logoUrl}${fresh.logoUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          setProfile({ ...fresh, logoUrl: syncedUrl });
+          updateUser({ logoUrl: syncedUrl });
         }
       } catch {
         // Backend may be momentarily slow — keep the optimistic URL.
@@ -224,9 +226,8 @@ export default function UpdateProfilePage() {
   }
 
   const storefrontUrl =
-    profile.logoUrl && profile.logoUrl.trim() !== ""
-      ? profile.logoUrl
-      : user?.logoUrl || "";
+    (profile.logoUrl && profile.logoUrl.trim() !== "" ? profile.logoUrl : "") ||
+    (user?.logoUrl && user.logoUrl.trim() !== "" ? user.logoUrl : "");
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -307,7 +308,7 @@ export default function UpdateProfilePage() {
               ) : (
                 <Upload className="w-4 h-4" />
               )}
-              {isUploadingPicture ? "Uploading..." : "Change Storefront Image"}
+              {isUploadingPicture ? "Uploading..." : storefrontUrl ? "Update Storefront Image" : "Add Storefront Image"}
             </button>
             <p className="text-xs text-gray-500 mt-1">
               JPG, GIF or PNG. Max size of 1500KB. Square is recommended.

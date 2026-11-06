@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Wallet, CreditCard, ShieldCheck, Loader2, Tag, ChevronRight, Building2, Smartphone, Copy, Check, Mail, Lock, X, Eye, EyeOff } from "lucide-react";
 import DynamicCreditCardDetector, { getCardInfo } from "@/components/customer/DynamicCreditCardDetector";
 import { useCartStore } from "@/store/useCartStore";
+import { useOrderContext } from "@/store/useOrderContext";
+import { zoneService } from "@/services/customer/zone.service";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import axios from "axios";
 
@@ -39,26 +41,46 @@ function CheckoutContent() {
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // --- MOCK USER STATUS (Toggle these to test the flows) ---
-  const [isGuest, setIsGuest] = useState(false);
+  // Guests can browse and checkout; authenticated users get prefill/saved cards.
+  const [isGuest, setIsGuest] = useState(() => typeof window !== "undefined" ? !localStorage.getItem("chopnchop_token") : true);
   const [userHasPin, setUserHasPin] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryNote, setDeliveryNote] = useState("");
+  const { resolvedZone, deliveryWindow, location, deliveryFee: contextDeliveryFee } = useOrderContext();
+
+  const getStoredZone = () => {
+    try {
+      const raw = localStorage.getItem("chopnchop_delivery_zone");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  };
+  const storedZone = typeof window !== "undefined" ? getStoredZone() : null;
+  const effectiveZoneId = resolvedZone?.zoneId || storedZone?.zoneId || storedZone?.id || null;
+  const effectiveZoneName = resolvedZone?.zoneName || storedZone?.zoneName || storedZone?.name || location || "";
+  const effectiveDeliveryFee = cartItems.length > 0 ? (resolvedZone?.deliveryFee ?? contextDeliveryFee ?? storedZone?.deliveryFee ?? 1500) : 0;
+
   const fetchProfileForPrefill = async () => {
     const token = localStorage.getItem("chopnchop_token");
-    if (!token) return;
+    if (!token) {
+      setIsGuest(true);
+      return;
+    }
+    setIsGuest(false);
     try {
       const res = await customerApiClient.get("/api/v1/user/profile");
       const profile = res.data || {};
       const profilePhone = profile.phone || profile.phoneNumber || "";
       const profileEmail = profile.email || "";
-
-      if (profilePhone && !phoneNumber) {
-        setPhoneNumber(profilePhone);
-      }
-      if (profileEmail && !email) {
-        setEmail(profileEmail);
-      }
+      if (profilePhone) setPhoneNumber((prev) => prev || profilePhone);
+      if (profileEmail) setEmail((prev) => prev || profileEmail);
+      if (profile.firstName) setFirstName((prev) => prev || profile.firstName);
+      if (profile.lastName) setLastName((prev) => prev || profile.lastName);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status !== 401) {
+      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+        setIsGuest(true);
+      } else if (axios.isAxiosError(err) && err.response?.status !== 401) {
         console.error("Failed to fetch profile for checkout prefill", err);
       }
     }
@@ -142,12 +164,20 @@ function CheckoutContent() {
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discount = appliedPromo ? subtotal * 0.1 : 0;
   const packagingFee = cartItems.length > 0 ? 500 : 0;
-  const deliveryFee = cartItems.length > 0 ? 1500 : 0;
+  const deliveryFee = effectiveDeliveryFee;
   const total = subtotal - discount + packagingFee + deliveryFee;
 
   const handleProceedToPaymentDetails = () => {
+    if (!deliveryAddress.trim()) {
+      alert("Please enter your delivery address.");
+      return;
+    }
     if (!isValidPhone) {
       alert("Please provide a valid phone number for delivery updates.");
+      return;
+    }
+    if (isGuest && (!firstName.trim() || !lastName.trim() || !email.trim())) {
+      alert("Please enter your first name, last name, and email to continue as a guest.");
       return;
     }
     if (isGuest && !sessionCard) {
@@ -197,27 +227,133 @@ function CheckoutContent() {
 
   const processPaymentTransaction = async () => {
     setPinModal({ show: false, mode: "ENTER" });
+    if (!cartItems.length) { alert("Your cart is empty."); return; }
+    if (!deliveryAddress.trim()) { alert("Please enter your delivery address."); setView("contact"); return; }
+    if (!isValidPhone) { alert("Please provide a valid phone number."); setView("contact"); return; }
+    if (isGuest && (!firstName.trim() || !lastName.trim() || !email.trim())) {
+      alert("Please enter your first name, last name, email, and phone to checkout as a guest.");
+      setView("contact"); return;
+    }
     setIsProcessing(true);
-    
+
+    const storeReservation = (resv: unknown) => {
+      if (!resv || typeof resv !== "object") return;
+      try { localStorage.setItem("chopnchop_inventory_reservation", JSON.stringify(resv)); } catch {}
+    };
+
     try {
-      const mockOrderId = "ORD-" + Math.random().toString(36).substring(7);
+      // Best-effort inventory reservation (backend may not expose this endpoint yet)
+      let reservationId: string | null = null;
+      try {
+        const r = await customerApiClient.post("/api/v1/inventory/reservations", {
+          ttlSeconds: 600,
+          items: cartItems.map((item) => ({ itemId: String(item.id), scheduledItemId: String(item.id), quantity: item.quantity })),
+        });
+        const rd = r.data?.data ?? r.data;
+        reservationId = rd?.reservationId ?? rd?.id ?? null;
+        storeReservation(rd);
+      } catch {
+        // non-fatal: proceed if reservation API is unavailable
+      }
 
-      const res = await customerApiClient.post(`/api/v1/payments/initialize/${mockOrderId}`);
-      const data = res.data;
+      const token = localStorage.getItem("chopnchop_token");
+      const asGuest = isGuest || !token;
+      const orderPayload: Record<string, unknown> = {
+        items: cartItems.map((item) => ({ itemId: String(item.id), menuItemId: String(item.id), scheduledItemId: String(item.id), name: item.name, quantity: item.quantity, price: item.price })),
+        deliveryAddress: deliveryAddress.trim(),
+        deliveryNote: deliveryNote.trim() || undefined,
+        phoneNumber: phoneNumber.trim(),
+        recipientPhone: phoneNumber.trim(),
+        email: email.trim() || undefined,
+        zoneId: effectiveZoneId || undefined,
+        zoneName: effectiveZoneName || undefined,
+        deliveryFee,
+        deliveryWindow: deliveryWindow || undefined,
+        reservationId: reservationId || undefined,
+        subtotal,
+        totalAmount: total,
+        amount: total,
+      };
+      if (asGuest) {
+        orderPayload.guest = { firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), phone: phoneNumber.trim() };
+        orderPayload.guestCheckout = true;
+      }
 
-      const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;
+      // Create real order (try guest/public route, then authenticated route)
+      let orderData: Record<string, unknown> | null = null;
+      const orderPaths = asGuest
+        ? ["/api/v1/orders/guest", "/api/v1/orders"]
+        : ["/api/v1/orders"];
+      let orderErr: unknown = null;
+      for (const p of orderPaths) {
+        try {
+          const res = await customerApiClient.post(p, orderPayload, { headers: { "Idempotency-Key": `${Date.now()}-${Math.random().toString(36).slice(2)}` } });
+          orderData = (res.data?.data ?? res.data) as Record<string, unknown>;
+          break;
+        } catch (e) { orderErr = e; }
+      }
+      if (!orderData) throw orderErr ?? new Error("Order creation failed");
+
+      const orderId = String(orderData.id ?? orderData.orderId ?? "");
+      const payable = Number(orderData.payableAmount ?? orderData.totalAmount ?? orderData.total ?? total);
+      if (!orderId) throw new Error("Order was created but no order ID was returned.");
+
+      const payRes = await customerApiClient.post(`/api/v1/payments/initialize/${orderId}`, {
+        amount: payable,
+        callbackUrl: `${window.location.origin}/customer/checkout`,
+        email: email.trim() || undefined,
+        phoneNumber: phoneNumber.trim(),
+        ...(asGuest ? { guestCheckout: true, firstName: firstName.trim(), lastName: lastName.trim() } : {}),
+        deliveryAddress: deliveryAddress.trim(),
+        zoneId: effectiveZoneId || undefined,
+      });
+      const payData = payRes.data?.data ?? payRes.data;
+      const checkoutUrl = payData?.checkoutUrl || payData?.authorization_url || payData?.authorizationUrl || payData?.url;
+
+      try {
+        const guestOrders = JSON.parse(localStorage.getItem("chopnchop_guest_orders") || "[]");
+        guestOrders.unshift({
+          id: orderId,
+          createdAt: new Date().toISOString(),
+          totalAmount: payable,
+          items: cartItems.map((item) => ({ name: item.name, quantity: item.quantity, price: item.price })),
+          status: "PENDING_PAYMENT",
+          deliveryAddress: deliveryAddress.trim(),
+          zoneId: effectiveZoneId || undefined,
+          zoneName: effectiveZoneName || undefined,
+        });
+        localStorage.setItem("chopnchop_guest_orders", JSON.stringify(guestOrders.slice(0, 20)));
+        localStorage.setItem("chopnchop_pending_order_id", orderId);
+      } catch {}
+
       if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+        window.location.href = String(checkoutUrl);
       } else {
-        throw new Error("No checkout link provided by the server.");
+        throw new Error("Order created, but no checkout link was returned by the payment service.");
       }
     } catch (error) {
-      console.error("Payment initialization failed", error);
+      console.error("Checkout failed", error);
+      // best-effort reservation release
+      try {
+        const r = JSON.parse(localStorage.getItem("chopnchop_inventory_reservation") || "null");
+        const rid = r?.reservationId ?? r?.id;
+        if (rid) await customerApiClient.delete(`/api/v1/inventory/reservations/${rid}`).catch(() => {});
+      } catch {}
       if (axios.isAxiosError(error) && error.response) {
-        alert(error.response.data?.message || "Failed to initialize payment. Please try again.");
+        const backendMsg = error.response.data?.message || error.response.data?.error || "Checkout failed.";
+        if (error.response.status === 401 || error.response.status === 403) {
+          alert(`${backendMsg} You can continue as a guest or log in and try again.`);
+        } else if (error.response.status === 409) {
+          alert(`${backendMsg} Some items may have sold out or your reservation expired. Please review your cart.`);
+        } else {
+          alert(`Checkout Error: ${backendMsg}`);
+        }
+      } else if (error instanceof Error) {
+        alert(error.message);
       } else {
-        alert("Network error starting payment.");
+        alert("A network error occurred. Please check your connection.");
       }
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -301,18 +437,63 @@ function CheckoutContent() {
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Step 1 of 2</span>
           </div>
           
-          <button 
-            onClick={() => setIsGuest(!isGuest)}
-            className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-1 rounded-md"
-          >
-            {isGuest ? "GUEST" : "USER"}
-          </button>
+          <div className="w-11" aria-hidden="true" />
         </header>
 
         <div className="px-5 md:px-8 max-w-3xl mx-auto pt-4 space-y-6">
+          {/* DELIVERY ADDRESS */}
+          <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100 dark:border-zinc-800 space-y-4">
+            <h2 className="font-bold text-[16px] text-gray-900 dark:text-white pl-1">Delivery Address</h2>
+            {(effectiveZoneName || deliveryWindow) && (
+              <div className="rounded-2xl bg-orange-50/70 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 px-4 py-3 text-[13px]">
+                {effectiveZoneName && <p className="font-bold text-gray-900 dark:text-white">Zone: {effectiveZoneName}</p>}
+                {deliveryWindow && <p className="text-gray-600 dark:text-gray-300 mt-0.5">Delivery window: {deliveryWindow}</p>}
+              </div>
+            )}
+            <div>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                required
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Enter your delivery address"
+                className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] transition-colors" 
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">
+                Delivery Note <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <textarea
+                value={deliveryNote}
+                onChange={(e) => setDeliveryNote(e.target.value)}
+                placeholder="Gate code, landmark, or special instructions"
+                rows={2}
+                className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31] transition-colors resize-none" 
+              />
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100 dark:border-zinc-800">
             <h2 className="font-bold text-[16px] text-gray-900 dark:text-white mb-4 pl-1">Contact Information</h2>
             <div className="space-y-4">
+              {isGuest && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">First Name <span className="text-red-500">*</span></label>
+                    <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name"
+                      className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31]" />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Last Name <span className="text-red-500">*</span></label>
+                    <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name"
+                      className="w-full bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#FC6B31]" />
+                  </div>
+                </div>
+              )}
               <div>
                 <div className="flex justify-between items-end mb-1.5 ml-1">
                   <label className="block text-[13px] font-bold text-gray-700 dark:text-gray-300">
