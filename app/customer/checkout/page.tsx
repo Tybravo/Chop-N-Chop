@@ -39,26 +39,28 @@ function CheckoutContent() {
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // --- MOCK USER STATUS (Toggle these to test the flows) ---
-  const [isGuest, setIsGuest] = useState(false);
+  // Guests can browse and checkout; authenticated users get prefill/saved cards.
+  const [isGuest, setIsGuest] = useState(() => typeof window !== "undefined" ? !localStorage.getItem("chopnchop_token") : true);
   const [userHasPin, setUserHasPin] = useState(false);
+
   const fetchProfileForPrefill = async () => {
     const token = localStorage.getItem("chopnchop_token");
-    if (!token) return;
+    if (!token) {
+      setIsGuest(true);
+      return;
+    }
+    setIsGuest(false);
     try {
       const res = await customerApiClient.get("/api/v1/user/profile");
       const profile = res.data || {};
       const profilePhone = profile.phone || profile.phoneNumber || "";
       const profileEmail = profile.email || "";
-
-      if (profilePhone && !phoneNumber) {
-        setPhoneNumber(profilePhone);
-      }
-      if (profileEmail && !email) {
-        setEmail(profileEmail);
-      }
+      if (profilePhone) setPhoneNumber((prev) => prev || profilePhone);
+      if (profileEmail) setEmail((prev) => prev || profileEmail);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status !== 401) {
+      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+        setIsGuest(true);
+      } else if (axios.isAxiosError(err) && err.response?.status !== 401) {
         console.error("Failed to fetch profile for checkout prefill", err);
       }
     }
@@ -198,11 +200,17 @@ function CheckoutContent() {
   const processPaymentTransaction = async () => {
     setPinModal({ show: false, mode: "ENTER" });
     setIsProcessing(true);
-    
+
     try {
-      // In real integration, use actual order id from order creation
+      // NOTE: real flow should create an order first and initialize payment for that order ID.
       const orderId = "ORD-" + Math.random().toString(36).substring(7);
-      const res = await customerApiClient.post(`/api/v1/payments/initialize/${orderId}`);
+      const res = await customerApiClient.post(`/api/v1/payments/initialize/${orderId}`, {
+        amount: total,
+        callbackUrl: `${window.location.origin}/customer/checkout`,
+        ...(isGuest || !localStorage.getItem("chopnchop_token")
+          ? { phoneNumber: phoneNumber.trim(), email: email.trim(), guestCheckout: true, deliveryAddress }
+          : { deliveryAddress }),
+      });
       const data = res.data;
 
       const checkoutUrl = data.checkoutUrl || data.authorization_url || data.additionalProp1;
@@ -226,10 +234,16 @@ function CheckoutContent() {
     } catch (error) {
       console.error("Payment initialization failed", error);
       if (axios.isAxiosError(error) && error.response) {
-        alert(error.response.data?.message || "Failed to initialize payment. Please try again.");
+        const backendMsg = error.response.data?.message || error.response.data?.error || "Payment initialization failed.";
+        if (error.response.status === 401 || error.response.status === 403) {
+          alert(`${backendMsg} You can continue as a guest—please confirm your phone/email and try again, or log in if the server requires an account for this order.`);
+        } else {
+          alert(`Payment Error: ${backendMsg}`);
+        }
       } else {
-        alert("Network error starting payment.");
+        alert("A network error occurred. Please check your connection.");
       }
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -313,12 +327,7 @@ function CheckoutContent() {
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Step 1 of 2</span>
           </div>
           
-          <button 
-            onClick={() => setIsGuest(!isGuest)}
-            className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-1 rounded-md"
-          >
-            {isGuest ? "GUEST" : "USER"}
-          </button>
+          <div className="w-11" aria-hidden="true" />
         </header>
 
         <div className="px-5 md:px-8 max-w-3xl mx-auto pt-4 space-y-6">
