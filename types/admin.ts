@@ -234,6 +234,7 @@ export interface CreateHubPayload {
   address: string;
   city: string;
   state: string;
+  country: string;
   latitude: number;
   longitude: number;
   /** Backend expects LocalTime as a "HH:mm:ss" string. */
@@ -246,6 +247,7 @@ export interface UpdateHubPayload {
   address: string;
   city: string;
   state: string;
+  country: string;
   latitude: number;
   longitude: number;
   /** Backend expects LocalTime as a "HH:mm:ss" string. */

@@ -3,29 +3,20 @@
 import { useState } from "react";
 import { Warehouse, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { hubService } from "@/services/admin/hub.service";
-import { NIGERIA_STATES, NIGERIA_COUNTRY, getStateCapital } from "@/lib/nigeria-locations";
+import { NIGERIA_STATES, NIGERIA_COUNTRY, getStateCapital, getStateCities } from "@/lib/nigeria-locations";
+import {
+  HOURS_12,
+  MINUTES_60,
+  SECONDS_60,
+  PERIODS,
+  twelveTo24String,
+} from "@/lib/hub-time";
 
-interface TimeForm {
-  hour: string;
-  minute: string;
-  second: string;
-}
+const HOUR_RANGE = (
+  <span className="text-[10px] text-gray-400 dark:text-gray-500">01–12</span>
+);
 
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function toTimeString(t: TimeForm): string {
-  return `${pad2(Number(t.hour) || 0)}:${pad2(Number(t.minute) || 0)}:${pad2(Number(t.second) || 0)}`;
-}
-
-const HOURS = Array.from({ length: 24 }, (_, i) => pad2(i));
-const MINUTES = Array.from({ length: 60 }, (_, i) => pad2(i));
-const SECONDS = Array.from({ length: 60 }, (_, i) => pad2(i));
-
-const HOUR_RANGE = ((
-  <span className="text-[10px] text-gray-400 dark:text-gray-500">00–23</span>
-)) ;
+type Period = (typeof PERIODS)[number];
 
 export default function AddHubTab() {
   const [form, setForm] = useState({
@@ -34,17 +25,19 @@ export default function AddHubTab() {
     city: "",
     state: "",
     country: NIGERIA_COUNTRY,
-    openingHour: "08",
+    openingHour: "12",
     openingMinute: "00",
     openingSecond: "00",
-    closingHour: "18",
+    openingPeriod: "AM" as Period,
+    closingHour: "12",
     closingMinute: "00",
     closingSecond: "00",
+    closingPeriod: "AM" as Period,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const cities = form.state ? [getStateCapital(form.state)].filter(Boolean) : [];
+  const cities = form.state ? getStateCities(form.state) : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const value = e.target.value;
@@ -71,17 +64,20 @@ export default function AddHubTab() {
         address: form.address,
         city: form.city,
         state: form.state,
+        country: form.country || NIGERIA_COUNTRY,
         latitude: 0,
         longitude: 0,
-        openingTime: toTimeString({
+        openingTime: twelveTo24String({
           hour: form.openingHour,
           minute: form.openingMinute,
           second: form.openingSecond,
+          period: form.openingPeriod,
         }),
-        closingTime: toTimeString({
+        closingTime: twelveTo24String({
           hour: form.closingHour,
           minute: form.closingMinute,
           second: form.closingSecond,
+          period: form.closingPeriod,
         }),
       });
 
@@ -92,12 +88,14 @@ export default function AddHubTab() {
         city: "",
         state: "",
         country: NIGERIA_COUNTRY,
-        openingHour: "08",
+        openingHour: "12",
         openingMinute: "00",
         openingSecond: "00",
-        closingHour: "18",
+        openingPeriod: "AM",
+        closingHour: "12",
         closingMinute: "00",
         closingSecond: "00",
+        closingPeriod: "AM",
       });
     } catch (err) {
       setMessage({
@@ -144,7 +142,7 @@ export default function AddHubTab() {
           </div>
         )}
 
-        {/* Name + State */}
+        {/* Name + Address */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Hub Name</label>
@@ -160,6 +158,23 @@ export default function AddHubTab() {
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+            <input
+              required
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              minLength={3}
+              className="w-full p-3 bg-gray-50 dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] dark:text-white placeholder-gray-400 transition-all"
+              placeholder="e.g., 14 Allen Avenue, Ikeja GRA"
+            />
+          </div>
+        </div>
+
+        {/* State + City + Country */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">State</label>
             <select
@@ -177,25 +192,7 @@ export default function AddHubTab() {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Address */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-          <input
-            required
-            type="text"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            minLength={3}
-            className="w-full p-3 bg-gray-50 dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] dark:text-white placeholder-gray-400 transition-all"
-            placeholder="e.g., 14 Allen Avenue, Ikeja GRA"
-          />
-        </div>
-
-        {/* City + Country */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">City</label>
             <select
@@ -213,7 +210,7 @@ export default function AddHubTab() {
               ))}
             </select>
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Auto-filled with the selected state&apos;s capital.
+              Cities in the selected state, with the capital listed first.
             </p>
           </div>
 
@@ -237,7 +234,7 @@ export default function AddHubTab() {
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-3">
             Opening Time
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div className="space-y-1">
               <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
                 Hour {HOUR_RANGE}
@@ -248,7 +245,7 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {HOURS.map((h) => (
+                {HOURS_12.map((h) => (
                   <option key={h} value={h}>
                     {h}
                   </option>
@@ -265,7 +262,7 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {MINUTES.map((m) => (
+                {MINUTES_60.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -282,9 +279,26 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {SECONDS.map((s) => (
+                {SECONDS_60.map((s) => (
                   <option key={s} value={s}>
                     {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                Period
+              </label>
+              <select
+                name="openingPeriod"
+                value={form.openingPeriod}
+                onChange={handleChange}
+                className={selectCls}
+              >
+                {PERIODS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
                   </option>
                 ))}
               </select>
@@ -297,7 +311,7 @@ export default function AddHubTab() {
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-3">
             Closing Time
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div className="space-y-1">
               <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
                 Hour {HOUR_RANGE}
@@ -308,7 +322,7 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {HOURS.map((h) => (
+                {HOURS_12.map((h) => (
                   <option key={h} value={h}>
                     {h}
                   </option>
@@ -325,7 +339,7 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {MINUTES.map((m) => (
+                {MINUTES_60.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -342,9 +356,26 @@ export default function AddHubTab() {
                 onChange={handleChange}
                 className={selectCls}
               >
-                {SECONDS.map((s) => (
+                {SECONDS_60.map((s) => (
                   <option key={s} value={s}>
                     {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                Period
+              </label>
+              <select
+                name="closingPeriod"
+                value={form.closingPeriod}
+                onChange={handleChange}
+                className={selectCls}
+              >
+                {PERIODS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
                   </option>
                 ))}
               </select>

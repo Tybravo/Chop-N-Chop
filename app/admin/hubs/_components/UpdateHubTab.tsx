@@ -2,8 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { hubService } from "@/services/admin/hub.service";
-import { Hub, OpeningTime } from "@/types/admin";
-import { NIGERIA_STATES, NIGERIA_COUNTRY, getStateCapital } from "@/lib/nigeria-locations";
+import { Hub } from "@/types/admin";
+import { NIGERIA_STATES, NIGERIA_COUNTRY, getStateCapital, getStateCities } from "@/lib/nigeria-locations";
+import {
+  HOURS_12,
+  MINUTES_60,
+  SECONDS_60,
+  PERIODS,
+  toTwelveHour,
+  twelveTo24String,
+  formatTime12,
+  defaultTime12,
+} from "@/lib/hub-time";
 import {
   Eye,
   Edit,
@@ -17,19 +27,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
+const HOUR_RANGE = (
+  <span className="text-[10px] text-gray-400 dark:text-gray-500">01–12</span>
+);
 
-function formatTime(t: OpeningTime): string {
-  if (!t) return "N/A";
-  const { hour = 0, minute = 0, second = 0 } = t;
-  return `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`;
-}
-
-const HOURS = Array.from({ length: 24 }, (_, i) => pad2(i));
-const MINUTES = Array.from({ length: 60 }, (_, i) => pad2(i));
-const SECONDS = Array.from({ length: 60 }, (_, i) => pad2(i));
+type Period = (typeof PERIODS)[number];
 
 interface EditForm {
   name: string;
@@ -40,21 +42,39 @@ interface EditForm {
   openingHour: string;
   openingMinute: string;
   openingSecond: string;
+  openingPeriod: Period;
   closingHour: string;
   closingMinute: string;
   closingSecond: string;
+  closingPeriod: Period;
 }
 
-function timeToForm(t: OpeningTime): { hour: string; minute: string; second: string } {
+function fillEditTimes(
+  opening: unknown,
+  closing: unknown
+): Pick<
+  EditForm,
+  | "openingHour"
+  | "openingMinute"
+  | "openingSecond"
+  | "openingPeriod"
+  | "closingHour"
+  | "closingMinute"
+  | "closingSecond"
+  | "closingPeriod"
+> {
+  const open = toTwelveHour(opening) ?? defaultTime12();
+  const close = toTwelveHour(closing) ?? defaultTime12();
   return {
-    hour: pad2(t?.hour ?? 0),
-    minute: pad2(t?.minute ?? 0),
-    second: pad2(t?.second ?? 0),
+    openingHour: open.hour,
+    openingMinute: open.minute,
+    openingSecond: open.second,
+    openingPeriod: open.period,
+    closingHour: close.hour,
+    closingMinute: close.minute,
+    closingSecond: close.second,
+    closingPeriod: close.period,
   };
-}
-
-function toTimeString(form: { hour: string; minute: string; second: string }): string {
-  return `${pad2(Number(form.hour) || 0)}:${pad2(Number(form.minute) || 0)}:${pad2(Number(form.second) || 0)}`;
 }
 
 export default function UpdateHubTab() {
@@ -105,20 +125,13 @@ export default function UpdateHubTab() {
   const handleEditClick = (hub: Hub) => {
     setEditMessage(null);
     setEditHub(hub);
-    const open = timeToForm(hub.openingTime);
-    const close = timeToForm(hub.closingTime);
     setEditForm({
       name: hub.name || "",
       address: hub.address || "",
       city: hub.city || "",
       state: hub.state || "",
       country: hub.country || NIGERIA_COUNTRY,
-      openingHour: open.hour,
-      openingMinute: open.minute,
-      openingSecond: open.second,
-      closingHour: close.hour,
-      closingMinute: close.minute,
-      closingSecond: close.second,
+      ...fillEditTimes(hub.openingTime, hub.closingTime),
     });
   };
 
@@ -133,17 +146,20 @@ export default function UpdateHubTab() {
         address: editForm.address,
         city: editForm.city,
         state: editForm.state,
+        country: editForm.country || NIGERIA_COUNTRY,
         latitude: editHub.latitude || 0,
         longitude: editHub.longitude || 0,
-        openingTime: toTimeString({
+        openingTime: twelveTo24String({
           hour: editForm.openingHour,
           minute: editForm.openingMinute,
           second: editForm.openingSecond,
+          period: editForm.openingPeriod,
         }),
-        closingTime: toTimeString({
+        closingTime: twelveTo24String({
           hour: editForm.closingHour,
           minute: editForm.closingMinute,
           second: editForm.closingSecond,
+          period: editForm.closingPeriod,
         }),
       };
 
@@ -151,7 +167,19 @@ export default function UpdateHubTab() {
 
       // Optimistic update — no local storage, only in-memory React state.
       // The API expects LocalTime strings, but the Hub state shape uses
-      // OpeningTime objects, so convert back for the row we just updated.
+      // OpeningTime objects, so build 24-hour objects from the 12-hour form.
+      const open24 = twelveTo24String({
+        hour: editForm.openingHour,
+        minute: editForm.openingMinute,
+        second: editForm.openingSecond,
+        period: editForm.openingPeriod,
+      }).split(":");
+      const close24 = twelveTo24String({
+        hour: editForm.closingHour,
+        minute: editForm.closingMinute,
+        second: editForm.closingSecond,
+        period: editForm.closingPeriod,
+      }).split(":");
       setHubs((prev) =>
         prev.map((h) =>
           h.id === editHub.id
@@ -165,15 +193,15 @@ export default function UpdateHubTab() {
                 longitude: payload.longitude,
                 country: editForm.country || h.country,
                 openingTime: {
-                  hour: Number(editForm.openingHour) || 0,
-                  minute: Number(editForm.openingMinute) || 0,
-                  second: Number(editForm.openingSecond) || 0,
+                  hour: Number(open24[0]) || 0,
+                  minute: Number(open24[1]) || 0,
+                  second: Number(open24[2]) || 0,
                   nano: 0,
                 },
                 closingTime: {
-                  hour: Number(editForm.closingHour) || 0,
-                  minute: Number(editForm.closingMinute) || 0,
-                  second: Number(editForm.closingSecond) || 0,
+                  hour: Number(close24[0]) || 0,
+                  minute: Number(close24[1]) || 0,
+                  second: Number(close24[2]) || 0,
                   nano: 0,
                 },
               }
@@ -470,11 +498,11 @@ export default function UpdateHubTab() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">Opening Time</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{formatTime(viewHub.openingTime)}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{formatTime12(viewHub.openingTime)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">Closing Time</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{formatTime(viewHub.closingTime)}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{formatTime12(viewHub.closingTime)}</p>
                 </div>
               </div>
             </div>
@@ -554,6 +582,9 @@ export default function UpdateHubTab() {
                       </option>
                     ))}
                   </select>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Current value is shown; choose another state to update it.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">City</label>
@@ -564,13 +595,20 @@ export default function UpdateHubTab() {
                     className={selectCls}
                   >
                     <option value="">Select a city...</option>
-                    {editForm.state ? (
-                      <option value={getStateCapital(editForm.state)}>{getStateCapital(editForm.state)}</option>
-                    ) : null}
-                    {editForm.city && editForm.city !== getStateCapital(editForm.state) ? (
-                      <option value={editForm.city}>{editForm.city}</option>
-                    ) : null}
+                    {editForm.state
+                      ? getStateCities(editForm.state, editForm.city ? [editForm.city] : []).map(
+                          (c) => (
+                            <option key={c} value={c}>
+                              {c}
+                              {c === editForm.city ? " (current)" : ""}
+                            </option>
+                          )
+                        )
+                      : null}
                   </select>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Cities in the selected state, capital first. Current value pre-selected.
+                  </p>
                 </div>
               </div>
 
@@ -578,17 +616,17 @@ export default function UpdateHubTab() {
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-3">
                   Opening Time
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
-                      Hour
+                      Hour {HOUR_RANGE}
                     </label>
                     <select
                       value={editForm.openingHour}
                       onChange={(e) => setEditForm({ ...editForm, openingHour: e.target.value })}
                       className={selectCls}
                     >
-                      {HOURS.map((h) => (
+                      {HOURS_12.map((h) => (
                         <option key={h} value={h}>
                           {h}
                         </option>
@@ -604,7 +642,7 @@ export default function UpdateHubTab() {
                       onChange={(e) => setEditForm({ ...editForm, openingMinute: e.target.value })}
                       className={selectCls}
                     >
-                      {MINUTES.map((m) => (
+                      {MINUTES_60.map((m) => (
                         <option key={m} value={m}>
                           {m}
                         </option>
@@ -620,9 +658,30 @@ export default function UpdateHubTab() {
                       onChange={(e) => setEditForm({ ...editForm, openingSecond: e.target.value })}
                       className={selectCls}
                     >
-                      {SECONDS.map((s) => (
+                      {SECONDS_60.map((s) => (
                         <option key={s} value={s}>
                           {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                      Period
+                    </label>
+                    <select
+                      value={editForm.openingPeriod}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          openingPeriod: e.target.value as Period,
+                        })
+                      }
+                      className={selectCls}
+                    >
+                      {PERIODS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
                         </option>
                       ))}
                     </select>
@@ -634,17 +693,17 @@ export default function UpdateHubTab() {
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-3">
                   Closing Time
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
-                      Hour
+                      Hour {HOUR_RANGE}
                     </label>
                     <select
                       value={editForm.closingHour}
                       onChange={(e) => setEditForm({ ...editForm, closingHour: e.target.value })}
                       className={selectCls}
                     >
-                      {HOURS.map((h) => (
+                      {HOURS_12.map((h) => (
                         <option key={h} value={h}>
                           {h}
                         </option>
@@ -660,7 +719,7 @@ export default function UpdateHubTab() {
                       onChange={(e) => setEditForm({ ...editForm, closingMinute: e.target.value })}
                       className={selectCls}
                     >
-                      {MINUTES.map((m) => (
+                      {MINUTES_60.map((m) => (
                         <option key={m} value={m}>
                           {m}
                         </option>
@@ -676,9 +735,30 @@ export default function UpdateHubTab() {
                       onChange={(e) => setEditForm({ ...editForm, closingSecond: e.target.value })}
                       className={selectCls}
                     >
-                      {SECONDS.map((s) => (
+                      {SECONDS_60.map((s) => (
                         <option key={s} value={s}>
                           {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                      Period
+                    </label>
+                    <select
+                      value={editForm.closingPeriod}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          closingPeriod: e.target.value as Period,
+                        })
+                      }
+                      className={selectCls}
+                    >
+                      {PERIODS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
                         </option>
                       ))}
                     </select>
