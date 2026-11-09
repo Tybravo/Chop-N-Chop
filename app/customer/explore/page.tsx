@@ -1,12 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, SlidersHorizontal, Star, MapPin, ChefHat, X } from "lucide-react";
 import MealCard from "@/components/customer/MealCard";
 import MealDetailsModal from "@/components/customer/MealDetailsModal";
+import { SafeAvatar } from "@/components/SafeAvatar";
+import { customerApiClient } from "@/lib/api/customerApiClient";
+import { useOrderContext } from "@/store/useOrderContext";
+
+interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  imageUrl?: string;
+}
+
+interface Meal {
+  id: string;
+  name: string;
+  vendor: string;
+  price: number;
+  category: string;
+  image?: string;
+}
 
 const handleBackNavigation = (router: ReturnType<typeof useRouter>) => {
   if (window.history.length > 2) {
@@ -18,10 +37,15 @@ const handleBackNavigation = (router: ReturnType<typeof useRouter>) => {
 
 export default function ExplorePage() {
   const router = useRouter();
+  const { resolvedZone } = useOrderContext();
   
   // --- States ---
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "All", icon: "🍽️" }]);
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [vendors, setVendors] = useState<{ id: string; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedMeal, setSelectedMeal] = useState<{
     name: string;
     vendor: string;
@@ -36,28 +60,85 @@ export default function ExplorePage() {
   const [minPrice, setMinPrice] = useState("1000");
   const [maxPrice, setMaxPrice] = useState("15000");
 
-  // --- Mock Data ---
-  const categories = [
-    { name: "All", icon: "🍽️" },
-    { name: "Rice", icon: "🍛" },
-    { name: "Burger", icon: "🍔" },
-    { name: "Pizza", icon: "🍕" },
-    { name: "Healthy", icon: "🥗" },
-    { name: "Drinks", icon: "🥤" },
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await customerApiClient.get("/api/v1/catalog/categories", {
+          headers: { "X-App-Brand": "CHOP_N_CHOP" },
+        });
+        const payload = res.data;
+        const data = Array.isArray(payload) ? payload : payload?.data || payload?.content || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories([
+            { id: "all", name: "All", icon: "🍽️" },
+            ...data.map((cat: any) => ({
+              id: cat.id || cat.name,
+              name: cat.name,
+              icon: cat.icon || "🍽️",
+              imageUrl: cat.imageUrl,
+            })),
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  const vendors = [
-    { id: 1, name: "The Brunch Club", rating: 4.8, time: "30-45 min", image: "/hero-food-illustration.png" },
-    { id: 2, name: "Pizza Italiano", rating: 4.9, time: "20-30 min", image: "/hero-food-illustration.png" },
-    { id: 3, name: "Taste & See", rating: 4.6, time: "45-60 min", image: "/hero-food-illustration.png" },
-  ];
-
-  const meals = [
-    { id: "m1", name: "Cheese Burger", vendor: "Burger Haven", price: 8990, category: "Burger" },
-    { id: "m2", name: "Smoky Jollof", vendor: "Taste & See", price: 5000, category: "Rice" },
-    { id: "m3", name: "Chicken Salad", vendor: "Healthy Bites", price: 7990, category: "Healthy" },
-    { id: "m4", name: "Melting Pizza", vendor: "Pizza Italiano", price: 11880, category: "Pizza" },
-  ];
+  useEffect(() => {
+    const fetchMeals = async () => {
+      setIsLoading(true);
+      try {
+        const hubId = resolvedZone?.zoneId || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+        const res = await customerApiClient.get(`/api/v1/catalog/today?hubId=${hubId}`, {
+          headers: { "X-App-Brand": "CHOP_N_CHOP" },
+        });
+        const menuData = res.data;
+        const flattenedMeals: Meal[] = [];
+        const vendorMap = new Map<string, { id: string; name: string }>();
+        
+        menuData?.categories?.forEach((categoryChunk: any) => {
+          categoryChunk?.products?.forEach((product: any) => {
+            const vendorName = product.vendorName || "Vendor";
+            const vendorId = product.vendorId || vendorName;
+            if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
+            flattenedMeals.push({
+              id: product.id,
+              name: product.name,
+              vendor: vendorName,
+              price: product.price,
+              category: categoryChunk.categoryName || "Meal",
+              image: product.imageUrl || "/hero-food-illustration.png",
+            });
+          });
+          categoryChunk?.preparedDishes?.forEach((dish: any) => {
+            if (!dish.baseProductId) {
+              const vendorName = dish.vendorName || "Vendor";
+              const vendorId = dish.vendorId || vendorName;
+              if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
+              flattenedMeals.push({
+                id: dish.id,
+                name: dish.name,
+                vendor: vendorName,
+                price: dish.price,
+                category: categoryChunk.categoryName || "Meal",
+                image: dish.imageUrl || "/hero-food-illustration.png",
+              });
+            }
+          });
+        });
+        
+        setMeals(flattenedMeals);
+        setVendors(Array.from(vendorMap.values()));
+      } catch (err) {
+        console.error("Failed to fetch meals", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMeals();
+  }, [resolvedZone?.zoneId]);
 
   // --- Multi-field Filter Logic ---
   const filteredMeals = meals.filter((meal) => {
@@ -85,11 +166,16 @@ export default function ExplorePage() {
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-4 flex flex-col gap-4 border-b border-gray-100 dark:border-zinc-800">
         <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-          <button onClick={() => handleBackNavigation(router)} className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => handleBackNavigation(router)}
+            aria-label="Go back"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
+          >
+            <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Explore</h1>
-          <div className="w-9" />
+          <div className="h-10 w-10" aria-hidden="true" />
         </div>
 
         {/* --- SEARCH BAR --- */}
@@ -122,7 +208,7 @@ export default function ExplorePage() {
             
             {categories.map((cat) => (
               <button 
-                key={cat.name}
+                key={cat.id}
                 onClick={() => setActiveCategory(cat.name)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap transition-all border shrink-0 snap-start ${
                   activeCategory === cat.name 
@@ -130,7 +216,11 @@ export default function ExplorePage() {
                     : "bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 hover:border-[#FC6B31]"
                 }`}
               >
-                <span className="text-[14px]">{cat.icon}</span>
+                {cat.imageUrl ? (
+                  <SafeAvatar src={cat.imageUrl} alt={cat.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover" fallbackSrc="/hero-food-illustration.png" />
+                ) : (
+                  <span className="text-[14px]">{cat.icon || "🍽️"}</span>
+                )}
                 <span className="font-bold text-[13px]">{cat.name}</span>
               </button>
             ))}
@@ -139,46 +229,33 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {/* --- FEATURED VENDORS (Bleed Carousel) --- */}
-        <section className="space-y-3">
-          <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">Featured Stores</h2>
-          
-          <div className="flex overflow-x-auto no-scrollbar gap-4 pb-3 items-start snap-x snap-mandatory">
-            <div className="w-0.5 shrink-0 snap-start" />
-
-            {vendors.map((vendor) => (
-              <Link 
-                href={`/customer/vendor/${vendor.id}`} 
-                key={vendor.id} 
-                className="flex flex-col w-[260px] min-w-[260px] shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] p-3 border border-gray-100 dark:border-zinc-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-black/20 text-left group hover:border-gray-200 transition-all cursor-pointer snap-start"
-              >
-                <div className="w-full h-[130px] shrink-0 rounded-[14px] bg-gray-100 dark:bg-zinc-800 mb-3 overflow-hidden relative">
-<Image
-  src="/hero-food-illustration.png"
-  alt={vendor.name}
-  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-  width={260}
-  height={130}
-/>
-                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-[11px] font-bold text-gray-900">{vendor.rating}</span>
+        {/* --- FEATURED STORES (Derived from catalog) --- */}
+        {!isLoading && vendors.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-[17px] font-extrabold text-gray-900 dark:text-white tracking-tight">Stores</h2>
+            <div className="flex overflow-x-auto no-scrollbar gap-4 pb-3 items-start snap-x snap-mandatory">
+              <div className="w-0.5 shrink-0 snap-start" />
+              {vendors.map((vendor) => (
+                <Link 
+                  href={`/customer/vendor/${vendor.id}`} 
+                  key={vendor.id} 
+                  className="flex flex-col w-[220px] min-w-[220px] shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] p-4 border border-gray-100 dark:border-zinc-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-black/20 text-left group hover:border-gray-200 transition-all cursor-pointer snap-start"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#FC6B31]/10 flex items-center justify-center text-[#FC6B31]">
+                      <ChefHat className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-[14px] text-gray-900 dark:text-white truncate">{vendor.name}</h3>
+                      <p className="text-[11px] text-gray-500">Available in today&apos;s drop</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex flex-col flex-1">
-                  <h3 className="font-bold text-[15px] text-gray-900 dark:text-white mb-1 truncate">{vendor.name}</h3>
-                  <div className="flex items-center gap-3 text-[12px] text-gray-500 font-medium mt-auto">
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" /> Ikeja</span>
-                    <span className="flex items-center gap-1"><ChefHat className="w-3 h-3 shrink-0" /> {vendor.time}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-
-            <div className="w-0.5 shrink-0" /> 
-          </div>
-        </section>
+                </Link>
+              ))}
+              <div className="w-0.5 shrink-0" /> 
+            </div>
+          </section>
+        )}
 
         {/* --- AVAILABLE PRODUCTS GRID --- */}
         <section>
@@ -187,30 +264,35 @@ export default function ExplorePage() {
               {activeCategory === "All" ? "Popular Meals" : `${activeCategory} Meals`}
             </h2>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-            {filteredMeals.map((meal) => (
-              <MealCard 
-                key={meal.id}
-                id={meal.id} 
-                name={meal.name} 
-                vendor={meal.vendor} 
-                price={meal.price} 
-                onClick={() => setSelectedMeal({
-                  name: meal.name, 
-                  vendor: meal.vendor, 
-                  originalPrice: meal.price + 1500,
-                  discountedPrice: meal.price, 
-                  image: "/hero-food-illustration.png"
-                })}
-              />
-            ))}
-          </div>
-          
-          {filteredMeals.length === 0 && (
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-6 h-6 border-2 border-[#FC6B31] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filteredMeals.length === 0 ? (
             <div className="w-full py-10 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-zinc-900/50 rounded-[20px] border border-dashed border-gray-200 dark:border-zinc-800">
               <span className="text-4xl mb-3">🍽️</span>
               <p className="text-[14px] font-bold text-gray-900 dark:text-white mb-1">No meals found</p>
               <p className="text-[12px] text-gray-500">Try searching for a different brand or meal.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+              {filteredMeals.map((meal) => (
+                <MealCard 
+                  key={meal.id}
+                  id={meal.id} 
+                  name={meal.name} 
+                  vendor={meal.vendor} 
+                  price={meal.price} 
+                  image={meal.image}
+                  onClick={() => setSelectedMeal({
+                    name: meal.name, 
+                    vendor: meal.vendor, 
+                    originalPrice: meal.price + 1500,
+                    discountedPrice: meal.price, 
+                    image: meal.image || "/hero-food-illustration.png"
+                  })}
+                />
+              ))}
             </div>
           )}
         </section>

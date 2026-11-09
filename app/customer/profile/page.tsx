@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { customerApiClient } from "@/lib/api/customerApiClient";
 import { 
@@ -23,6 +22,7 @@ import {
   Loader2,
   Camera
 } from "lucide-react";
+import { SafeAvatar } from "@/components/SafeAvatar";
 import DesktopProfileDashboard from "./desktop-profile";
 import axios from "axios";
 
@@ -60,12 +60,20 @@ const decodeJwtPayload = (token: string) => {
   }
 };
 
+const extractAvatar = (obj: any): string | null => {
+  if (!obj) return null;
+  const o = obj?.data?.user || obj?.data || obj?.user || obj;
+  const pic = o?.profilePictureUrl || o?.profileImageUrl || o?.pictureUrl || o?.avatarUrl || o?.avatar || o?.picture || o?.imageUrl || o?.photo || o?.profile_picture || o?.profilePic;
+  return typeof pic === "string" && pic ? pic : null;
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [liveAvatar, setLiveAvatar] = useState<string>("/avatar-placeholder.svg");
   const [isLoading, setIsLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
   
   // Active Order State
   const [activeOrder, setActiveOrder] = useState<ApiActiveOrder | null>(null);
@@ -86,19 +94,23 @@ export default function ProfilePage() {
   const [isUploadingPic, setIsUploadingPic] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("chopnchop_token");
+    setHasToken(!!token);
+
     // 1. Instantly read picture from Cache first, then JWT
     const cachedAvatar = localStorage.getItem("chopnchop_avatar");
     if (cachedAvatar) {
       setLiveAvatar(cachedAvatar);
-    } else {
-      const token = localStorage.getItem("chopnchop_token");
-      if (token) {
-        const payload = decodeJwtPayload(token);
-        const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
-        if (jwtPic) {
-          setLiveAvatar(jwtPic);
-        }
-      }
+    } else if (token) {
+      const payload = decodeJwtPayload(token);
+      const jwtPic = payload?.profilePictureUrl || payload?.picture || payload?.imageUrl;
+      if (jwtPic) setLiveAvatar(jwtPic);
+    }
+
+    // Guests: no account API calls
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
 
     // 2. Fetch the profile data and active order concurrently
@@ -106,17 +118,15 @@ export default function ProfilePage() {
       try {
         const [profileRes, orderRes] = await Promise.allSettled([
           customerApiClient.get("/api/v1/user/profile"),
-          customerApiClient.get("/api/v1/orders/active") 
+          customerApiClient.get("/api/v1/orders/active")
         ]);
 
         if (profileRes.status === "fulfilled" && profileRes.value.data) {
-          setProfile(profileRes.value.data);
-          
-          // Pull from multiple possible backend keys safely
-          const pic = profileRes.value.data.profilePictureUrl || profileRes.value.data.profileImageUrl || profileRes.value.data.pictureUrl || profileRes.value.data.imageUrl || profileRes.value.data.picture || profileRes.value.data.avatar;
+          const pdata = profileRes.value.data?.data || profileRes.value.data;
+          setProfile(pdata);
+          const pic = extractAvatar(profileRes.value.data);
           if (pic) {
             const cached = localStorage.getItem("chopnchop_avatar");
-            // If the cache contains our manual cache-buster and matches the base URL, KEEP the cache so the browser shows the fresh image
             if (cached && cached.startsWith(pic) && cached.includes("t=")) {
               setLiveAvatar(cached);
             } else {
@@ -129,7 +139,6 @@ export default function ProfilePage() {
         if (orderRes.status === "fulfilled" && orderRes.value.data) {
           setActiveOrder(orderRes.value.data);
         }
-
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -198,19 +207,22 @@ export default function ProfilePage() {
         },
       });
 
-      if (uploadRes.data?.url) {
-        // FORCE the browser to pull the new pixels by appending a timestamp to the URL
-        const freshUrl = uploadRes.data.url.includes("?") 
-          ? `${uploadRes.data.url}&t=${Date.now()}` 
-          : `${uploadRes.data.url}?t=${Date.now()}`;
-          
+      const uploadPic = extractAvatar(uploadRes.data) || uploadRes.data?.url || uploadRes.data?.data?.url;
+      if (uploadPic) {
+        const freshUrl = String(uploadPic).includes("?")
+          ? `${uploadPic}&t=${Date.now()}`
+          : `${uploadPic}?t=${Date.now()}`;
         setLiveAvatar(freshUrl);
-        localStorage.setItem("chopnchop_avatar", freshUrl); // Cache the fresh timestamped version globally!
+        localStorage.setItem("chopnchop_avatar", freshUrl);
       }
-      
-      // Also refetch full profile to keep text details in sync
       const profileRes = await customerApiClient.get("/api/v1/user/profile");
-      setProfile(profileRes.data);
+      const pdata = profileRes.data?.data || profileRes.data;
+      setProfile(pdata);
+      const refPic = extractAvatar(profileRes.data);
+      if (refPic && !uploadPic) {
+        setLiveAvatar(refPic);
+        localStorage.setItem("chopnchop_avatar", refPic);
+      }
       
     } catch (error) {
       console.error("Failed to upload profile picture", error);
@@ -235,6 +247,10 @@ export default function ProfilePage() {
           profile={profile}
           isLoading={isLoading}
           avatarUrl={liveAvatar || ""}
+          isUploadingPic={isUploadingPic}
+          onUploadClick={() => fileInputRef.current?.click()}
+          onOpenEdit={openEditModal}
+          isGuest={!hasToken}
         />
       </div>
 
@@ -294,13 +310,15 @@ export default function ProfilePage() {
                 {/* Avatar with Camera Badge */}
                 <div className="relative shrink-0">
                   <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#FC6B31]/30 bg-orange-50 relative">
-<Image
-  src={liveAvatar}
-  alt="Profile Avatar"
-  className="w-full h-full object-cover"
-  width={64}
-  height={64}
-/>
+                    <SafeAvatar
+                      src={liveAvatar}
+                      alt="Profile Avatar"
+                      fill
+                      sizes="64px"
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      timeoutMs={8000}
+                    />
                     {isUploadingPic && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
                         <Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -309,8 +327,8 @@ export default function ProfilePage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingPic}
+                    onClick={() => hasToken && fileInputRef.current?.click()}
+                    disabled={isUploadingPic || !hasToken}
                     className="absolute -bottom-1 -right-1 w-7 h-7 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm transition-transform active:scale-95 disabled:opacity-50"
                   >
                     <Camera className="w-3.5 h-3.5" />
@@ -331,6 +349,15 @@ export default function ProfilePage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[170px]">
                         {profile?.email || "Not logged in"}
                       </p>
+                      {!profile && (
+                        <button
+                          type="button"
+                          onClick={() => router.push("/customer/login")}
+                          className="mt-2 text-[11px] font-bold text-[#FC6B31] hover:underline"
+                        >
+                          Log in or create an account
+                        </button>
+                      )}
                       {profile?.phone && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full mt-1">
                           <ShieldCheck className="w-3 h-3" /> Phone Verified
@@ -342,7 +369,7 @@ export default function ProfilePage() {
               </div>
               
               {/* EDIT PROFILE TEXT BUTTON */}
-              {profile && (
+              {hasToken && profile && (
                 <button 
                   onClick={openEditModal}
                   className="p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-full text-gray-500 hover:text-[#FC6B31] transition-colors active:scale-95 mt-1"
@@ -353,6 +380,17 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {!hasToken ? (
+              <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-5 border border-gray-100 dark:border-zinc-800 shadow-sm text-center space-y-3">
+                <h3 className="text-[15px] font-extrabold text-gray-900 dark:text-white">Browsing as a guest</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400">Log in or create an account to access Wallet, Drops & Order History, Promos & Rewards, Saved Hubs, Vehicles, and Favorites.</p>
+                <div className="flex gap-2 justify-center pt-1">
+                  <button type="button" onClick={() => router.push("/customer/login")} className="rounded-full bg-[#FC6B31] px-4 py-2.5 text-[13px] font-bold text-white">Log in</button>
+                  <button type="button" onClick={() => router.push("/customer/signup")} className="rounded-full border border-gray-200 dark:border-zinc-700 px-4 py-2.5 text-[13px] font-bold text-gray-900 dark:text-white">Sign up</button>
+                </div>
+              </div>
+            ) : (
+            <>
             {/* BLOCK 1: THE ESSENTIALS */}
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
               <button
@@ -463,6 +501,9 @@ export default function ProfilePage() {
               </button>
             </div>
 
+            </>
+            )}
+
             {/* BLOCK 3: SETTINGS & SUPPORT */}
             <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-2 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-1">
               <button
@@ -502,19 +543,29 @@ export default function ProfilePage() {
 
             {/* STANDALONE LOGOUT */}
             <div className="pt-2 pb-6">
+              {hasToken ? (
               <button
                 type="button"
                 onClick={() => {
                   localStorage.removeItem("chopnchop_session");
                   localStorage.removeItem("chopnchop-session");
                   localStorage.removeItem("chopnchop_token");
-                  localStorage.removeItem("chopnchop_avatar"); // Clear cache on logout
+                  localStorage.removeItem("chopnchop_avatar");
                   router.push("/customer/login");
                 }}
                 className="min-h-12 w-full flex items-center justify-center gap-2 py-4 rounded-[20px] text-[15px] font-extrabold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
               >
                 <LogOut className="w-5 h-5" /> Log Out
               </button>
+              ) : (
+              <button
+                type="button"
+                onClick={() => router.push("/customer/login")}
+                className="min-h-12 w-full flex items-center justify-center gap-2 py-4 rounded-[20px] text-[15px] font-extrabold text-[#FC6B31] hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+              >
+                Log In / Sign Up
+              </button>
+              )}
             </div>
 
           </div>

@@ -9,7 +9,8 @@ export default function CustomerWelcomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.getItem("chopnchop_session") === "active") {
+    // Guests can browse; send authenticated users straight to home.
+    if (localStorage.getItem("chopnchop_token") || localStorage.getItem("chopnchop_session") === "active") {
       router.replace("/customer/home");
     }
   }, [router]);

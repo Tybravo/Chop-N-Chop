@@ -5,12 +5,15 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Minus, Plus, Edit2, CheckCircle2, X, Trash2 } from "lucide-react";
 import { useCartStore, type CartItemLike } from "@/store/useCartStore";
+import { useOrderContext } from "@/store/useOrderContext";
+import { customerApiClient } from "@/lib/api/customerApiClient";
 
 export default function CartPage() {
   const router = useRouter();
 
   // --- Global Store State ---
   const { items: cartItems, updateQuantity, removeItem } = useCartStore();
+  const { resolvedZone, deliveryFee: contextDeliveryFee, location } = useOrderContext();
 
   // --- Local UI State ---
   const [selectedAddress, setSelectedAddress] = useState(1);
@@ -33,10 +36,29 @@ export default function CartPage() {
   const locationInputRef = useRef<HTMLTextAreaElement>(null);
   
   // --- Address State (Specific location within the pre-selected Zone) ---
-  const [addresses, setAddresses] = useState([
-    { id: 1, type: "Home", location: "14 Allen Avenue, Ikeja, Lagos" },
-    { id: 2, type: "Office", location: "Herbert Macaulay Way, Yaba, Lagos" },
-  ]);
+  const [addresses, setAddresses] = useState<{ id: number; type: string; location: string }[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const res = await customerApiClient.get("/api/v1/user/addresses");
+        const data = res.data?.data || res.data || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setAddresses(data.map((a: any, i: number) => ({
+            id: a.id || i + 1,
+            type: a.label || a.type || "Address",
+            location: a.address || a.street || a.location || "",
+          })));
+        }
+      } catch (err) {
+        console.error("Failed to fetch addresses", err);
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+    fetchAddresses();
+  }, []);
 
   // --- Handlers ---
   
@@ -116,8 +138,9 @@ export default function CartPage() {
 
   // --- Consolidated Hub Pricing Engine ---
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const packagingFee = cartItems.length > 0 ? 500 : 0; 
-  const deliveryFee = cartItems.length > 0 ? 1500 : 0; 
+  const storedZone = typeof window !== "undefined" ? (() => { try { return JSON.parse(localStorage.getItem("chopnchop_delivery_zone") || "null"); } catch { return null; } })() : null;
+  const packagingFee = cartItems.length > 0 ? 500 : 0;
+  const deliveryFee = cartItems.length > 0 ? (resolvedZone?.deliveryFee ?? contextDeliveryFee ?? storedZone?.deliveryFee ?? 1500) : 0;
   const total = subtotal + (cartItems.length > 0 ? packagingFee + deliveryFee : 0);
 
   return (
@@ -125,14 +148,16 @@ export default function CartPage() {
       
       {/* --- HEADER --- */}
       <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-4 py-5 flex items-center justify-between border-b border-gray-100 dark:border-zinc-800">
-        <button 
-          onClick={handleBackNavigation} 
-          className="p-2 -ml-2 text-gray-900 dark:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+        <button
+          type="button"
+          onClick={handleBackNavigation}
+          aria-label="Go back"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FC6B31] dark:border-zinc-800 dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-[17px] font-bold text-gray-900 dark:text-white">Your Cart</h1>
-        <div className="w-9" />
+        <div className="h-10 w-10" aria-hidden="true" />
       </header>
 
       <div className="px-5 md:px-8 max-w-3xl mx-auto pt-6 space-y-8">
