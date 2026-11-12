@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   LogOut,
+  MapPin,
   PlusCircle,
   Settings,
   UserCircle,
@@ -60,6 +61,7 @@ export function VendorSidebar({
     { name: "View Meals", href: `/vendor/${email}/meals`, icon: UtensilsCrossed },
     { name: "Update Profile", href: `/vendor/${email}/profile`, icon: UserCircle },
     { name: "Update KYC", href: `/vendor/${email}/kyc`, icon: FileCheck },
+    { name: "Update Location", href: `/vendor/${email}/location`, icon: MapPin },
     { name: "Payout", href: `/vendor/${email}/payout`, icon: CreditCard }
   ];
 
