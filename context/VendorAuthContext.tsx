@@ -128,6 +128,19 @@ export function VendorAuthProvider({ children }: { children: React.ReactNode }) 
       } catch (error) {
         console.warn("Vendor status sync failed:", error);
       }
+
+      // Also refresh profile periodically to keep logo/image in sync
+      try {
+        const profile = await vendorService.getProfile();
+        if (cancelled) return;
+        setUser((current) => {
+          if (!current) return current;
+          if (current.logoUrl === profile.logoUrl) return current;
+          return { ...current, logoUrl: profile.logoUrl };
+        });
+      } catch (error) {
+        console.warn("Vendor profile sync failed:", error);
+      }
     };
 
     syncStatus();

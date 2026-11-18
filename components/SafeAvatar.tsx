@@ -79,7 +79,7 @@ export function SafeAvatar({
       sizes={sizes}
       className={className}
       priority={priority}
-      unoptimized={unoptimized}
+      unoptimized={unoptimized ?? /^https?:\/\//.test(currentSrc)}
       onError={handleError}
       onLoad={handleLoad}
     />

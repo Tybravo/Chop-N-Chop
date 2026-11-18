@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, PackageCheck, Clock, FileText, Copy, Check, UserPlus, ArrowRight, Lock, Eye, EyeOff, Loader2, X } from "lucide-react";
 import OrderReceiptModal from "@/components/customer/OrderReceiptModal";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com";
 
 export default function OrderSuccessPage() {
   const router = useRouter();
