@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Warehouse, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { hubService } from "@/services/admin/hub.service";
 import { NIGERIA_STATES, NIGERIA_COUNTRY, getStateCapital, getStateCities } from "@/lib/nigeria-locations";
@@ -36,6 +36,18 @@ export default function AddHubTab() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const noticeRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the success/error message into view as soon as it appears so the
+  // admin always sees the result after clicking "Add Hub".
+  useEffect(() => {
+    if (message) {
+      noticeRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [message]);
 
   const cities = form.state ? getStateCities(form.state) : [];
 
@@ -127,6 +139,7 @@ export default function AddHubTab() {
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         {message && (
           <div
+            ref={noticeRef}
             className={`flex items-start gap-3 p-4 rounded-lg text-sm cnc-message-rise ${
               message.type === "success"
                 ? "bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/30"

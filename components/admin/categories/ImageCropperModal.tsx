@@ -22,8 +22,14 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
   // Add a ref to store the object URL to avoid recreating it on every render
   const objectUrlRef = useRef<string | null>(null);
 
-  // Output dimension
-  const OUTPUT_SIZE = 800;
+  // Rectangular output based on the 1408:768 (≈11:6) aspect ratio.
+  const ASPECT_RATIO = 1408 / 768;
+  const OUTPUT_WIDTH = 1408;
+  const OUTPUT_HEIGHT = 768;
+
+  // On-screen (visual) crop canvas — keeps the same 1408:768 ratio.
+  const CANVAS_WIDTH = 320;
+  const CANVAS_HEIGHT = Math.round(CANVAS_WIDTH / ASPECT_RATIO); // ≈174
 
   const draw = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -37,23 +43,24 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Calculate dimensions
-    const canvasSize = canvas.width;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
     
     // We want the image to cover the canvas (cover behavior)
-    const scale = Math.max(canvasSize / img.width, canvasSize / img.height) * zoom;
+    const scale = Math.max(canvasWidth / img.width, canvasHeight / img.height) * zoom;
     const scaledWidth = img.width * scale;
     const scaledHeight = img.height * scale;
 
     // Calculate center with offset
-    const cx = canvasSize / 2 + offset.x;
-    const cy = canvasSize / 2 + offset.y;
+    const cx = canvasWidth / 2 + offset.x;
+    const cy = canvasHeight / 2 + offset.y;
 
     // Save context, draw image, restore
     ctx.save();
     
     // Draw semi-transparent background
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvasSize, canvasSize);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Move to center, apply rotation/scale if needed, draw image centered
     ctx.translate(cx, cy);
@@ -61,10 +68,10 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
     
     ctx.restore();
 
-    // Draw the crop overlay (a guide showing what will be cropped, in this case we crop the whole square)
+    // Draw the crop overlay (a guide showing what will be cropped — the whole rectangular area)
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, canvasSize, canvasSize);
+    ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
   }, [zoom, offset]);
 
   useEffect(() => {
@@ -127,34 +134,38 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
     setIsProcessing(true);
 
     try {
-      // Create a hidden canvas for the final high-res output
+      // Create a hidden canvas for the final high-res rectangular output
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = OUTPUT_SIZE;
-      finalCanvas.height = OUTPUT_SIZE;
+      finalCanvas.width = OUTPUT_WIDTH;
+      finalCanvas.height = OUTPUT_HEIGHT;
       const ctx = finalCanvas.getContext('2d');
 
       if (!ctx) throw new Error("Could not get canvas context");
 
       // We need to map the visual scale to the output scale
-      const visualCanvasSize = canvasRef.current?.width || 300;
-      const scaleMultiplier = OUTPUT_SIZE / visualCanvasSize;
+      const visualCanvasWidth = canvasRef.current?.width || CANVAS_WIDTH;
+      const visualCanvasHeight = canvasRef.current?.height || CANVAS_HEIGHT;
+      const scaleX = OUTPUT_WIDTH / visualCanvasWidth;
+      const scaleY = OUTPUT_HEIGHT / visualCanvasHeight;
+      // Uniform multiplier so the image keeps its on-screen proportions.
+      const scaleMultiplier = Math.min(scaleX, scaleY);
 
-      const scale = Math.max(visualCanvasSize / img.width, visualCanvasSize / img.height) * zoom;
+      const scale = Math.max(visualCanvasWidth / img.width, visualCanvasHeight / img.height) * zoom;
       const scaledWidth = img.width * scale * scaleMultiplier;
       const scaledHeight = img.height * scale * scaleMultiplier;
 
-      const cx = (OUTPUT_SIZE / 2) + (offset.x * scaleMultiplier);
-      const cy = (OUTPUT_SIZE / 2) + (offset.y * scaleMultiplier);
+      const cx = (OUTPUT_WIDTH / 2) + (offset.x * scaleMultiplier);
+      const cy = (OUTPUT_HEIGHT / 2) + (offset.y * scaleMultiplier);
 
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+      ctx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
 
       ctx.translate(cx, cy);
       ctx.drawImage(img, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
 
       // Force a JPEG export (and a .jpg extension) so the cropped upload is
       // a compact, web-safe file. The backend's upload limit is 1MB — the
-      // crisp 800x800 JPEG at 0.8 quality (with a white background for
+      // crisp 1408x768 JPEG at 0.8 quality (with a white background for
       // transparent PNGs) reliably stays far below it.
       finalCanvas.toBlob(
         (blob) => {
@@ -200,12 +211,13 @@ export function ImageCropperModal({ imageFile, isOpen, onClose, onCropComplete }
             Drag to reposition. Use the slider to zoom.
           </p>
 
-          {/* Canvas Container */}
-          <div className="relative w-[300px] h-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden touch-none cursor-move shadow-inner">
+          {/* Canvas Container — rectangular 1408:768 (≈11:6) ratio */}
+          <div className="relative overflow-hidden touch-none cursor-move shadow-inner rounded-lg bg-gray-100 dark:bg-gray-800"
+            style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px` }}>
             <canvas
               ref={canvasRef}
-              width={300}
-              height={300}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
