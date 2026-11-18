@@ -71,12 +71,14 @@ export default function ExplorePage() {
         if (Array.isArray(data) && data.length > 0) {
           setCategories([
             { id: "all", name: "All", icon: "🍽️" },
-            ...data.map((cat: unknown) => ({
-              id: cat.id || cat.name,
-              name: cat.name,
-              icon: cat.icon || "🍽️",
-              imageUrl: cat.imageUrl,
-            })),
+            ...data.map((cat: unknown) => {
+      const c = cat as Record<string,unknown>;
+      return {
+              id: (c.id || c.name) as string,
+              name: c.name as string,
+              icon: (c.icon || "🍽️") as string,
+              imageUrl: c.imageUrl as string,
+            };}),
           ]);
         }
       } catch (err) {
@@ -99,31 +101,34 @@ export default function ExplorePage() {
         const vendorMap = new Map<string, { id: string; name: string }>();
         
         menuData?.categories?.forEach((categoryChunk: unknown) => {
-          categoryChunk?.products?.forEach((product: unknown) => {
-            const vendorName = product.vendorName || "Vendor";
-            const vendorId = product.vendorId || vendorName;
+      const cc = categoryChunk as Record<string,unknown>;
+          (cc?.products as unknown[])?.forEach((product: unknown) => {
+      const p = product as Record<string,unknown>;
+            const vendorName = (p.vendorName || "Vendor") as string;
+            const vendorId = (p.vendorId || vendorName) as string;
             if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
             flattenedMeals.push({
-              id: product.id,
-              name: product.name,
+              id: p.id as string,
+              name: p.name as string,
               vendor: vendorName,
-              price: product.price,
-              category: categoryChunk.categoryName || "Meal",
-              image: product.imageUrl || "/hero-food-illustration.png",
+              price: p.price as number,
+              category: (cc.categoryName || "Meal") as string,
+              image: (p.imageUrl || "/hero-food-illustration.png") as string,
             });
           });
-          categoryChunk?.preparedDishes?.forEach((dish: unknown) => {
-            if (!dish.baseProductId) {
-              const vendorName = dish.vendorName || "Vendor";
-              const vendorId = dish.vendorId || vendorName;
+          (cc?.preparedDishes as unknown[])?.forEach((dish: unknown) => {
+      const d = dish as Record<string,unknown>;
+            if (!d.baseProductId) {
+              const vendorName = (d.vendorName || "Vendor") as string;
+              const vendorId = (d.vendorId || vendorName) as string;
               if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
               flattenedMeals.push({
-                id: dish.id,
-                name: dish.name,
+                id: d.id as string,
+                name: d.name as string,
                 vendor: vendorName,
-                price: dish.price,
-                category: categoryChunk.categoryName || "Meal",
-                image: dish.imageUrl || "/hero-food-illustration.png",
+                price: d.price as number,
+                category: (cc.categoryName || "Meal") as string,
+                image: (d.imageUrl || "/hero-food-illustration.png") as string,
               });
             }
           });
@@ -283,7 +288,7 @@ export default function ExplorePage() {
                   name={meal.name} 
                   vendor={meal.vendor} 
                   price={meal.price} 
-                  image={meal.image}
+                  imageUrl={meal.image}
                   onClick={() => setSelectedMeal({
                     name: meal.name, 
                     vendor: meal.vendor, 

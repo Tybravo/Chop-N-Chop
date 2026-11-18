@@ -352,11 +352,12 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
         const res = await customerApiClient.get("/api/v1/orders/mine", { params: { page: 0, size: 20 } });
         const orders = res.data?.content || res.data || [];
         const seen = new Set<string>(); const meals: Record<string, unknown>[] = [];
-        (Array.isArray(orders) ? orders : []).forEach((o: unknown) => (Array.isArray(o.items) ? o.items : []).forEach((it: unknown) => {
-          const id = String(it.productId || it.dishId || it.id || it.name || "");
+        (Array.isArray(orders) ? orders : []).forEach((o: unknown) => { const oo = o as Record<string,unknown>; (Array.isArray(oo.items) ? oo.items : []).forEach((it: unknown) => { const ii = it as Record<string,unknown>;
+          const id = String(ii.productId || ii.dishId || ii.id || ii.name || "");
           if (!id || seen.has(id)) return; seen.add(id);
-          meals.push({ id, name: it.name || "Meal", vendor: it.vendorName || "Vendor", price: it.unitPrice || it.totalPrice || 0 });
-        }));
+          meals.push({ id, name: ii.name || "Meal", vendor: ii.vendorName || "Vendor", price: ii.unitPrice || ii.totalPrice || 0 });
+        });
+        });
         setFavorites(meals.slice(0, 12));
       } catch { setFavorites([]); }
       finally { setFetchingFavorites(false); }
@@ -647,14 +648,14 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
               ) : (
                 <div className="space-y-3">
                   {hubs.map((hub: unknown) => (
-                    <div key={String(hub.id)} className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
+                    <div key={String((hub as Record<string,unknown>).id)} className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FC6B31]/10 text-[#FC6B31]"><MapPin className="h-5 w-5" /></div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">{hub.name || "Hub"}</h4>
-                          {hub.status && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-emerald-600 dark:bg-emerald-950/30">{hub.status}</span>}
+                          <h4 className="text-[14px] font-bold text-gray-900 dark:text-white">{String((hub as Record<string,unknown>).name || "Hub")}</h4>
+                          {Boolean((hub as Record<string,unknown>).status) && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-emerald-600 dark:bg-emerald-950/30">{String((hub as Record<string,unknown>).status)}</span>}
                         </div>
-                        <p className="mt-0.5 text-[13px] text-gray-500">{[hub.address, hub.city, hub.state].filter(Boolean).join(", ") || "Address unavailable"}</p>
+                        <p className="mt-0.5 text-[13px] text-gray-500">{[(hub as Record<string,unknown>).address, (hub as Record<string,unknown>).city, (hub as Record<string,unknown>).state].filter(Boolean).join(", ") || "Address unavailable"}</p>
                       </div>
                     </div>
                   ))}
@@ -730,12 +731,12 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {favorites.map((m: unknown) => (
-                    <button key={String(m.id)} type="button" onClick={() => router.push(String(m.id).includes("-") ? `/customer/meals/${m.id}` : "/customer/explore")}
+                    <button key={String((m as Record<string,unknown>).id)} type="button" onClick={() => router.push(String((m as Record<string,unknown>).id).includes("-") ? `/customer/meals/${(m as Record<string,unknown>).id}` : "/customer/explore")}
                       className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-left hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-800/30">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-950/20"><Heart className="h-4 w-4" /></div>
                       <div className="min-w-0">
-                        <h4 className="text-[14px] font-bold text-gray-900 dark:text-white truncate">{m.name}</h4>
-                        <p className="text-[12px] text-gray-500 truncate">{m.vendor} • ₦{Number(m.price || 0).toLocaleString()}</p>
+                        <h4 className="text-[14px] font-bold text-gray-900 dark:text-white truncate">{String((m as Record<string,unknown>).name)}</h4>
+                        <p className="text-[12px] text-gray-500 truncate">{String((m as Record<string,unknown>).vendor)} • ₦{Number((m as Record<string,unknown>).price || 0).toLocaleString()}</p>
                       </div>
                     </button>
                   ))}

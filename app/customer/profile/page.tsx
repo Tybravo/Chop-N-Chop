@@ -60,10 +60,10 @@ const decodeJwtPayload = (token: string) => {
   }
 };
 
-const extractAvatar = (obj: unknown): string | null => {
+const extractAvatar = (obj: Record<string, unknown>): string | null => {
   if (!obj) return null;
-  const o = obj?.data?.user || obj?.data || obj?.user || obj;
-  const pic = o?.profilePictureUrl || o?.profileImageUrl || o?.pictureUrl || o?.avatarUrl || o?.avatar || o?.picture || o?.imageUrl || o?.photo || o?.profile_picture || o?.profilePic;
+  const o = (obj?.data as Record<string,unknown>)?.user || obj?.data || obj?.user || obj;
+  const oo = o as Record<string,unknown>; const pic = oo?.profilePictureUrl || oo?.profileImageUrl || oo?.pictureUrl || oo?.avatarUrl || oo?.avatar || oo?.picture || oo?.imageUrl || oo?.photo || oo?.profile_picture || oo?.profilePic;
   return typeof pic === "string" && pic ? pic : null;
 };
 

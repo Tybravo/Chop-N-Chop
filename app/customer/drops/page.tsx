@@ -107,23 +107,24 @@ export default function DropsPage() {
 
   useEffect(() => {
     const mapOrders = (orders: unknown[]): PastDrop[] => orders.map((ord: unknown) => {
-      const items = Array.isArray(ord.items) ? ord.items : [];
-      const firstItem = items[0]?.name || items[0]?.mealName || "Order";
-      const meal = items.length > 1 ? `${firstItem} (${items.length} items)` : firstItem;
-      const subtotal = items.reduce((sum: number, item: unknown) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
-      const deliveryFee = Number(ord.deliveryFee || ord.delivery_fee || 0);
+      const o = ord as Record<string, unknown>;
+      const items = Array.isArray(o.items) ? o.items : [];
+      const firstItem = (items[0] as Record<string,unknown>)?.name || (items[0] as Record<string,unknown>)?.mealName || "Order";
+      const meal = items.length > 1 ? `${firstItem} (${items.length} items)` : String(firstItem);
+      const subtotal = items.reduce((sum: number, item: unknown) => { const it = item as Record<string,unknown>; return sum + (Number(it.price || 0) * Number(it.quantity || 1)); }, 0);
+      const deliveryFee = Number(o.deliveryFee || o.delivery_fee || 0);
       return {
-        id: String(ord.id || ord.orderId || ""),
-        date: ord.createdAt ? new Date(ord.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
-        meal, vendor: ord.vendorName || ord.vendor || "Chop N Chop",
-        totalLabel: `₦${Number(ord.totalAmount || ord.total || subtotal + deliveryFee).toLocaleString()}`,
-        status: ord.status || "Delivered", subtotal, deliveryFee,
-        paymentMethod: ord.paymentMethod || "Card",
-        address: ord.deliveryAddress || ord.address || "",
-        items: items.map((item: unknown, i: number) => ({
-          id: item.id || i + 1, name: item.name || item.mealName || "Item",
-          desc: item.description || item.desc || "", qty: Number(item.quantity || 1), price: Number(item.price || 0),
-        })),
+        id: String(o.id || o.orderId || ""),
+        date: o.createdAt ? new Date(o.createdAt as string).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+        meal, vendor: (o.vendorName || o.vendor || "Chop N Chop") as string,
+        totalLabel: `₦${Number(o.totalAmount || o.total || subtotal + deliveryFee).toLocaleString()}`,
+        status: (o.status || "Delivered") as string, subtotal, deliveryFee,
+        paymentMethod: (o.paymentMethod || "Card") as string,
+        address: (o.deliveryAddress || o.address || "") as string,
+        items: items.map((item: unknown, i: number) => { const it = item as Record<string,unknown>; return {
+          id: (it.id || i + 1) as string | number, name: (it.name || it.mealName || "Item") as string,
+          desc: (it.description || it.desc || "") as string, qty: Number(it.quantity || 1), price: Number(it.price || 0),
+        };}),
       };
     });
     const loadGuest = () => {
@@ -138,7 +139,8 @@ export default function DropsPage() {
         if (Array.isArray(orders) && orders.length > 0) setPastDrops(mapOrders(orders));
         else setPastDrops(mapOrders(loadGuest()));
       } catch (err: unknown) {
-        if (err?.response?.status === 401 || err?.response?.status === 403) setPastDrops(mapOrders(loadGuest()));
+        const e = err as { response?: { status?: number } };
+        if (e?.response?.status === 401 || e?.response?.status === 403) setPastDrops(mapOrders(loadGuest()));
         else console.error("Failed to fetch past drops", err);
       } finally {
         setIsLoadingDrops(false);

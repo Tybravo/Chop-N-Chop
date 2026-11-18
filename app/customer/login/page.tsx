@@ -12,8 +12,9 @@ import { useCartStore } from "@/store/useCartStore";
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
 function LoginContent() {
-  const cacheAvatar = (data: unknown) => {
-    const pic = data?.profilePictureUrl || data?.profileImageUrl || data?.pictureUrl || data?.avatarUrl || data?.picture || data?.avatar || data?.imageUrl || data?.photo || data?.user?.profilePictureUrl || data?.user?.avatarUrl || data?.user?.picture;
+  const cacheAvatar = (data: Record<string, unknown>) => {
+    const u = data?.user as Record<string,unknown> | undefined;
+    const pic = data?.profilePictureUrl || data?.profileImageUrl || data?.pictureUrl || data?.avatarUrl || data?.picture || data?.avatar || data?.imageUrl || data?.photo || u?.profilePictureUrl || u?.avatarUrl || u?.picture;
     if (pic && typeof pic === "string") localStorage.setItem("chopnchop_avatar", pic);
   };
 
