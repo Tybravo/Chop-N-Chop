@@ -250,13 +250,12 @@ export default function UpdateZoneTab() {
                           </button>
                           <button
                             onClick={() => handleDeleteClick(zone)}
-                            disabled={zone.status !== "INACTIVE"}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
                               zone.status === "INACTIVE"
                                 ? "text-white bg-red-600 border-b-4 border-red-800 shadow-md hover:bg-red-500 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm"
-                                : "text-gray-300 cursor-not-allowed"
+                                : "text-red-500/70 border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
                             }`}
-                            title={zone.status === "INACTIVE" ? "Delete zone" : "Zone must be inactive to delete"}
+                            title={zone.status === "INACTIVE" ? "Delete zone" : "Deactivate zone to allow deletion"}
                           >
                             <Trash2 className="w-4 h-4" />
                             Delete
@@ -308,11 +307,10 @@ export default function UpdateZoneTab() {
                   </button>
                   <button
                     onClick={() => handleDeleteClick(zone)}
-                    disabled={zone.status !== "INACTIVE"}
                     className={`w-full flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
                       zone.status === "INACTIVE"
                         ? "text-white bg-red-600 border-b-4 border-red-800 shadow-md hover:bg-red-500 hover:border-red-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-2 active:shadow-sm"
-                        : "text-gray-300 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+                        : "text-red-500 border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
                     }`}
                   >
                     <Trash2 className="w-4 h-4" /> Delete
@@ -505,9 +503,10 @@ export default function UpdateZoneTab() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Cannot Delete Zone</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  &quot;{(deleteTarget as Zone & { _blocked?: boolean }).name || "This zone"}&quot; must be{" "}
-                  <span className="font-semibold text-red-500">Inactive</span> before it can be deleted.
-                  Change its status first.
+                  &quot;{(deleteTarget as Zone & { _blocked?: boolean }).name}&quot; is currently{" "}
+                  <span className="font-semibold text-green-600 dark:text-green-400">Active</span>. You need to{" "}
+                  <span className="font-semibold text-[#FC6B31]">deactivate</span> the zone first before it can be
+                  deleted.
                 </p>
                 <button
                   onClick={() => setDeleteTarget(null)}

@@ -22,7 +22,9 @@ import {
   Bell,
   Shield,
   Activity,
-  Layers
+  Layers,
+  Warehouse,
+  Clock3
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
@@ -42,6 +44,8 @@ const MENU_ITEMS: MenuItem[] = [
   { name: "Vendors", href: "/admin/dashboard/vendors", icon: Store },
   { name: "Riders", href: "/admin/dashboard/riders", icon: Truck },
   { name: "Manage Zone", href: "/admin/zones", icon: MapPin },
+  { name: "Manage Hub", href: "/admin/hubs", icon: Warehouse },
+  { name: "Drop Off Window", href: "/admin/drop-window", icon: Clock3 },
   { name: "Transactions", href: "/admin/dashboard/transactions", icon: CreditCard },
   { name: "Delivery Status", href: "/admin/delivery", icon: Crosshair },
   { name: "Analytics", href: "/admin/dashboard/analytics", icon: BarChart3 },

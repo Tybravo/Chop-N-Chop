@@ -208,3 +208,88 @@ export interface UpdateZonePayload {
   boundaryWkt: string;
 }
 
+export interface OpeningTime {
+  hour: number;
+  minute: number;
+  second: number;
+  nano: number;
+}
+
+export interface Hub {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  status: "ACTIVE" | "INACTIVE";
+  openingTime: OpeningTime;
+  closingTime: OpeningTime;
+}
+
+export interface CreateHubPayload {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  /** Backend expects LocalTime as a "HH:mm:ss" string. */
+  openingTime: string;
+  closingTime: string;
+}
+
+export interface UpdateHubPayload {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  /** Backend expects LocalTime as a "HH:mm:ss" string. */
+  openingTime: string;
+  closingTime: string;
+}
+
+// ---------------------------------------------------------------------------
+// Admin Drop Off Windows
+// ---------------------------------------------------------------------------
+
+export type DropWindowType = "BREAKFAST" | "LUNCH" | "DINNER" | "ALL_DAY";
+
+export const DROP_WINDOW_TYPES: DropWindowType[] = [
+  "BREAKFAST",
+  "LUNCH",
+  "DINNER",
+  "ALL_DAY",
+];
+
+/** Date-only in "YYYY-MM-DD" (ISO), e.g. "2026-01-28". */
+export interface ConfigureDropWindowRequest {
+  date: string;
+  /**
+   * The delivery windows this period applies to.
+   * Exactly the windows the admin selected via the chip selector.
+   */
+  windowTypes: DropWindowType[];
+  /** Time From as 24-hour "HH:mm:ss" (converted from 12-hour AM/PM UI). */
+  timeFrom: string;
+  /** Time To as 24-hour "HH:mm:ss" (converted from 12-hour AM/PM UI). */
+  timeTo: string;
+}
+
+export interface DropWindowResponse {
+  id: string;
+  date: string;
+  windowType: DropWindowType;
+  /** 24-hour "HH:mm:ss" from the backend. */
+  timeFrom: string;
+  /** 24-hour "HH:mm:ss" from the backend. */
+  timeTo: string;
+  status?: string;
+}
+

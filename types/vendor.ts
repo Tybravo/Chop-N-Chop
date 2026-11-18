@@ -218,3 +218,54 @@ export interface VendorResetPinResponse {
     [key: string]: unknown;
   };
 }
+
+// ==========================================
+// Vendor Location — Hub / Zone update
+// ==========================================
+
+/** A hub as returned by GET /api/v1/vendors/hubs (active hubs only). */
+export interface VendorHub {
+  id: string;
+  name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  status?: string;
+}
+
+/** An active zone belonging to a hub, GET /api/v1/vendors/hubs/{hubId}/zones. */
+export interface VendorZone {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  hubId?: string;
+  status?: string;
+  baseDeliveryFee?: number;
+  estimatedDeliveryMinutes?: number;
+}
+
+/** Payload for PATCH /api/v1/vendors/me/hubs/{hubId}/zones. */
+export interface VendorLocationPayload {
+  hubId: string;
+  zoneId: string;
+}
+
+/** The vendor's current hub/zone assignment (from their profile/store). */
+export interface VendorCurrentLocation {
+  hubId?: string;
+  hubName?: string;
+  zoneId?: string;
+  zoneName?: string;
+}
+
+/** Response from POST /api/v1/zones/resolve (GPS -> zone). */
+export interface ResolvedZone {
+  zoneId: string;
+  zoneName: string;
+  zoneCode?: string;
+  hubId: string;
+  baseDeliveryFee?: number;
+  estimatedDeliveryMinutes?: number;
+}
