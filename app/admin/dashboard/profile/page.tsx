@@ -121,6 +121,20 @@ export default function ProfilePage() {
       });
       
       setLiveProfile(updatedProfile);
+      
+      // Sync the updated name to the auth context so the sidebar header and
+      // navbar immediately reflect the change (the page re-fetch also happens
+      // on reload, but updateUser keeps it live without one).
+      const updatedFullName = [updatedProfile.firstName, updatedProfile.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      updateUser({
+        name: updatedFullName || user?.name || "Admin",
+        email: updatedProfile.email || user?.email,
+        avatarUrl: updatedProfile.profilePictureUrl || user?.avatarUrl,
+      });
+      
       setUpdateSuccess("Profile updated successfully!");
       
     } catch (error: unknown) {

@@ -20,7 +20,7 @@ const categorySchema = z.object({
     .nonempty("Name is required"),
   imageUrl: z.string().optional().or(z.literal("")),
   description: z.string()
-    .max(255, "Description cannot exceed 255 characters")
+    .max(250, "Description cannot exceed 250 characters")
     .optional()
     .or(z.literal("")),
   displayOrder: z.number()
@@ -75,6 +75,19 @@ export default function CreateCategoryPage() {
   });
 
   const watchImageUrl = watch("imageUrl");
+  const watchDescription = watch("description") ?? "";
+  const noticeRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll the error/success messages into view whenever they appear so
+  // the user always sees the latest result after clicking "Create Category".
+  useEffect(() => {
+    if (submitError || submitSuccess) {
+      noticeRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [submitError, submitSuccess]);
 
   const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,11 +129,22 @@ export default function CreateCategoryPage() {
         name: data.name,
         description: data.description,
         displayOrder: data.displayOrder,
+        // Note: the backend's CreateCategoryRequest doesn't currently accept an
+        // `active` field, so it always creates categories as active. If the admin
+        // toggled the status to Inactive, apply that status right after creation.
+        active: data.active,
       });
-      
-      // If the endpoint actually takes 'active', we might need to send it if supported.
-      // We pass the fields defined in our CreateCategoryPayload, and since 'active' might be default true on backend, 
-      // or we can pass it if we update the Payload type.
+
+      if (newCategory?.id && data.active === false) {
+        try {
+          await categoryService.toggleCategoryStatus(newCategory.id, false);
+        } catch (statusError) {
+          console.warn(
+            "Category created but failed to apply Inactive status:",
+            statusError
+          );
+        }
+      }
 
       // If there's a pending image, upload it using the new category's ID
       if (pendingImageFile) {
@@ -184,17 +208,19 @@ export default function CreateCategoryPage() {
       </div>
 
       {/* Notifications */}
-      {submitError && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-900/30 text-sm font-medium">
-          {submitError}
-        </div>
-      )}
-      
-      {submitSuccess && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg border border-green-100 dark:border-green-900/30 text-sm font-medium">
-          Category created successfully. Redirecting...
-        </div>
-      )}
+      <div ref={noticeRef}>
+        {submitError && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-900/30 text-sm font-medium">
+            {submitError}
+          </div>
+        )}
+        
+        {!submitError && submitSuccess && (
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg border border-green-100 dark:border-green-900/30 text-sm font-medium">
+            Category created successfully. Redirecting...
+          </div>
+        )}
+      </div>
 
       {/* Form */}
       <div className="bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 md:p-8">
@@ -224,13 +250,13 @@ export default function CreateCategoryPage() {
               </label>
               
               <div className="flex items-center gap-4">
-                <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
+                <div className="relative w-20 h-11 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
                   {previewUrl ? (
                     <Image
                       src={previewUrl}
                       alt="Category Preview"
                       fill
-                      sizes="48px"
+                      sizes="80px"
                       className="object-cover"
                       unoptimized
                     />
@@ -239,12 +265,12 @@ export default function CreateCategoryPage() {
                       src={watchImageUrl}
                       alt="Category"
                       fill
-                      sizes="48px"
+                      sizes="80px"
                       className="object-cover"
                       unoptimized
                     />
                   ) : (
-                    <Utensils className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                    <Utensils className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                   )}
                 </div>
                 <div>
@@ -272,12 +298,18 @@ export default function CreateCategoryPage() {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Description
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Description
+              </label>
+              <span className={`text-xs font-medium tabular-nums ${errors.description ? "text-red-500" : "text-gray-400 dark:text-gray-500"}`}>
+                {watchDescription.length}/250
+              </span>
+            </div>
             <textarea
               id="description"
               rows={3}
+              maxLength={250}
               placeholder="e.g. Traditional rice dishes and combinations."
               {...register("description")}
               className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-black border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] dark:text-white transition-all resize-none ${

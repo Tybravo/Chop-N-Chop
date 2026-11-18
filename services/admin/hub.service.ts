@@ -46,7 +46,15 @@ export const hubService = {
     try {
       const response = await adminApiClient.get("/api/v1/admin/hubs");
       // Normalize wrapped/nested responses into a flat array of hubs.
-      return extractHubArray(response.data?.data ?? response.data);
+      const raw = response.data?.data ?? response.data;
+      const hubs = extractHubArray(raw);
+      if (hubs.length === 0) {
+        // Surface the raw payload only when nothing could be parsed so an empty
+        // list is never a silent failure — helps confirm whether the backend
+        // actually returned hubs or an unexpected wrapper shape.
+        console.warn("[hubService.getHubs] parsed 0 hubs. raw payload:", raw);
+      }
+      return hubs;
     } catch (error) {
       throw new Error(formatApiError(error, "Failed to fetch hubs"));
     }

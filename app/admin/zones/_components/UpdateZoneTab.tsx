@@ -2,11 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { zoneService } from "@/services/admin/zone.service";
-import { Zone } from "@/types/admin";
+import { hubService } from "@/services/admin/hub.service";
+import { Zone, Hub } from "@/types/admin";
 import { Eye, Edit, Trash2, X, Loader2, MapPin, AlertTriangle, Save, CheckCircle2, AlertCircle } from "lucide-react";
+
+// Resolve a hub's display name from its ID using a case-insensitive match so a
+// UUID with different casing still maps to the right hub name.
+function resolveHubName(hubs: Hub[], hubId?: string | null): string {
+  if (!hubId) return "No hub assigned";
+  const lowered = String(hubId).toLowerCase();
+  const hub = hubs.find((h) => String(h.id).toLowerCase() === lowered);
+  return hub?.name || "Unknown Hub";
+}
 
 export default function UpdateZoneTab() {
   const [zones, setZones] = useState<Zone[]>([]);
+  const [hubs, setHubs] = useState<Hub[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -17,6 +28,7 @@ export default function UpdateZoneTab() {
     name: "",
     code: "",
     description: "",
+    hubId: "",
     baseDeliveryFee: "",
     estimatedDeliveryMinutes: "",
   });
@@ -41,6 +53,15 @@ export default function UpdateZoneTab() {
 
   useEffect(() => {
     loadZones();
+    const loadHubs = async () => {
+      try {
+        const data = await hubService.getHubs();
+        setHubs(data);
+      } catch (err) {
+        console.error("Failed to load hubs for zone edit:", err);
+      }
+    };
+    loadHubs();
   }, []);
 
   // ---- View ----
@@ -58,13 +79,36 @@ export default function UpdateZoneTab() {
   const handleCloseView = () => setViewZone(null);
 
   // ---- Edit ----
-  const handleEditClick = (zone: Zone) => {
+  const handleEditClick = async (zone: Zone) => {
     setEditMessage(null);
     setEditZone(zone);
+
+    // Always fetch a fresh hub list when opening the editor so the Assign Hub
+    // dropdown is populated (it may be empty if the initial fetch failed or was
+    // skipped while the component was still loading zones).
+    let hubsList = hubs;
+    try {
+      const data = await hubService.getHubs();
+      hubsList = data ?? [];
+      setHubs(hubsList);
+    } catch (err) {
+      console.error("Failed to load hubs for zone edit:", err);
+    }
+
+    // Normalize the zone's stored hubId to the exact id casing of a matching
+    // hub so the <select> preselects the current hub (native selects only match
+    // by exact string). Otherwise it falls back to the "Select a hub..." option.
+    const storedHubId = zone.hubId || "";
+    const normalizedHubId =
+      hubsList.find(
+        (h) => String(h.id).toLowerCase() === String(storedHubId).toLowerCase()
+      )?.id || storedHubId;
+
     setEditForm({
       name: zone.name || "",
       code: zone.code || "",
       description: zone.description || "",
+      hubId: normalizedHubId,
       baseDeliveryFee: zone.baseDeliveryFee?.toString() || "0",
       estimatedDeliveryMinutes: zone.estimatedDeliveryMinutes?.toString() || "0",
     });
@@ -82,7 +126,7 @@ export default function UpdateZoneTab() {
         description: editForm.description,
         baseDeliveryFee: Number(editForm.baseDeliveryFee),
         estimatedDeliveryMinutes: Number(editForm.estimatedDeliveryMinutes),
-        hubId: editZone.hubId || "00000000-0000-0000-0000-000000000000",
+        hubId: editForm.hubId || "00000000-0000-0000-0000-000000000000",
         boundaryWkt: "POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))",
       };
 
@@ -375,8 +419,10 @@ export default function UpdateZoneTab() {
                   <p className="font-semibold text-gray-900 dark:text-white">{viewZone.estimatedDeliveryMinutes ?? "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">Hub ID</p>
-                  <p className="font-semibold text-gray-900 dark:text-white break-all">{viewZone.hubId || "N/A"}</p>
+                  <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">Assigned Hub</p>
+                  <p className="font-semibold text-gray-900 dark:text-white break-all">
+                    {resolveHubName(hubs, viewZone.hubId)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -435,6 +481,23 @@ export default function UpdateZoneTab() {
                     className="w-full p-2.5 bg-gray-50 dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] dark:text-white"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  Assign Hub <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editForm.hubId}
+                  onChange={(e) => setEditForm({ ...editForm, hubId: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FC6B31] dark:text-white dark:[&>option]:bg-gray-900"
+                >
+                  <option value="">Select a hub...</option>
+                  {hubs.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {h.name} {h.address ? `- ${h.address}` : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
