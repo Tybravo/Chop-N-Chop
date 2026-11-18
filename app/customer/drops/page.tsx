@@ -106,11 +106,11 @@ export default function DropsPage() {
   const [isLoadingDrops, setIsLoadingDrops] = useState(true);
 
   useEffect(() => {
-    const mapOrders = (orders: any[]): PastDrop[] => orders.map((ord: any) => {
+    const mapOrders = (orders: unknown[]): PastDrop[] => orders.map((ord: unknown) => {
       const items = Array.isArray(ord.items) ? ord.items : [];
       const firstItem = items[0]?.name || items[0]?.mealName || "Order";
       const meal = items.length > 1 ? `${firstItem} (${items.length} items)` : firstItem;
-      const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+      const subtotal = items.reduce((sum: number, item: unknown) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
       const deliveryFee = Number(ord.deliveryFee || ord.delivery_fee || 0);
       return {
         id: String(ord.id || ord.orderId || ""),
@@ -120,7 +120,7 @@ export default function DropsPage() {
         status: ord.status || "Delivered", subtotal, deliveryFee,
         paymentMethod: ord.paymentMethod || "Card",
         address: ord.deliveryAddress || ord.address || "",
-        items: items.map((item: any, i: number) => ({
+        items: items.map((item: unknown, i: number) => ({
           id: item.id || i + 1, name: item.name || item.mealName || "Item",
           desc: item.description || item.desc || "", qty: Number(item.quantity || 1), price: Number(item.price || 0),
         })),
@@ -137,7 +137,7 @@ export default function DropsPage() {
         const orders = res.data?.content || res.data?.data || res.data || [];
         if (Array.isArray(orders) && orders.length > 0) setPastDrops(mapOrders(orders));
         else setPastDrops(mapOrders(loadGuest()));
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (err?.response?.status === 401 || err?.response?.status === 403) setPastDrops(mapOrders(loadGuest()));
         else console.error("Failed to fetch past drops", err);
       } finally {

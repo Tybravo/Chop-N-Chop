@@ -45,7 +45,7 @@ export default function CartPage() {
         const res = await customerApiClient.get("/api/v1/user/addresses");
         const data = res.data?.data || res.data || [];
         if (Array.isArray(data) && data.length > 0) {
-          setAddresses(data.map((a: any, i: number) => ({
+          setAddresses(data.map((a: unknown, i: number) => ({
             id: a.id || i + 1,
             type: a.label || a.type || "Address",
             location: a.address || a.street || a.location || "",

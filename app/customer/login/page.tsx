@@ -12,7 +12,7 @@ import { useCartStore } from "@/store/useCartStore";
 type AuthStep = "EMAIL" | "PIN" | "OTP";
 
 function LoginContent() {
-  const cacheAvatar = (data: any) => {
+  const cacheAvatar = (data: unknown) => {
     const pic = data?.profilePictureUrl || data?.profileImageUrl || data?.pictureUrl || data?.avatarUrl || data?.picture || data?.avatar || data?.imageUrl || data?.photo || data?.user?.profilePictureUrl || data?.user?.avatarUrl || data?.user?.picture;
     if (pic && typeof pic === "string") localStorage.setItem("chopnchop_avatar", pic);
   };

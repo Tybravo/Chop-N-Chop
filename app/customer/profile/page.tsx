@@ -60,7 +60,7 @@ const decodeJwtPayload = (token: string) => {
   }
 };
 
-const extractAvatar = (obj: any): string | null => {
+const extractAvatar = (obj: unknown): string | null => {
   if (!obj) return null;
   const o = obj?.data?.user || obj?.data || obj?.user || obj;
   const pic = o?.profilePictureUrl || o?.profileImageUrl || o?.pictureUrl || o?.avatarUrl || o?.avatar || o?.picture || o?.imageUrl || o?.photo || o?.profile_picture || o?.profilePic;

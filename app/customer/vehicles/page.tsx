@@ -324,7 +324,7 @@ export default function VehiclesPage() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 id="vehicle-dialog-title" className="text-[18px] font-extrabold text-gray-900 dark:text-white">
-                  "Add saved vehicle"
+                  &quot;Add saved vehicle&quot;
                 </h2>
                 <p className="mt-1 text-[13px] text-gray-500">Use the details staff will see during pickup.</p>
               </div>

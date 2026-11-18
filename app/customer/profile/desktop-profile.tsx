@@ -352,7 +352,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
         const res = await customerApiClient.get("/api/v1/orders/mine", { params: { page: 0, size: 20 } });
         const orders = res.data?.content || res.data || [];
         const seen = new Set<string>(); const meals: Record<string, unknown>[] = [];
-        (Array.isArray(orders) ? orders : []).forEach((o: any) => (Array.isArray(o.items) ? o.items : []).forEach((it: any) => {
+        (Array.isArray(orders) ? orders : []).forEach((o: unknown) => (Array.isArray(o.items) ? o.items : []).forEach((it: unknown) => {
           const id = String(it.productId || it.dishId || it.id || it.name || "");
           if (!id || seen.has(id)) return; seen.add(id);
           meals.push({ id, name: it.name || "Meal", vendor: it.vendorName || "Vendor", price: it.unitPrice || it.totalPrice || 0 });
@@ -646,7 +646,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {hubs.map((hub: any) => (
+                  {hubs.map((hub: unknown) => (
                     <div key={String(hub.id)} className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/30">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FC6B31]/10 text-[#FC6B31]"><MapPin className="h-5 w-5" /></div>
                       <div className="min-w-0">
@@ -729,7 +729,7 @@ export default function DesktopProfileDashboard({ profile, isLoading, avatarUrl,
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {favorites.map((m: any) => (
+                  {favorites.map((m: unknown) => (
                     <button key={String(m.id)} type="button" onClick={() => router.push(String(m.id).includes("-") ? `/customer/meals/${m.id}` : "/customer/explore")}
                       className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-left hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-800/30">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-950/20"><Heart className="h-4 w-4" /></div>

@@ -71,7 +71,7 @@ export default function ExplorePage() {
         if (Array.isArray(data) && data.length > 0) {
           setCategories([
             { id: "all", name: "All", icon: "🍽️" },
-            ...data.map((cat: any) => ({
+            ...data.map((cat: unknown) => ({
               id: cat.id || cat.name,
               name: cat.name,
               icon: cat.icon || "🍽️",
@@ -98,8 +98,8 @@ export default function ExplorePage() {
         const flattenedMeals: Meal[] = [];
         const vendorMap = new Map<string, { id: string; name: string }>();
         
-        menuData?.categories?.forEach((categoryChunk: any) => {
-          categoryChunk?.products?.forEach((product: any) => {
+        menuData?.categories?.forEach((categoryChunk: unknown) => {
+          categoryChunk?.products?.forEach((product: unknown) => {
             const vendorName = product.vendorName || "Vendor";
             const vendorId = product.vendorId || vendorName;
             if (!vendorMap.has(vendorId)) vendorMap.set(vendorId, { id: vendorId, name: vendorName });
@@ -112,7 +112,7 @@ export default function ExplorePage() {
               image: product.imageUrl || "/hero-food-illustration.png",
             });
           });
-          categoryChunk?.preparedDishes?.forEach((dish: any) => {
+          categoryChunk?.preparedDishes?.forEach((dish: unknown) => {
             if (!dish.baseProductId) {
               const vendorName = dish.vendorName || "Vendor";
               const vendorId = dish.vendorId || vendorName;
