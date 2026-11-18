@@ -27,7 +27,7 @@ export interface Zone {
 }
 
 const publicApiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -56,7 +56,7 @@ export const zoneService = {
       return Array.isArray(response.data) ? response.data : response.data?.content || [];
     } catch {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com"}/api/v1/zones`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com"}/api/v1/zones`, {
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",

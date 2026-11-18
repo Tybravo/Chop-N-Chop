@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://afia-a2le.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://drive-thru-afia.onrender.com";
 
 export type AppNotification = {
   id: string;
