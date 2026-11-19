@@ -53,6 +53,8 @@ function VerifyOtpForm() {
     setIsResending(true);
     setResendMessage("");
     setError("");
+    // Clear the previously entered OTP boxes on resend
+    setOtp(["", "", "", "", "", ""]);
 
     try {
       // Decode the URL-encoded email parameter to ensure it's a valid email string
@@ -105,7 +107,9 @@ function VerifyOtpForm() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Clear any previous error/success message before a new action
     setError("");
+    setResendMessage("");
 
     const otpValue = otp.join("");
 

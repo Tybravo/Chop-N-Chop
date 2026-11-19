@@ -75,15 +75,29 @@ function ResetPinContent() {
     }
   };
 
+  const clearMessages = () => {
+    setError("");
+    setSuccessMsg("");
+  };
+
+  const clearPins = () => {
+    setNewPin("");
+    setConfirmPin("");
+  };
+
   const handleResend = async () => {
     if (!email || resending) return;
     
-    setError("");
-    setSuccessMsg("");
+    clearMessages();
+    // Clear the previously entered OTP and PIN boxes on resend
+    setOtp(["", "", "", "", "", ""]);
+    clearPins();
     setResending(true);
     
     try {
       await authService.initiateRecovery({ email });
+      // Focus the first OTP box after clearing
+      inputRefs.current[0]?.focus();
       setSuccessMsg("Code resent successfully! Check your email.");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -98,7 +112,8 @@ function ResetPinContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    // Clear any previous success/error message before a new action
+    clearMessages();
 
     const fullOtp = otp.join("");
     

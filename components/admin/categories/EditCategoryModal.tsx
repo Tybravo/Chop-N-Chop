@@ -7,6 +7,9 @@ import Image from "next/image";
 import { MealCategory } from "@/types/category";
 import { categoryService } from "@/services/admin/category.service";
 import { ImageCropperModal } from "./ImageCropperModal";
+import { ImageViewerModal } from "./ImageViewerModal";
+
+import { ZoomIn } from "lucide-react";
 
 const editCategorySchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50).trim().nonempty("Name is required"),
@@ -37,6 +40,7 @@ export function EditCategoryModal({ category, isOpen, onClose, onSuccess }: Edit
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -189,16 +193,31 @@ export function EditCategoryModal({ category, isOpen, onClose, onSuccess }: Edit
                 Category Image
               </label>
               <div className="flex items-center gap-4">
-                <div className="relative h-16 w-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentImg = previewUrl || watchImageUrl;
+                    if (currentImg) setIsViewerOpen(true);
+                  }}
+                  className={`relative w-28 h-[60px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 ${
+                    previewUrl || watchImageUrl ? "cursor-zoom-in" : "cursor-default"
+                  }`}
+                  title={previewUrl || watchImageUrl ? "Click to view larger image" : "No image available"}
+                >
                   {previewUrl ? (
-                    <Image src={previewUrl} alt="Category Preview" fill sizes="64px" className="object-cover" unoptimized />
+                    <Image src={previewUrl} alt="Category Preview" fill sizes="112px" className="object-cover" unoptimized />
                   ) : watchImageUrl ? (
-                    <Image src={watchImageUrl} alt="Category" fill sizes="64px" className="object-cover" unoptimized />
+                    <Image src={watchImageUrl} alt="Category" fill sizes="112px" className="object-cover" unoptimized />
                   ) : (
                     <Utensils className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   )}
-                </div>
-                <div>
+                  {(previewUrl || watchImageUrl) && (
+                    <span className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <ZoomIn className="w-5 h-5 text-white" />
+                    </span>
+                  )}
+                </button>
+                <div className="flex flex-col gap-2">
                   <input type="file" ref={fileInputRef} onChange={handlePictureChange} accept="image/jpeg, image/png, image/gif" className="hidden" />
                   <button 
                     type="button"
@@ -209,6 +228,16 @@ export function EditCategoryModal({ category, isOpen, onClose, onSuccess }: Edit
                     {isUploadingPicture ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     {isUploadingPicture ? "Uploading..." : "Change Image"}
                   </button>
+                  {(previewUrl || watchImageUrl) && (
+                    <button
+                      type="button"
+                      onClick={() => setIsViewerOpen(true)}
+                      className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                      View Image
+                    </button>
+                  )}
                 </div>
               </div>
               {pictureError && <p className="mt-1.5 text-xs text-red-500 font-medium">{pictureError}</p>}
@@ -274,6 +303,13 @@ export function EditCategoryModal({ category, isOpen, onClose, onSuccess }: Edit
           onCropComplete={handleCropComplete}
         />
       )}
+
+      <ImageViewerModal
+        isOpen={isViewerOpen}
+        imageUrl={previewUrl || watchImageUrl}
+        alt={category.name}
+        onClose={() => setIsViewerOpen(false)}
+      />
     </div>
   );
 }

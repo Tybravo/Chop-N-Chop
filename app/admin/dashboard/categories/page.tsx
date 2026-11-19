@@ -9,6 +9,7 @@ import { MealCategory } from "@/types/category";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EditCategoryModal } from "@/components/admin/categories/EditCategoryModal";
 import { DeleteCategoryModal } from "@/components/admin/categories/DeleteCategoryModal";
+import { ImageViewerModal } from "@/components/admin/categories/ImageViewerModal";
 import Image from "next/image";
 
 export default function CategoriesPage() {
@@ -30,6 +31,7 @@ export default function CategoriesPage() {
   // Modals state
   const [editingCategory, setEditingCategory] = useState<MealCategory | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<MealCategory | null>(null);
+  const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
 
   const fetchCategories = async () => {
     try {
@@ -251,15 +253,24 @@ export default function CategoriesPage() {
                       <tr key={category.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-xl overflow-hidden border border-gray-100 dark:border-gray-800">
-                              {category.imageUrl ? (
-                                <Image src={category.imageUrl} alt={category.name} fill sizes="40px" className="object-cover" unoptimized />
-                              ) : category.icon ? (
-                                category.icon
-                              ) : (
-                                '🥘'
-                              )}
-                            </div>
+                              <button
+                                type="button"
+                                onClick={() => category.imageUrl && setViewingImage({ url: category.imageUrl, name: category.name })}
+                                className={`relative w-20 h-11 rounded-lg flex items-center justify-center text-xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 active:scale-95 ${
+                                  category.imageUrl
+                                    ? "bg-orange-50 dark:bg-orange-900/20 cursor-zoom-in"
+                                    : "bg-orange-50 dark:bg-orange-900/20 cursor-default"
+                                }`}
+                                title={category.imageUrl ? "Click to view larger image" : "No image available"}
+                              >
+                                {category.imageUrl ? (
+                                  <Image src={category.imageUrl} alt={category.name} fill sizes="80px" className="object-cover" unoptimized />
+                                ) : category.icon ? (
+                                  category.icon
+                                ) : (
+                                  '🥘'
+                                )}
+                              </button>
                             <span className="font-semibold text-gray-900 dark:text-white">
                               {category.name}
                             </span>
@@ -325,15 +336,24 @@ export default function CategoriesPage() {
                 <div key={category.id} className="bg-white dark:bg-[#26292C] rounded-xl shadow-sm border border-[#FC6B31]/30 dark:border-[#FC6B31]/30 p-4 transition-all duration-300 hover:border-[#FC6B31] hover:shadow-xl hover:-translate-y-1">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative w-12 h-12 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
+                      <button
+                        type="button"
+                        onClick={() => category.imageUrl && setViewingImage({ url: category.imageUrl, name: category.name })}
+                        className={`relative w-24 h-[52px] rounded-lg flex items-center justify-center text-2xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 active:scale-95 ${
+                          category.imageUrl
+                            ? "bg-orange-50 dark:bg-orange-900/20 cursor-zoom-in"
+                            : "bg-orange-50 dark:bg-orange-900/20 cursor-default"
+                        }`}
+                        title={category.imageUrl ? "Click to view larger image" : "No image available"}
+                      >
                         {category.imageUrl ? (
-                          <Image src={category.imageUrl} alt={category.name} fill sizes="48px" className="object-cover" unoptimized />
+                          <Image src={category.imageUrl} alt={category.name} fill sizes="96px" className="object-cover" unoptimized />
                         ) : category.icon ? (
                           category.icon
                         ) : (
                           '🥘'
                         )}
-                      </div>
+                      </button>
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-white text-lg">{category.name}</h3>
                         <span className={`inline-flex mt-1 items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
@@ -456,6 +476,15 @@ export default function CategoriesPage() {
             setCategories(prev => prev.filter(c => c.id !== deletedId));
             setDeletingCategory(null);
           }}
+        />
+      )}
+
+      {viewingImage && (
+        <ImageViewerModal
+          isOpen={true}
+          imageUrl={viewingImage.url}
+          alt={viewingImage.name}
+          onClose={() => setViewingImage(null)}
         />
       )}
     </div>
