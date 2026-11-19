@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/vendor/auth.service";
-import { Loader2, X, Store, Mail, Phone, Lock, Tag, Map, FileText, Eye, EyeOff } from "lucide-react";
+import { Loader2, X, Store, Mail, Phone, Lock, Tag, FileText, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import PortalTopBar from "@/components/PortalTopBar";
 
@@ -13,10 +13,10 @@ export default function VendorRegisterPage() {
     ownerName: "",
     businessName: "",
     email: "",
-    contactPhone: "",
+    personalPhone: "",
+    businessPhone: "",
     pin: "",
     confirmPin: "",
-    kitchenLocation: "",
     businessCategory: "",
     businessDescription: "",
   });
@@ -45,11 +45,11 @@ export default function VendorRegisterPage() {
       return;
     }
 
-    // Phone field: allow digits only, max 11 figures, and surface an error if characters are typed.
-    if (name === "contactPhone") {
+    // Phone fields: allow digits only, max 11 figures, and surface an error if characters are typed.
+    if (name === "personalPhone" || name === "businessPhone") {
       const sanitized = value.replace(/\D/g, "").slice(0, 11);
       if (sanitized !== value) {
-        setError("Phone number must contain only digits (0-9).");
+        setError("Phone numbers must contain only digits (0-9).");
       }
       setFormData({ ...formData, [name]: sanitized });
       return;
@@ -62,9 +62,14 @@ export default function VendorRegisterPage() {
     e.preventDefault();
     setError("");
 
-    // Phone number: must be exactly 11 digits.
-    if (!/^\d{11}$/.test(formData.contactPhone)) {
-      setError("Phone number must be exactly 11 digits (0-9).");
+    // Phone numbers: must be exactly 11 digits.
+    if (!/^\d{11}$/.test(formData.personalPhone)) {
+      setError("Personal phone number must be exactly 11 digits (0-9).");
+      return;
+    }
+
+    if (!/^\d{11}$/.test(formData.businessPhone)) {
+      setError("Business phone number must be exactly 11 digits (0-9).");
       return;
     }
 
@@ -89,9 +94,9 @@ export default function VendorRegisterPage() {
         ownerName: formData.ownerName,
         businessName: formData.businessName,
         email: formData.email,
-        contactPhone: formData.contactPhone,
+        personalPhone: formData.personalPhone,
+        businessPhone: formData.businessPhone,
         pin: formData.pin,
-        kitchenLocation: formData.kitchenLocation,
         businessCategory: formData.businessCategory,
         businessDescription: formData.businessDescription,
       });
@@ -115,7 +120,7 @@ export default function VendorRegisterPage() {
       <div className="hidden md:flex md:flex-col md:w-1/2 bg-[#FC6B31] items-center justify-start pt-32 lg:pt-48 px-12 pb-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/file.svg')] bg-cover"></div>
         <div className="relative z-10 max-w-lg flex flex-col items-center text-center">
-          <h1 className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chopnchop</h1>
+          <h1 className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight">Grow Your Business with Chop n&apos; chop</h1>
           <p className="text-lg lg:text-xl opacity-90 leading-relaxed">
             Join our platform to reach thousands of customers, manage orders seamlessly, and track your revenue in real-time.
           </p>
@@ -163,14 +168,25 @@ export default function VendorRegisterPage() {
                 </div>
               </div>
 
-              {/* Phone */}
+              {/* Personal Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Personal Phone</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Phone className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} inputMode="numeric" autoComplete="tel" maxLength={11} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type="tel" name="personalPhone" value={formData.personalPhone} onChange={handleChange} inputMode="numeric" autoComplete="tel" maxLength={11} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                </div>
+              </div>
+
+              {/* Business Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Phone</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input type="tel" name="businessPhone" value={formData.businessPhone} onChange={handleChange} inputMode="numeric" autoComplete="tel" maxLength={11} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                 </div>
               </div>
             </div>
@@ -210,22 +226,6 @@ export default function VendorRegisterPage() {
                   <button type="button" onClick={() => setShowConfirmPin(!showConfirmPin)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none">
                     {showConfirmPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Address & Location */}
-            <div className="grid grid-cols-1 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kitchen Location (LGA)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Map className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select name="kitchenLocation" value={formData.kitchenLocation} onChange={handleChange} required className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-[#FC6B31] focus:border-[#FC6B31] bg-white dark:bg-gray-800 text-gray-900 dark:text-white appearance-none">
-                    <option value="" disabled>Select Kitchen Location...</option>
-                    <option value="Lagos Mainland">Lagos Mainland</option>
-                  </select>
                 </div>
               </div>
             </div>

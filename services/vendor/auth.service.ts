@@ -56,11 +56,10 @@ interface RegisterPayload {
   ownerName?: string;
   businessName: string;
   email: string;
-  contactPhone: string;
+  personalPhone: string;
+  businessPhone: string;
   pin?: string;
   brand?: string;
-  hubId?: string;
-  kitchenLocation?: string;
   businessCategory?: string;
   businessDescription?: string;
 }
@@ -179,10 +178,10 @@ export const authService = {
         ownerName: payload.ownerName,
         businessName: payload.businessName,
         email: payload.email,
-        contactPhone: payload.contactPhone,
+        personalPhone: payload.personalPhone,
+        businessPhone: payload.businessPhone,
         pin: payload.pin,
-        brand: "CHOP_N_CHOP",
-        kitchenLocation: payload.kitchenLocation,
+        brand: payload.brand || "CHOP_N_CHOP",
         businessCategory: payload.businessCategory && payload.businessCategory.trim() !== "" 
           ? payload.businessCategory 
           : "Not Available",
